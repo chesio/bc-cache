@@ -1,0 +1,77 @@
+/* Toolbar flush icon */
+#wp-admin-bar-bc-cache {
+	display: list-item !important;
+	cursor: pointer;
+
+	position: relative;
+}
+#wp-admin-bar-bc-cache .ab-empty-item {
+	cursor: inherit;
+	position: relative;
+}
+#wp-admin-bar-bc-cache .ab-icon {
+	margin:0 !important;
+}
+#wp-admin-bar-bc-cache .ab-icon:before {
+	content: "\f182";
+	top: 2px;
+	margin: 0;
+}
+
+/* Toolbar working icon (spinner) */
+#wp-admin-bar-bc-cache .bc-cache-spinner {
+	display: none;
+
+	height: 10px;
+	width: 10px;
+
+	border: 3px solid #efefef;
+	border-right-color: transparent;
+	border-radius: 50% !important;
+
+	position: absolute;
+	left: 50%; top: 50%;
+	margin-left: -8px; margin-top: -8px;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-is-working {
+	cursor: default;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-is-working .ab-icon {
+	opacity: 0;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-is-working .bc-cache-spinner {
+	display: block;
+
+	-webkit-animation: 1s linear 0s infinite bc_cache_rotate;
+	animation: 1s linear 0s infinite bc_cache_rotate;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-success .bc-cache-spinner {
+    border-color: #02CA02;
+
+	-webkit-animation: none;
+	animation: none;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-error .bc-cache-spinner {
+    border-color: red;
+
+	-webkit-animation: none;
+	animation: none;
+}
+
+@keyframes bc_cache_rotate {
+	0%   {
+		-ms-transform: rotate(0deg);
+		-webkit-transform: rotate(0deg);
+		transform: rotate(0deg);
+	}
+	100% {
+		-ms-transform: rotate(360deg);
+		-webkit-transform: rotate(360deg);
+		transform: rotate(360deg);
+	}
+}
