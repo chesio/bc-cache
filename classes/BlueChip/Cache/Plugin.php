@@ -338,13 +338,8 @@ class Plugin
     private function getCacheSize(): int
     {
         if (($cache_size = get_transient(self::TRANSIENT_CACHE_SIZE)) === false) {
-            try {
-                $cache_size = $this->cache->getSize();
-                set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
-            } catch (Exception $e) {
-                trigger_error($e, E_USER_WARNING);
-                $cache_size = 0; // TODO: this is possibly misleading.
-            }
+            $cache_size = $this->cache->getSize();
+            set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
         }
 
         return $cache_size;
