@@ -13,7 +13,11 @@ Simple disk cache for WordPress inspired by Cachify.
 
 ## Installation
 
-You have to configure your Apache webserver to serve cached files. One way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration). Note that the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the last `RewriteCond` and `RewriteRule`:
+You have to configure your Apache webserver to serve cached files. One way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration). Note that the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rules:
+
+* `RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*`
+* `RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f`
+* `RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L]`
 
 ```
 # BEGIN BC Cache
