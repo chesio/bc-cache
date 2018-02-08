@@ -57,7 +57,7 @@
 }
 
 #wp-admin-bar-bc-cache.bc-cache-error .bc-cache-spinner {
-    border-color: red;
+	border-color: red;
 
 	-webkit-animation: none;
 	animation: none;
