@@ -383,30 +383,30 @@ class Plugin
      */
     private static function skipCache(): bool
     {
-		// Only cache requests without any variables (~ static pages)
-		if (!empty($_POST) || !empty($_GET)) {
-			return true;
-		}
+        // Only cache requests without any variables (~ static pages)
+        if (!empty($_POST) || !empty($_GET)) {
+            return true;
+        }
 
-		// Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
-		if (!Utils::isIndex()) {
-			return true;
-		}
+        // Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
+        if (!Utils::isIndex()) {
+            return true;
+        }
 
         // Only cache requests for anonymous users.
         if (is_user_logged_in() || !Utils::isAnonymousUser()) {
             return true;
         }
 
-		// Do not cache following types of requests.
-		if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
-			return true;
-		}
+        // Do not cache following types of requests.
+        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
+            return true;
+        }
 
-		// Do not cache page, if WooCommerce says so.
-		if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
-			return true;
-		}
+        // Do not cache page, if WooCommerce says so.
+        if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
+            return true;
+        }
 
         return apply_filters(Hooks::FILTER_SKIP_CACHE, false);
     }
