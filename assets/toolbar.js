@@ -25,6 +25,10 @@
         },
         success  : function(response) {
           $button.addClass(response.success ? 'bc-cache-success' : 'bc-cache-error');
+          if (response.success) {
+            // Update cache size (in "At a Glance" box)
+            $('#bc-cache-size').text(bc_cache_ajax_object.empty_cache_text);
+          }
         },
         complete : function() {
           setTimeout(function() {

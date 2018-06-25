@@ -183,6 +183,7 @@ class Plugin
             [
                 'ajaxurl' => admin_url('admin-ajax.php'), // necessary for the AJAX work properly on the frontend
                 'nonce' => wp_create_nonce(self::NONCE_FLUSH_CACHE_REQUEST),
+                'empty_cache_text' => __('Empty cache', 'bc-cache'),
             ]
         );
     }
@@ -225,7 +226,9 @@ class Plugin
             : sprintf(__('%s cache', 'bc-cache'), size_format($size))
         ;
 
-        $items[] = $icon . ' ' . esc_html($cache_size);
+        $label = '<span class="bc-cache-size" id="bc-cache-size">' . esc_html($cache_size) . '</span>';
+
+        $items[] = $icon . ' ' . $label;
 
         return $items;
     }

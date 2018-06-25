@@ -1,3 +1,9 @@
+/* Cache size information in dashboard */
+#dashboard_right_now li span.bc-cache-size:before {
+	content: '';
+	display: none;
+}
+
 /* Toolbar flush icon */
 #wp-admin-bar-bc-cache {
 	display: list-item !important;
