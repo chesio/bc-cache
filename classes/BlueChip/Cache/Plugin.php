@@ -183,6 +183,7 @@ class Plugin
             [
                 'ajaxurl' => admin_url('admin-ajax.php'), // necessary for the AJAX work properly on the frontend
                 'nonce' => wp_create_nonce(self::NONCE_FLUSH_CACHE_REQUEST),
+                'empty_cache_text' => __('Empty cache', 'bc-cache'),
             ]
         );
     }
@@ -225,7 +226,9 @@ class Plugin
             : sprintf(__('%s cache', 'bc-cache'), size_format($size))
         ;
 
-        $items[] = $icon . ' ' . esc_html($cache_size);
+        $label = '<span class="bc-cache-size" id="bc-cache-size">' . esc_html($cache_size) . '</span>';
+
+        $items[] = $icon . ' ' . $label;
 
         return $items;
     }
@@ -338,13 +341,8 @@ class Plugin
     private function getCacheSize(): int
     {
         if (($cache_size = get_transient(self::TRANSIENT_CACHE_SIZE)) === false) {
-            try {
-                $cache_size = $this->cache->getSize();
-                set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
-            } catch (Exception $e) {
-                trigger_error($e, E_USER_WARNING);
-                $cache_size = 0; // TODO: this is possibly misleading.
-            }
+            $cache_size = $this->cache->getSize();
+            set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
         }
 
         return $cache_size;
@@ -388,30 +386,30 @@ class Plugin
      */
     private static function skipCache(): bool
     {
-		// Only cache requests without any variables (~ static pages)
-		if (!empty($_POST) || !empty($_GET)) {
-			return true;
-		}
+        // Only cache requests without any variables (~ static pages)
+        if (!empty($_POST) || !empty($_GET)) {
+            return true;
+        }
 
-		// Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
-		if (!Utils::isIndex()) {
-			return true;
-		}
+        // Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
+        if (!Utils::isIndex()) {
+            return true;
+        }
 
         // Only cache requests for anonymous users.
         if (is_user_logged_in() || !Utils::isAnonymousUser()) {
             return true;
         }
 
-		// Do not cache following types of requests.
-		if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
-			return true;
-		}
+        // Do not cache following types of requests.
+        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
+            return true;
+        }
 
-		// Do not cache page, if WooCommerce says so.
-		if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
-			return true;
-		}
+        // Do not cache page, if WooCommerce says so.
+        if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
+            return true;
+        }
 
         return apply_filters(Hooks::FILTER_SKIP_CACHE, false);
     }

@@ -1,3 +1,9 @@
+/* Cache size information in dashboard */
+#dashboard_right_now li span.bc-cache-size:before {
+	content: '';
+	display: none;
+}
+
 /* Toolbar flush icon */
 #wp-admin-bar-bc-cache {
 	display: list-item !important;
@@ -50,14 +56,14 @@
 }
 
 #wp-admin-bar-bc-cache.bc-cache-success .bc-cache-spinner {
-    border-color: #02CA02;
+	border-color: #02CA02;
 
 	-webkit-animation: none;
 	animation: none;
 }
 
 #wp-admin-bar-bc-cache.bc-cache-error .bc-cache-spinner {
-    border-color: red;
+	border-color: red;
 
 	-webkit-animation: none;
 	animation: none;

@@ -1,0 +1,23 @@
+{
+  "name": "chesio/bc-cache",
+  "type": "wordpress-plugin",
+  "license": "Unlicense",
+  "description": "Simple disk cache plugin inspired by Cachify.",
+  "homepage": "https://github.com/chesio/bc-cache",
+  "authors": [
+    {
+      "name": "Česlav Przywara",
+      "homepage": "https://www.chesio.com"
+    }
+  ],
+  "keywords": [
+    "wordpress", "wordpress-plugin"
+  ],
+  "support": {
+    "issues": "https://github.com/chesio/bc-cache/issues"
+  },
+  "require": {
+    "php": ">=7.0.0",
+    "composer/installers": "~1.0"
+  }
+}

@@ -106,18 +106,17 @@ class Core
 
     /**
      * @return int Size of cache data.
-     * @throws Exception
      */
     public function getSize(): int
     {
-        return file_exists(self::CACHE_DIR) ? self::getDirectorySize(self::CACHE_DIR) : 0;
+        return is_dir(self::CACHE_DIR) ? self::getDirectorySize(self::CACHE_DIR) : 0;
     }
 
 
     /**
      * @param string $dirname
-     * @return int
-     * @throws Exception
+     * @return int Total size of all files in given directory and its subdirectories.
+     * @throws Exception If $dirname does not exists or is not a directory.
      */
     private static function getDirectorySize(string $dirname): int
     {
@@ -125,27 +124,13 @@ class Core
             throw new Exception("{$dirname} is not a directory!");
         }
 
-        if (($files = scandir($dirname)) === false) {
-            throw new Exception("Could not get contents of {$dirname}!");
-        }
-
-        $files = array_diff($files, ['..', '.']);
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dirname)
+        );
 
         $size = 0;
-
-        // Loop through directory contents.
-        foreach ($files as $file) {
-            // Expand full pathname.
-            $path = $dirname . DIRECTORY_SEPARATOR . $file;
-
-            if (is_dir($path)) {
-                $size += self::getDirectorySize($path);
-            } else {
-                if (($filesize = filesize($path)) === false) {
-                    throw new Exception("Could not get size of file {$path}.");
-                }
-                $size += $filesize;
-            }
+        foreach ($it as $fileinfo) {
+            $size += $fileinfo->getSize();
         }
 
         return $size;
@@ -204,7 +189,7 @@ class Core
 
 
     /**
-     * Recursively remove directory.
+     * Remove given directory including all subdirectories.
      *
      * @param string $dirname
      * @throws Exception
@@ -215,21 +200,23 @@ class Core
             throw new Exception("{$dirname} is not a directory!");
         }
 
-        if (($files = scandir($dirname)) === false) {
-            throw new Exception("Could not get contents of {$dirname}!");
-        }
+        $it = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dirname, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
 
-        $files = array_diff($files, ['..', '.']);
+        foreach ($it as $fileinfo) {
+            // Get full path to file/directory.
+            $path = $fileinfo->getPathname();
 
-        // Wipe directory contents.
-        foreach ($files as $file) {
-            // Expand full pathname.
-            $path = $dirname . DIRECTORY_SEPARATOR . $file;
-
-            if (is_dir($path)) {
-                self::removeDirectory($path);
-            } elseif (!unlink($path)) {
-                throw new Exception("Could not remove file {$file} from directory {$dirname}.");
+            if ($fileinfo->isDir() && !$fileinfo->isLink()) {
+                if (!rmdir($path)) {
+                    throw new Exception("Could not remove directory {$path}.");
+                }
+            } else {
+                if (!unlink($path)) {
+                    throw new Exception("Could not remove file {$path}.");
+                }
             }
         }
 

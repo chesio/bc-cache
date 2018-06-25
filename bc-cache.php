@@ -3,12 +3,14 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple disk cache plugin inspired by Cachify. Plugin requires PHP 7.0 or newer to run.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
- * Requires at least: 4.7
+ * Requires PHP: 7.0
+ * Requires WP: 4.7
  * Tested up to: 4.9
  * Text Domain: bc-cache
+ * GitHub Plugin URI: https://github.com/chesio/bc-security
  */
 
 if (version_compare(PHP_VERSION, '7.0', '<')) {
