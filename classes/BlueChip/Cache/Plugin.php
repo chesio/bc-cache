@@ -151,6 +151,7 @@ class Plugin
         if (is_admin()) {
             if ($this->canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
+                add_action('rightnow_end', [$this, 'enqueueDashboardAssets'], 10, 0);
             }
         } else {
             // Add action to catch output buffer.
@@ -231,6 +232,22 @@ class Plugin
         $items[] = $icon . ' ' . $label;
 
         return $items;
+    }
+
+
+    /**
+     * Print short HTML snippet with CSS rules for cache size information in "At a Glance" box.
+     */
+    public function printDashboardStyles()
+    {
+        echo '<style>#dashboard_right_now li span.bc-cache-size:before { content: ""; display: none; }</style>';
+    }
+
+
+    public function enqueueDashboardAssets()
+    {
+        // Print the styles in the footer.
+        add_action('admin_print_footer_scripts', [$this, 'printDashboardStyles'], 10, 0);
     }
 
 
