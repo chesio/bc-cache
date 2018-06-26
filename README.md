@@ -61,11 +61,22 @@ RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC
 
 ## Configuration
 
-Plugin has no settings. You can modify plugin behavior with following filters:
+BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
 * `bc-cache/filter:flush-hooks` - filters list of actions that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
-* `bc-cache/filter:skip-cache` - filters whether current HTTP(S) request should be cached. Filter is only executed, when none from built-in skip rules is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
+* `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
+
+## Cache exclusions
+
+Any response to HTTP(S) request is cached unless one of the following conditions is true:
+
+1. Request comes with `GET` or `POST` data.
+1. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
+1. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
+1. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
+1. `DONOTCACHEPAGE` constant is set and evaluates to true.
+1. Return value of `bc-cache/filter:skip-cache` filter is false.
 
 ## Credits
 
