@@ -59,7 +59,11 @@ RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC
 
 ```
 
-Plugin has no settings, so if you need to modify plugin behavior, use provided filters.
+Plugin has no settings. You can modify plugin behavior with following filters:
+* `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
+* `bc-cache/filter:flush-hooks` - filters list of actions that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
+* `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
+* `bc-cache/filter:skip-cache` - filters whether current HTTP(S) request should be cached. Filter is executed after built-in skip rules. By default, cache is not skipped.
 
 ## Credits
 
