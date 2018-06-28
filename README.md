@@ -17,7 +17,7 @@ You have to configure your Apache webserver to serve cached files. One way to do
 
 * `RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*`
 * `RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f`
-* `RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L]`
+* `RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]`
 
 ```
 # BEGIN BC Cache
