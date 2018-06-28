@@ -53,7 +53,7 @@ RewriteCond %{QUERY_STRING} =""
 RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*
 RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
 RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
-RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L]
+RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
 </IfModule>
 # END BC Cache
 
