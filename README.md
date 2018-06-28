@@ -50,6 +50,7 @@ AddEncoding gzip .gz
 # Main rules
 RewriteCond %{REQUEST_METHOD} !=POST
 RewriteCond %{QUERY_STRING} =""
+RewriteCond %{ENV:BC_CACHE_PATH} !=""
 RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*
 RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
 RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
