@@ -77,7 +77,7 @@ Any response to HTTP(S) request is cached unless one of the following conditions
 1. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 1. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
 1. `DONOTCACHEPAGE` constant is set and evaluates to true.
-1. Return value of `bc-cache/filter:skip-cache` filter is false.
+1. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
 ## Credits
 
