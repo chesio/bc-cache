@@ -70,9 +70,10 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 
 ## Cache exclusions
 
-Any response to HTTP(S) request is cached unless one of the following conditions is true:
+A response to HTTP(S) request is cached by BC Cache if **none** of the conditions below is true:
 
-1. Request comes with `GET` or `POST` data.
+1. Request is a POST request.
+1. Request is a GET request with non-empty query string.
 1. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
 1. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 1. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
