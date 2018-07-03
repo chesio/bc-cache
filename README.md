@@ -83,7 +83,7 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
-When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check `User-Agent` string), you probably want to have the rule in both places.
+When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check cookies or `User-Agent` string), you probably want to have the rule in both places.
 
 ## Credits
 
