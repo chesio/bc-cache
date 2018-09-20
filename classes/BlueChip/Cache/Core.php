@@ -47,21 +47,26 @@ class Core
      * Delete data for given URL from cache.
      *
      * @param string $url
+     * @param array $request_variants [optional] List of all request variants to delete for given $url.
      * @throws Exception
      */
-    public function delete(string $url)
+    public function delete(string $url, array $request_variants = [''])
     {
         $path = self::getPath($url);
 
-        $html_filename = self::getHtmlFilename($path);
-        $gzip_filename = self::getGzipFilename($path);
+        foreach ($request_variants as $request_variant) {
+            $html_filename = self::getHtmlFilename($path, $request_variant);
+            $gzip_filename = self::getGzipFilename($path, $request_variant);
 
-        if (file_exists($html_filename) && !unlink($html_filename)) {
-            throw new Exception("Could not remove file {$html_filename}.");
+            if (file_exists($html_filename) && !unlink($html_filename)) {
+                throw new Exception("Could not remove file {$html_filename}.");
+            }
+            if (file_exists($gzip_filename) && !unlink($gzip_filename)) {
+                throw new Exception("Could not remove file {$gzip_filename}.");
+            }
         }
-        if (file_exists($gzip_filename) && !unlink($gzip_filename)) {
-            throw new Exception("Could not remove file {$gzip_filename}.");
-        }
+
+        // TODO: Possibly return size of deleted files to update cache size stored in transient.
 
         clearstatcache();
     }
@@ -72,10 +77,11 @@ class Core
      *
      * @param string $url
      * @param string $data
+     * @param string $request_variant [optional] Request variant.
      * @return int
      * @throws Exception
      */
-    public function push(string $url, string $data): int
+    public function push(string $url, string $data, string $request_variant = ''): int
     {
         $path = self::getPath($url);
 
@@ -84,9 +90,9 @@ class Core
             throw new Exception("Unable to create directory {$path}.");
         }
 
-        $bytes_written = self::writeFile(self::getHtmlFilename($path), $data);
+        $bytes_written = self::writeFile(self::getHtmlFilename($path, $request_variant), $data);
         if (($gzip = gzencode($data, 9)) !== false) {
-            $bytes_written += self::writeFile(self::getGzipFilename($path), $gzip);
+            $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
         }
 
         clearstatcache();
@@ -139,21 +145,23 @@ class Core
 
     /**
      * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $request_variant [optional] Request variant (default empty).
      * @return string Path to gzipped cache file for $path.
      */
-    private static function getGzipFilename(string $path): string
+    private static function getGzipFilename(string $path, string $request_variant = ''): string
     {
-        return $path . DIRECTORY_SEPARATOR . 'index.html.gz';
+        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html.gz";
     }
 
 
     /**
      * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $request_variant [optional] Request variant (default empty).
      * @return string Path to HTML cache file for $path.
      */
-    private static function getHtmlFilename(string $path): string
+    private static function getHtmlFilename(string $path, string $request_variant = ''): string
     {
-        return $path . DIRECTORY_SEPARATOR . 'index.html';
+        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html";
     }
 
 

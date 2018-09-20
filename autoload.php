@@ -2,7 +2,7 @@
 /**
  * Register autoloader for classes shipped with the plugin.
  *
- * @package BC_Apacache
+ * @package BC_Cache
  */
 
 // Register autoload function

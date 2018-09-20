@@ -217,7 +217,7 @@ class Plugin
         $size = $this->getCacheSize();
 
         $icon = sprintf(
-            '<svg style="width: 20px; height: 20px; fill: #82878c; vertical-align: middle;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-%s"></svg>',
+            '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-%s"></svg>',
             plugins_url('assets/icons.svg', $this->plugin_filename),
             strtolower($this->cache->getName())
         );
@@ -312,7 +312,8 @@ class Plugin
             try {
                 $bytes_written = $this->cache->push(
                     Utils::getRequestUrl(),
-                    $buffer . $this->getSignature()
+                    $buffer . $this->getSignature(),
+                    apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
                 );
 
                 // If cache size transient exists, update it.
