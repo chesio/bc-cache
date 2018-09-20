@@ -93,7 +93,7 @@ Sometimes a different HTML is served as response to request to the same URL, typ
 
 ### Example
 
-A website has two variants: one with cookie notice (no `cookie_notice_accepted` cookie is present) and one without.
+A website has two variants: one with cookie notice (_cookie_notice_accepted_ cookie is not set) and one without (_cookie_notice_accepted_ cookie is already set).
 
 Request variant name should be set whenever cookie notice is accepted (example uses API of [Cookie Notice plugin](https://wordpress.org/plugins/cookie-notice/)):
 ```php
