@@ -31,4 +31,9 @@ abstract class Hooks
      * Name of hook to filter HTML signature appended to cached data.
      */
     const FILTER_HTML_SIGNATURE = 'bc-cache/filter:html-signature';
+
+    /**
+     * Name of hook to filter current HTTP request variant.
+     */
+    const FILTER_REQUEST_VARIANT = 'bc-cache/filter:request-variant';
 }

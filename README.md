@@ -67,6 +67,7 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:flush-hooks` - filters list of actions that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
 * `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
+* `bc-cache/filter:request-variant` - filters name of [request variant](#request-variants) of current HTTP request.
 
 ## Cache exclusions
 
@@ -85,6 +86,42 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
 When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check cookies or `User-Agent` string), you probably want to have the rule in both places.
+
+## Request variants
+
+Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example in EU countries is the situation in which cookie policy notice is displayed to user until the user accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve both users that have and have not accepted cookie policy.
+
+### Example
+
+A website has two variants: one with cookie notice (no `cookie_notice_accepted` cookie is present) and one without.
+
+Request variant name should be set whenever cookie notice is accepted (example uses API of [Cookie Notice plugin](https://wordpress.org/plugins/cookie-notice/)):
+```php
+add_filter('bc-cache/filter:request-variant', function (string $default_variant): string {
+    return cn_cookies_accepted() ? '_cna' : $default_variant;
+}, 10, 1);
+```
+
+The [default configuration](#installation) needs to be extended in the following way:
+
+```.apacheconf
+
+  # gzip
+  RewriteRule .* - [E=BC_CACHE_FILE:index.html]
+  RewriteCond %{HTTP_COOKIE} cookie_notice_accepted=true
+  RewriteRule .* - [E=BC_CACHE_FILE:index_cna.html]
+  <IfModule mod_mime.c>
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteRule .* - [E=BC_CACHE_FILE:index.html.gz]
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{HTTP_COOKIE} cookie_notice_accepted=true
+    RewriteRule .* - [E=BC_CACHE_FILE:index_cna.html.gz]
+    AddType text/html .gz
+    AddEncoding gzip .gz
+  </IfModule>
+```
+
+Notice, how viariant name `_cna` is appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz`. To make sure your setup will work, use only letters from `[a-z0-9_-]` set in variant name.
 
 ## Credits
 

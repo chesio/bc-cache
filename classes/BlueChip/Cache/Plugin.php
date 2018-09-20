@@ -312,7 +312,8 @@ class Plugin
             try {
                 $bytes_written = $this->cache->push(
                     Utils::getRequestUrl(),
-                    $buffer . $this->getSignature()
+                    $buffer . $this->getSignature(),
+                    apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
                 );
 
                 // If cache size transient exists, update it.
