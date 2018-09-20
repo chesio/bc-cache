@@ -10,6 +10,7 @@ Simple disk cache for WordPress inspired by Cachify.
 ## Limitations
 
 * BC Cache has not been tested on WordPress multisite installation.
+* BC Cache has not been tested on Windows servers.
 
 ## Installation
 
