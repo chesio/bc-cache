@@ -95,7 +95,7 @@ Sometimes a different HTML is served as response to request to the same URL, typ
 
 A website has two variants: one with cookie notice (_cookie_notice_accepted_ cookie is not set) and one without (_cookie_notice_accepted_ cookie is already set).
 
-Request variant name should be set whenever cookie notice is accepted (example uses API of [Cookie Notice plugin](https://wordpress.org/plugins/cookie-notice/)):
+Request variant name should be set whenever cookie notice is accepted (example uses API of [Cookie Notice](https://wordpress.org/plugins/cookie-notice/) plugin):
 ```php
 add_filter('bc-cache/filter:request-variant', function (string $default_variant): string {
     return cn_cookies_accepted() ? '_cna' : $default_variant;
