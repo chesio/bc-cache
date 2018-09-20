@@ -10,7 +10,7 @@
  * Requires WP: 4.7
  * Tested up to: 4.9
  * Text Domain: bc-cache
- * GitHub Plugin URI: https://github.com/chesio/bc-security
+ * GitHub Plugin URI: https://github.com/chesio/bc-cache
  */
 
 if (version_compare(PHP_VERSION, '7.0', '<')) {
