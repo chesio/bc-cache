@@ -404,13 +404,8 @@ class Plugin
      */
     private static function skipCache(): bool
     {
-        // Do not cache POST requests.
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            return true;
-        }
-
         // Only cache GET requests without query string (~ static pages).
-        if (!empty($_GET)) {
+        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !empty($_GET)) {
             return true;
         }
 
