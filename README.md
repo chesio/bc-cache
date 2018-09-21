@@ -46,11 +46,14 @@ AddDefaultCharset utf-8
   RewriteCond %{REQUEST_URI} /$
   RewriteRule .* - [E=BC_CACHE_PATH:%{REQUEST_URI}]
 
+  # Set request variant (by default there is only empty one).
+  RewriteRule .* - [E=BC_CACHE_REQUEST_VARIANT:]
+
   # Optionally, serve gzipped version of HTML file.
-  RewriteRule .* - [E=BC_CACHE_FILE:index.html]
+  RewriteRule .* - [E=BC_CACHE_FILE:index%{ENV:BC_CACHE_REQUEST_VARIANT}.html]
   <IfModule mod_mime.c>
     RewriteCond %{HTTP:Accept-Encoding} gzip
-    RewriteRule .* - [E=BC_CACHE_FILE:index.html.gz]
+    RewriteRule .* - [E=BC_CACHE_FILE:index%{ENV:BC_CACHE_REQUEST_VARIANT}.html.gz]
     AddType text/html .gz
     AddEncoding gzip .gz
   </IfModule>
@@ -112,25 +115,16 @@ add_filter('bc-cache/filter:request-variant', function (string $default_variant)
 }, 10, 1);
 ```
 
-The [default configuration](#installation) needs to be extended in the following way:
+The [default configuration](#installation) needs to be extended as well and set the new variant accordingly:
 
 ```.apacheconf
-  # Optionally, serve gzipped version of HTML file.
-  RewriteRule .* - [E=BC_CACHE_FILE:index.html]
+  # Set request variants (default and "cookie notice accepted"):
+  RewriteRule .* - [E=BC_CACHE_REQUEST_VARIANT:]
   RewriteCond %{HTTP_COOKIE} cookie_notice_accepted=true
-  RewriteRule .* - [E=BC_CACHE_FILE:index_cna.html]
-  <IfModule mod_mime.c>
-    RewriteCond %{HTTP:Accept-Encoding} gzip
-    RewriteRule .* - [E=BC_CACHE_FILE:index.html.gz]
-    RewriteCond %{HTTP:Accept-Encoding} gzip
-    RewriteCond %{HTTP_COOKIE} cookie_notice_accepted=true
-    RewriteRule .* - [E=BC_CACHE_FILE:index_cna.html.gz]
-    AddType text/html .gz
-    AddEncoding gzip .gz
-  </IfModule>
+  RewriteRule .* - [E=BC_CACHE_REQUEST_VARIANT:_cna]
 ```
 
-Notice, how viariant name `_cna` is appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz`. To make sure your setup will work, use only letters from `[a-z0-9_-]` set in variant name.
+Important: Viariant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` set as variant names.
 
 ## Credits
 
