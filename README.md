@@ -115,8 +115,7 @@ add_filter('bc-cache/filter:request-variant', function (string $default_variant)
 The [default configuration](#installation) needs to be extended in the following way:
 
 ```.apacheconf
-
-  # gzip
+  # Optionally, serve gzipped version of HTML file.
   RewriteRule .* - [E=BC_CACHE_FILE:index.html]
   RewriteCond %{HTTP_COOKIE} cookie_notice_accepted=true
   RewriteRule .* - [E=BC_CACHE_FILE:index_cna.html]
