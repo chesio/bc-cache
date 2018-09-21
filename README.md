@@ -15,11 +15,9 @@ Simple disk cache for WordPress inspired by Cachify.
 
 ## Installation
 
-You have to configure your Apache webserver to serve cached files. One way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration). Note that the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rules:
+You have to configure your Apache webserver to serve cached files. Most common way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration).
 
-* `RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*`
-* `RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f`
-* `RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]`
+Note: the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rule: `RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]`. In general, you may need to make some tweaks to the configuration below to fit your server environment.
 
 ```.apacheconf
 # BEGIN BC Cache
@@ -28,19 +26,27 @@ AddDefaultCharset utf-8
 <IfModule mod_rewrite.c>
   RewriteEngine on
 
-  # Set scheme and hostname directories
-  RewriteCond %{ENV:HTTPS} =on
-  RewriteRule .* - [E=BC_CACHE_HOST:https/%{HTTP_HOST}]
-  RewriteCond %{ENV:HTTPS} !=on
-  RewriteRule .* - [E=BC_CACHE_HOST:http/%{HTTP_HOST}]
+  # Configure document root.
+  RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]
 
-  # Set path subdirectory
+  # Get request scheme (either http or https).
+  RewriteCond %{ENV:HTTPS} =on [OR]
+  RewriteCond %{HTTP:X-Forwarded-Proto} https
+  RewriteRule .* - [E=BC_CACHE_SCHEME:https]
+  RewriteCond %{ENV:HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule .* - [E=BC_CACHE_SCHEME:http]
+
+  # Clean up hostname (drop optional port number).
+  RewriteCond %{HTTP_HOST} ^([^:]+)(:[0-9]+)?$
+  RewriteRule .* - [E=BC_CACHE_HOST:%1]
+
+  # Set path subdirectory (must end with slash).
+  RewriteRule .* - [E=BC_CACHE_PATH:%{REQUEST_URI}/]
   RewriteCond %{REQUEST_URI} /$
   RewriteRule .* - [E=BC_CACHE_PATH:%{REQUEST_URI}]
-  RewriteCond %{REQUEST_URI} ^$
-  RewriteRule .* - [E=BC_CACHE_PATH:/]
 
-  # gzip
+  # Optionally, serve gzipped version of HTML file.
   RewriteRule .* - [E=BC_CACHE_FILE:index.html]
   <IfModule mod_mime.c>
     RewriteCond %{HTTP:Accept-Encoding} gzip
@@ -49,14 +55,17 @@ AddDefaultCharset utf-8
     AddEncoding gzip .gz
   </IfModule>
 
-  # Main rules
-  RewriteCond %{REQUEST_METHOD} !=POST
+  # Main rules: serve only GET requests without query string for anonymous users.
+  RewriteCond %{REQUEST_METHOD} GET
   RewriteCond %{QUERY_STRING} =""
-  RewriteCond %{ENV:BC_CACHE_PATH} !=""
-  RewriteCond %{REQUEST_URI} !^/wordpress/(wp-admin|wp-content/cache)/.*
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
-  RewriteCond %{DOCUMENT_ROOT}/wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
-  RewriteRule .* /wordpress/wp-content/cache/bc-cache/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
+  RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
+  RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
+  
+  # Do not allow direct access to cache entries.
+  RewriteCond %{REQUEST_URI} /wp-content/cache/bc-cache/
+  RewriteCond %{ENV:REDIRECT_STATUS} ^$
+  RewriteRule .* - [F,L]  
 </IfModule>
 # END BC Cache
 ```
@@ -128,3 +137,4 @@ Notice, how viariant name `_cna` is appended to basename part of cache file name
 
 * Sergej Müller & Plugin Kollektiv for inspiration in form of [Cachify plugin](https://wordpress.org/plugins/cachify/).
 * Font Awesome for [HDD icon](http://fontawesome.io/icon/hdd-o/)
+* Tim Lochmüller for inspirational tweaks to `.htaccess` configuration taken from his [Static File Cache](https://github.com/lochmueller/staticfilecache) extension
