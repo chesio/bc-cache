@@ -55,7 +55,7 @@ AddDefaultCharset utf-8
     AddEncoding gzip .gz
   </IfModule>
 
-  # Main rules: serve only GET requests without query string for anonymous users.
+  # Main rules: serve only GET requests without query string from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
   RewriteCond %{QUERY_STRING} =""
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
