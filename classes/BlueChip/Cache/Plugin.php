@@ -42,16 +42,6 @@ class Plugin
     /**
      * @var string
      */
-    private $plugin_basename;
-
-    /**
-     * @var string
-     */
-    private $plugin_directory;
-
-    /**
-     * @var string
-     */
     private $plugin_filename;
 
     /**
@@ -102,8 +92,6 @@ class Plugin
      */
     public function __construct(string $plugin_filename)
     {
-        $this->plugin_basename = plugin_basename($plugin_filename);
-        $this->plugin_directory = dirname($plugin_filename);
         $this->plugin_filename = $plugin_filename;
         $this->cache = new Core();
     }
