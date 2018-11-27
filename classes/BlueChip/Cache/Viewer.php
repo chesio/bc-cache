@@ -22,6 +22,11 @@ class Viewer
      */
     private $cache;
 
+    /**
+     * @var \BlueChip\Cache\ListTable
+     */
+    private $list_table;
+
 
     /**
      * @param \BlueChip\Cache\Core $cache
@@ -42,56 +47,65 @@ class Viewer
 
 
     /**
+     * Register method to be run on page load.
+     *
+     * @link https://developer.wordpress.org/reference/hooks/load-page_hook/
+     *
+     * @param string $page_hook
+     */
+    public function setPageHook(string $page_hook)
+    {
+        add_action('load-' . $page_hook, [$this, 'loadPage']);
+    }
+
+
+    /**
      * @hook https://developer.wordpress.org/reference/hooks/admin_menu/
      */
     public function addAdminPage()
     {
-        add_management_page(
+        $page_hook = add_management_page(
             __('BC Cache Viewer', 'bc-cache'),
             __('Cache Viewer', 'bc-cache'),
             self::REQUIRED_CAPABILITY,
             self::ADMIN_PAGE_SLUG,
             [$this, 'renderAdminPage']
         );
+
+        if ($page_hook) {
+            // If page has been added properly, register method to run on page load.
+            $this->setPageHook($page_hook);
+        }
+    }
+
+
+    /**
+     * @internal ListTable instance cannot be initialized in the constructor, because \WP_List_Table is unknown to PHP
+     * at the time constructor is invoked.
+     */
+    public function loadPage()
+    {
+        $this->list_table = new ListTable($this->cache);
+        $this->list_table->prepare_items();
     }
 
 
     public function renderAdminPage()
     {
-        $state = $this->cache->inspect();
-
-        ksort($state); // Sort by key (ie. path)
-
         echo '<div class="wrap">';
+
+        // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
         echo '<p>' . sprintf(esc_html__('The paths below are relative to %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
 
         echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($this->cache->getSize()) . '</strong>') . '</p>';
 
-        echo '<table class="wp-list-table widefat fixed striped">';
-
-        echo '<thead>';
-        echo '<tr>';
-        echo '<th>' . esc_html__('Relative path', 'bc-cache') . '</th>';
-        echo '<th>' . esc_html__('URL', 'bc-cache') . '</th>';
-        echo '<th>' . esc_html__('Created', 'bc-cache') . '</th>';
-        echo '<th>' . esc_html__('Size', 'bc-cache') . '</th>';
-        echo '</tr>';
-        echo '</thead>';
-
-        echo '<tbody>';
-        foreach ($state as $item) {
-            echo '<tr>';
-            echo '<td><code>' . esc_html($item['relative_path']) . '</code></td>';
-            echo '<td><a href="' . esc_url($item['url']) . '">' . esc_html($item['url']) . '</a></td>';
-            echo '<td>' . ($item['timestamp'] ? date('Y-m-d', $item['timestamp']) . '<br>' . date('H:i:s', $item['timestamp']) : '--') . '</td>';
-            echo '<td>' . esc_html(size_format($item['size'])) . '</td>';
-            echo '</tr>';
-        }
-        echo '</tbody>';
-
-        echo '</table>';
+        // View table
+        $this->list_table->views();
+        echo '<form method="post">';
+        $this->list_table->display();
+        echo '</form>';
 
         echo '</div>';
     }
