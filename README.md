@@ -64,11 +64,11 @@ AddDefaultCharset utf-8
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
-  
+
   # Do not allow direct access to cache entries.
   RewriteCond %{REQUEST_URI} /wp-content/cache/bc-cache/
   RewriteCond %{ENV:REDIRECT_STATUS} ^$
-  RewriteRule .* - [F,L]  
+  RewriteRule .* - [F,L]
 </IfModule>
 # END BC Cache
 ```
@@ -99,6 +99,10 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
 When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check cookies or `User-Agent` string), you probably want to have the rule in both places.
+
+## Cache viewer
+
+Contents of cache can be inspected (by any user with `manage_options` capability) via _Cache Viewer_ management page (under _Tools_).
 
 ## Request variants
 
