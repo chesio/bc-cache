@@ -120,6 +120,50 @@ class Core
 
 
     /**
+     * Get cache state information.
+     *
+     * @return array List of all cache entries with information about `relative_path`, `size`, `url` and creation `timestamp`.
+     */
+    public function inspect(): array
+    {
+        $path = self::getPath(get_home_url(null, '/'));
+
+        if (!is_dir($path)) {
+            // The cache seems to be empty.
+            return [];
+        }
+
+        // Get directory sizes as base data.
+        // Remove items (directories) that only contain other directories, but have no (cache) files themselves.
+        $items = array_filter(self::getDirectorySizes($path), function (array $item): bool { return $item['own_size'] > 0; });
+
+        $state = [];
+
+        foreach ($items as $path => $item) {
+            $state[$path] = [
+                'relative_path' => substr($path, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)),
+                'size' => $item['own_size'],
+                'timestamp' => self::getCreationTimestamp($path),
+                'url' => self::getUrl($path),
+            ];
+        }
+
+        return $state;
+    }
+
+
+    /**
+     * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $request_variant [optional] Request variant (default empty).
+     * @return int Time (as Unix timestamp) of when given cache directory has been created.
+     */
+    private static function getCreationTimestamp(string $path, string $request_variant = ''): int
+    {
+        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: 0;
+    }
+
+
+    /**
      * @param string $dirname
      * @return int Total size of all files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.
@@ -140,6 +184,57 @@ class Core
         }
 
         return $size;
+    }
+
+
+    /**
+     * Return an array with size information for given directory and all its subdirectories.
+     *
+     * @param string $dirname
+     * @return array
+     * @throws Exception
+     */
+    private static function getDirectorySizes(string $dirname): array
+    {
+        if (!is_dir($dirname)) {
+            throw new Exception("{$dirname} is not a directory!");
+        }
+
+        $it = new \DirectoryIterator($dirname);
+
+        // An array of all sizes.
+        $sizes = [];
+
+        $own_size = 0; // size of files in the directory
+        $total_size = 0; // size of files in the directory and all subdirectories
+
+        foreach ($it as $fileinfo) {
+            if ($it->isDot()) {
+                // Skip '.' and '..' directories.
+                continue;
+            } elseif ($it->isDir()) {
+                // Get the path.
+                $subdirname = $fileinfo->getPathname();
+                // Update the pool of directory sizes.
+                $sizes += self::getDirectorySizes($subdirname);
+                // Update the total of current directory with total of current subdirectory.
+                $total_size += $sizes[$subdirname]['total_size'];
+            } elseif ($it->isFile()) {
+                // Update the size of current directory itself.
+                $own_size += $fileinfo->getSize();
+            }
+        }
+
+        // Add directory size to total size.
+        $total_size += $own_size;
+
+        $sizes[$dirname] = [
+            'path'  => $dirname,
+            'own_size'  => $own_size,
+            'total_size' => $total_size,
+        ];
+
+        return $sizes;
     }
 
 
@@ -168,6 +263,8 @@ class Core
     /**
      * Return path to cache directory for given URL.
      *
+     * @see self::getUrl()
+     *
      * @param string $url
      * @return string
      * @throws Exception
@@ -193,6 +290,37 @@ class Core
         }
 
         return $normalized_path;
+    }
+
+
+    /**
+     * Attempt to reconstruct URL of page cached under given cache directory.
+     *
+     * @see self::getPath()
+     *
+     * @param string $path
+     * @return string
+     * @throws Exception
+     */
+    private static function getUrl(string $path): string
+    {
+        // Just in case.
+        $normalized_path = self::normalizePath($path);
+
+        // The path must point to a subdirectory of root cache directory.
+        if (strpos($normalized_path, self::CACHE_DIR . DIRECTORY_SEPARATOR) !== 0) {
+            throw new Exception("Path {$path} is not a valid cache path.");
+        }
+
+        // Strip the path to BC Cache directory from $path and break it into scheme and host + path parts.
+        $parts = explode(DIRECTORY_SEPARATOR, substr($normalized_path, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)), 2);
+
+        if (count($parts) !== 2) {
+            // At least scheme and host must be present.
+            throw new Exception("Could not retrieve a valid URL from cache path {$path}.");
+        }
+
+        return $parts[0] . '://' . str_replace(DIRECTORY_SEPARATOR, '/', $parts[1]) . '/';
     }
 
 

@@ -137,6 +137,9 @@ class Plugin
         }
 
         if (is_admin()) {
+            // Initialize cache viewer.
+            (new Viewer($this->cache))->init();
+
             if ($this->canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
                 add_action('rightnow_end', [$this, 'enqueueDashboardAssets'], 10, 0);
