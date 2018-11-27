@@ -28,12 +28,12 @@ class ListTable extends \WP_List_Table
     /**
      * @var string Sorting direction (asc or desc)
      */
-    protected $order = 'desc';
+    private $order = 'desc';
 
     /**
      * @var string Sorting column
      */
-    protected $order_by = '';
+    private $order_by = '';
 
 
     /**
