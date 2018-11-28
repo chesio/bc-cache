@@ -206,20 +206,25 @@ class Core
     /**
      * Get cache state information.
      *
+     * @internal Updates size cache transient automatically.
+     *
      * @return array List of all cache entries with information about `relative_path`, `size`, `url` and creation `timestamp`.
      */
     public function inspect(): array
     {
-        $path = self::getPath(get_home_url(null, '/'));
-
-        if (!is_dir($path)) {
+        if (!is_dir(self::CACHE_DIR)) {
             // The cache seems to be empty.
             return [];
         }
 
         // Get directory sizes as base data.
-        // Remove items (directories) that only contain other directories, but have no (cache) files themselves.
-        $items = array_filter(self::getDirectorySizes($path), function (array $item): bool { return $item['own_size'] > 0; });
+        $directory_sizes = self::getDirectorySizes(self::CACHE_DIR);
+
+        // Update cache size transient with total size of cache directory.
+        set_transient(self::TRANSIENT_CACHE_SIZE, $directory_sizes[self::CACHE_DIR]['total_size']);
+
+        // Do not report entries (directories) that only contain other directories, but hold no (cache) data themselves.
+        $items = array_filter($directory_sizes, function (array $item): bool { return $item['own_size'] > 0; });
 
         $state = [];
 
