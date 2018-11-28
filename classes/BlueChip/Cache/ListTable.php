@@ -165,9 +165,13 @@ class ListTable extends \WP_List_Table
      */
     public function get_bulk_actions() // phpcs:ignore
     {
-        return [
-            self::BULK_ACTION_DELETE => __('Delete', 'bc-cache'),
-        ];
+        $actions = [];
+
+        if (Plugin::canUserFlushCache()) {
+            $actions[self::BULK_ACTION_DELETE] = __('Delete', 'bc-cache');
+        }
+
+        return $actions;
     }
 
 
@@ -261,7 +265,7 @@ class ListTable extends \WP_List_Table
                 return;
             }
 
-            if ($action === self::ACTION_DELETE) {
+            if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
                 $query_arg = $this->cache->delete($url) ? self::NOTICE_ENTRY_DELETED : self::NOTICE_ENTRY_FAILED;
                 wp_redirect(add_query_arg($query_arg, 1, $this->url));
@@ -269,7 +273,7 @@ class ListTable extends \WP_List_Table
         }
 
         // Bulk delete?
-        if ((self::BULK_ACTION_DELETE === $this->current_action()) && isset($_POST['urls']) && is_array($_POST['urls'])) {
+        if ((self::BULK_ACTION_DELETE === $this->current_action()) && Plugin::canUserFlushCache() && isset($_POST['urls']) && is_array($_POST['urls'])) {
             // Sanitize.
             $sanitized = array_filter(
                 filter_input_array(INPUT_POST, ['urls' => ['filter' => FILTER_VALIDATE_URL, 'flags' => FILTER_REQUIRE_ARRAY]])
@@ -382,14 +386,18 @@ class ListTable extends \WP_List_Table
      */
     private function getRowActions(array $item): array
     {
-        return [
-            self::ACTION_DELETE => $this->renderRowAction(
+        $actions = [];
+
+        if (Plugin::canUserFlushCache()) {
+            $actions[self::ACTION_DELETE] = $this->renderRowAction(
                 self::ACTION_DELETE,
                 $item['url'],
                 'delete',
                 __('Delete entry', 'bc-cache')
-            ),
-        ];
+            );
+        }
+
+        return $actions;
     }
 
 

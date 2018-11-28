@@ -125,7 +125,7 @@ class Plugin
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
 
         // Add flush icon to admin bar.
-        if (is_admin_bar_showing() && $this->canUserFlushCache()) {
+        if (is_admin_bar_showing() && self::canUserFlushCache()) {
             add_action('admin_bar_init', [$this, 'enqueueFlushIconAssets'], 10, 0);
             add_action('admin_bar_menu', [$this, 'addFlushIcon'], 90, 1);
         }
@@ -134,7 +134,7 @@ class Plugin
             // Initialize cache viewer.
             (new Viewer($this->cache))->init();
 
-            if ($this->canUserFlushCache()) {
+            if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
                 add_action('rightnow_end', [$this, 'enqueueDashboardAssets'], 10, 0);
             }
@@ -264,7 +264,7 @@ class Plugin
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
-        if ($this->canUserFlushCache() && $this->cache->flush()) {
+        if (self::canUserFlushCache() && $this->cache->flush()) {
             wp_send_json_success();
         } else {
             wp_send_json_error();
@@ -304,6 +304,18 @@ class Plugin
 
 
     /**
+     * @return bool True, if current user can explicitly flush the cache, false otherwise.
+     */
+    public static function canUserFlushCache(): bool
+    {
+        return apply_filters(
+            Hooks::FILTER_USER_CAN_FLUSH_CACHE,
+            current_user_can('manage_options')
+        );
+    }
+
+
+    /**
      * Get cache signature (by default embedded in HTML comment).
      *
      * @return string
@@ -319,18 +331,6 @@ class Plugin
                 __('Generated', 'bc-cache'),
                 date_i18n('d.m.Y H:i:s', current_time('timestamp'))
             )
-        );
-    }
-
-
-    /**
-     * @return bool True, if current user can explicitly flush the cache, false otherwise.
-     */
-    private function canUserFlushCache(): bool
-    {
-        return apply_filters(
-            Hooks::FILTER_USER_CAN_FLUSH_CACHE,
-            current_user_can('manage_options')
         );
     }
 
