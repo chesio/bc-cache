@@ -64,11 +64,11 @@ AddDefaultCharset utf-8
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
-  
+
   # Do not allow direct access to cache entries.
   RewriteCond %{REQUEST_URI} /wp-content/cache/bc-cache/
   RewriteCond %{ENV:REDIRECT_STATUS} ^$
-  RewriteRule .* - [F,L]  
+  RewriteRule .* - [F,L]
 </IfModule>
 # END BC Cache
 ```
@@ -100,6 +100,10 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 
 When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check cookies or `User-Agent` string), you probably want to have the rule in both places.
 
+## Cache viewer
+
+Contents of cache can be inspected (by any user with `manage_options` capability) via _Cache Viewer_ management page (under _Tools_). Users who can flush the cache are able to delete individual cache entries.
+
 ## Request variants
 
 Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example in EU countries is the situation in which cookie policy notice is displayed to user until the user accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve both users that have and have not accepted the cookie policy.
@@ -124,7 +128,7 @@ The [default configuration](#installation) needs to be extended as well and set 
   RewriteRule .* - [E=BC_CACHE_REQUEST_VARIANT:_cna]
 ```
 
-Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` set as variant names.
+Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
 
 ## Credits
 
