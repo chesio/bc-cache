@@ -60,6 +60,15 @@ class Viewer
 
 
     /**
+     * @return string URL of viewer page.
+     */
+    public function getUrl(): string
+    {
+        return add_query_arg('page', self::ADMIN_PAGE_SLUG, admin_url('tools.php'));
+    }
+
+
+    /**
      * @hook https://developer.wordpress.org/reference/hooks/admin_menu/
      */
     public function addAdminPage()
@@ -85,7 +94,9 @@ class Viewer
      */
     public function loadPage()
     {
-        $this->list_table = new ListTable($this->cache);
+        $this->list_table = new ListTable($this->cache, $this->getUrl());
+        $this->list_table->processActions(); // may trigger wp_redirect()
+        $this->list_table->displayNotices();
         $this->list_table->prepare_items();
     }
 
