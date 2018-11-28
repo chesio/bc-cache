@@ -102,15 +102,6 @@ class Core
 
 
     /**
-     * @return string Name of cache method.
-     */
-    public function getName(): string
-    {
-        return 'HDD';
-    }
-
-
-    /**
      * @return int Size of cache data.
      */
     public function getSize(): int

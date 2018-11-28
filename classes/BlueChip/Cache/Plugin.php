@@ -208,9 +208,8 @@ class Plugin
         $size = $this->getCacheSize();
 
         $icon = sprintf(
-            '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-%s"></svg>',
-            plugins_url('assets/icons.svg', $this->plugin_filename),
-            strtolower($this->cache->getName())
+            '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-hdd"></svg>',
+            plugins_url('assets/icons.svg', $this->plugin_filename)
         );
 
         $cache_size = empty($size)
