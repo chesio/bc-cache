@@ -102,7 +102,7 @@ When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filte
 
 ## Cache viewer
 
-Contents of cache can be inspected (by any user with `manage_options` capability) via _Cache Viewer_ management page (under _Tools_).
+Contents of cache can be inspected (by any user with `manage_options` capability) via _Cache Viewer_ management page (under _Tools_). Users who can flush the cache are able to delete individual cache entries.
 
 ## Request variants
 
