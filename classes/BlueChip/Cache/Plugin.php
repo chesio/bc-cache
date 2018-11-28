@@ -13,11 +13,6 @@ class Plugin
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * Name of transient used to cache cache size.
-     */
-    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
-
-    /**
      * List of actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     const FLUSH_CACHE_HOOKS = [
@@ -58,7 +53,7 @@ class Plugin
      */
     public function activate()
     {
-        $this->flushCache();
+        $this->cache->flush();
     }
 
 
@@ -70,7 +65,7 @@ class Plugin
      */
     public function deactivate()
     {
-        $this->flushCache();
+        $this->cache->flush();
     }
 
 
@@ -82,8 +77,7 @@ class Plugin
      */
     public function uninstall()
     {
-        $this->flushCache();
-        delete_transient(self::TRANSIENT_CACHE_SIZE);
+        $this->cache->flush(true);
     }
 
 
@@ -205,7 +199,7 @@ class Plugin
      */
     public function addDashboardInfo(array $items): array
     {
-        $size = $this->getCacheSize();
+        $size = $this->cache->getSize();
 
         $icon = sprintf(
             '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-hdd"></svg>',
@@ -244,15 +238,15 @@ class Plugin
     /**
      * Flush cache once per request only.
      *
-     * @see Plugin::flushCache()
-     * @return Cached result of call to flushCache().
+     * @see Core::flush()
+     * @return Cached result of call to Core::flush().
      */
     public function flushCacheOnce(): bool
     {
         static $is_flushed = null;
 
         if (is_null($is_flushed)) {
-            $is_flushed = $this->flushCache();
+            $is_flushed = $this->cache->flush();
         }
 
         return $is_flushed;
@@ -270,7 +264,7 @@ class Plugin
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
-        if ($this->canUserFlushCache() && $this->flushCache()) {
+        if ($this->canUserFlushCache() && $this->cache->flush()) {
             wp_send_json_success();
         } else {
             wp_send_json_error();
@@ -292,68 +286,20 @@ class Plugin
     /**
      * Push $buffer to cache and return it on output.
      *
-     * @internal Updates cache size transient as a side effect.
      * @param string $buffer
      * @return string
      */
     public function handleOutputBuffer(string $buffer): string
     {
         if (!empty($buffer)) {
-            try {
-                $bytes_written = $this->cache->push(
-                    Utils::getRequestUrl(),
-                    $buffer . $this->getSignature(),
-                    apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
-                );
-
-                // If cache size transient exists, update it.
-                if (($cache_size = get_transient(self::TRANSIENT_CACHE_SIZE)) !== false) {
-                    set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size + $bytes_written);
-                }
-            } catch (Exception $e) {
-                trigger_error($e, E_USER_WARNING);
-            }
+            $this->cache->push(
+                Utils::getRequestUrl(),
+                $buffer . $this->getSignature(),
+                apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
+            );
         }
 
         return $buffer;
-    }
-
-
-    /**
-     * Flush cache safely: catch and log any exceptions.
-     *
-     * @internal Updates (or deletes) cache size transient as a side effect.
-     * @return bool True on success (~ there's been no error reported), false otherwise.
-     */
-    private function flushCache(): bool
-    {
-        try {
-            $this->cache->flush();
-            // Update cache size transient: cache is empty.
-            set_transient(self::TRANSIENT_CACHE_SIZE, 0);
-            return true;
-        } catch (Exception $e) {
-            trigger_error($e, E_USER_WARNING);
-            // Delete cache size transient as cache size is unknown due I/O error.
-            delete_transient(self::TRANSIENT_CACHE_SIZE);
-            return false;
-        }
-    }
-
-
-    /**
-     * Get cache size safely: catch I/O exceptions, use transient cache to not slow down system too much.
-     *
-     * @return int
-     */
-    private function getCacheSize(): int
-    {
-        if (($cache_size = get_transient(self::TRANSIENT_CACHE_SIZE)) === false) {
-            $cache_size = $this->cache->getSize();
-            set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
-        }
-
-        return $cache_size;
     }
 
 
