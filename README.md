@@ -128,7 +128,7 @@ The [default configuration](#installation) needs to be extended as well and set 
   RewriteRule .* - [E=BC_CACHE_REQUEST_VARIANT:_cna]
 ```
 
-Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` set as variant names.
+Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
 
 ## Credits
 
