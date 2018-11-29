@@ -184,7 +184,7 @@ class ListTable extends \WP_List_Table
         return [
             'cb' => '<input type="checkbox">',
             'relative_path' => __('Relative path', 'bc-cache'),
-            'url' => __('IP address', 'URL'),
+            'url' => __('URL', 'bc-cache'),
             'timestamp' => __('Created', 'bc-cache'),
             'size' => __('Size', 'bc-cache'),
         ];
