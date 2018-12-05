@@ -224,7 +224,7 @@ class Core
         set_transient(self::TRANSIENT_CACHE_SIZE, $directory_sizes[self::CACHE_DIR]['total_size']);
 
         // Do not report entries (directories) that only contain other directories, but hold no (cache) data themselves.
-        $items = array_filter($directory_sizes, function (array $item): bool { return $item['own_size'] > 0; });
+        $items = array_filter($directory_sizes, function (array $item): bool { return $item['own_size'] > 0; }); // phpcs:ignore
 
         $state = [];
 
