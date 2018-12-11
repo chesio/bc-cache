@@ -6,20 +6,20 @@
  * Version: develop
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
- * Requires PHP: 7.0
+ * Requires PHP: 7.1
  * Requires WP: 4.7
  * Tested up to: 4.9
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  */
 
-if (version_compare(PHP_VERSION, '7.0', '<')) {
+if (version_compare(PHP_VERSION, '7.1', '<')) {
     // Warn user that his/her PHP version is too low for this plugin to function.
     add_action('admin_notices', function () {
         echo '<div class="error"><p>';
         echo esc_html(
             sprintf(
-                __('BC Cache plugin requires PHP 7.0 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
+                __('BC Cache plugin requires PHP 7.1 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
                 PHP_VERSION
             )
         );
