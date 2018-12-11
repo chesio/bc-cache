@@ -35,6 +35,8 @@ class Core
 
 
     /**
+     * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
+     *
      * @param string $data
      * @return string
      */
@@ -48,7 +50,7 @@ class Core
 
 
     /**
-     * Flush entire disk cache.
+     * Flush entire cache.
      *
      * @param bool $uninstall Not only flush cache entries, but remove any metadata as well.
      * @return bool True on success (there has been no error), false otherwise.
@@ -185,6 +187,8 @@ class Core
 
 
     /**
+     * Get size of cache data.
+     *
      * @param bool $precise Calculate the size from disk, ignore any transient data.
      * @return int Size of cache data.
      */
@@ -251,6 +255,8 @@ class Core
 
 
     /**
+     * Get time (as Unix timestamp) of creation of cache entry under given $path.
+     *
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
      * @return int|null Time (as Unix timestamp) of creation of cache entry under given $path or null in case of I/O error.
@@ -262,6 +268,8 @@ class Core
 
 
     /**
+     * Return total size of all files in given directory and its subdirectories.
+     *
      * @param string $dirname
      * @return int Total size of all files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.

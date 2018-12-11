@@ -69,7 +69,7 @@ class Viewer
 
 
     /**
-     * @hook https://developer.wordpress.org/reference/hooks/admin_menu/
+     * @action https://developer.wordpress.org/reference/hooks/admin_menu/
      */
     public function addAdminPage()
     {
@@ -91,6 +91,8 @@ class Viewer
     /**
      * @internal ListTable instance cannot be initialized in the constructor, because \WP_List_Table is unknown to PHP
      * at the time constructor is invoked.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/load-page_hook/
      */
     public function loadPage()
     {
