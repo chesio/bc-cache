@@ -214,6 +214,7 @@ class Core
     {
         if (!is_dir(self::CACHE_DIR)) {
             // The cache seems to be empty.
+            set_transient(self::TRANSIENT_CACHE_SIZE, 0);
             return [];
         }
 
