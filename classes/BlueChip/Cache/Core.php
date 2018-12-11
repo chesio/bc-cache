@@ -230,11 +230,19 @@ class Core
         $state = [];
 
         foreach ($items as $path => $item) {
+            try {
+                $url = self::getUrl($path);
+            } catch (Exception $e) {
+                // Trigger a warning and let WordPress handle it.
+                trigger_error($e, E_USER_WARNING);
+                $url = null;
+            }
+
             $state[$path] = [
                 'relative_path' => substr($path, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)),
                 'size' => $item['own_size'],
                 'timestamp' => self::getCreationTimestamp($path),
-                'url' => self::getUrl($path),
+                'url' => $url,
             ];
         }
 
@@ -245,11 +253,11 @@ class Core
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
-     * @return int Time (as Unix timestamp) of when given cache directory has been created.
+     * @return int|null Time (as Unix timestamp) of creation of cache entry under given $path or null in case of I/O error.
      */
-    private static function getCreationTimestamp(string $path, string $request_variant = ''): int
+    private static function getCreationTimestamp(string $path, string $request_variant = ''): ?int
     {
-        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: 0;
+        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
     }
 
 

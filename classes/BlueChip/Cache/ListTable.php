@@ -156,7 +156,10 @@ class ListTable extends \WP_List_Table
      */
     public function column_url(array $item): string // phpcs:ignore
     {
-        return '<a href="' . esc_url($item['url']) . '">' . esc_html($item['url']) . '</a>';
+        return $item['url']
+            ? ('<a href="' . esc_url($item['url']) . '">' . esc_html($item['url']) . '</a>')
+            : self::UNKNOWN_VALUE
+        ;
     }
 
 
