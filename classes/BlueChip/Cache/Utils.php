@@ -12,7 +12,7 @@ abstract class Utils
      * @param int $timestamp Unix timestamp.
      * @return string Date represented by Unix $timestamp in requested $format and time zone of WordPress installation.
      */
-    public function formatWpDateTime(string $format, int $timestamp): string
+    public static function formatWpDateTime(string $format, int $timestamp): string
     {
         return (new \DateTime('@' . $timestamp))->setTimezone(self::getWpTimezone())->format($format);
     }
