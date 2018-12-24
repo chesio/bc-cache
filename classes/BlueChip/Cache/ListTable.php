@@ -142,7 +142,7 @@ class ListTable extends \WP_List_Table
     public function column_timestamp(array $item): string // phpcs:ignore
     {
         return $item['timestamp']
-            ? (date('Y-m-d', $item['timestamp']) . '<br>' . date('H:i:s', $item['timestamp']))
+            ? (Utils::formatWpDateTime('Y-m-d', $item['timestamp']) . '<br>' . Utils::formatWpDateTime('H:i:s', $item['timestamp']))
             : self::UNKNOWN_VALUE
         ;
     }

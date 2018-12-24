@@ -8,11 +8,40 @@ namespace BlueChip\Cache;
 abstract class Utils
 {
     /**
+     * @param string $format Format to display the date.
+     * @param int $timestamp Unix timestamp.
+     * @return string Date represented by Unix $timestamp in requested $format and time zone of WordPress installation.
+     */
+    public function formatWpDateTime(string $format, int $timestamp): string
+    {
+        return (new \DateTime('@' . $timestamp))->setTimezone(self::getWpTimezone())->format($format);
+    }
+
+
+    /**
      * @return string URL of current request.
      */
     public static function getRequestUrl(): string
     {
         return (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    }
+
+
+    /**
+     * @link https://github.com/Rarst/wpdatetime/blob/0.3/src/WpDateTimeZone.php
+     * @return \DateTimeZone Time zone of WordPress installation.
+     */
+    public static function getWpTimezone(): \DateTimeZone
+    {
+        $timezone_string = get_option('timezone_string');
+        if (!empty($timezone_string)) {
+            return new \DateTimeZone($timezone_string);
+        }
+        $offset  = get_option('gmt_offset');
+        $hours   = (int) $offset;
+        $minutes = abs(($offset - (int) $offset) * 60);
+        $offset  = sprintf('%+03d:%02d', $hours, $minutes);
+        return new \DateTimeZone($offset);
     }
 
 
