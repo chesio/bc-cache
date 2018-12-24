@@ -87,12 +87,12 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 A response to HTTP(S) request is cached by BC Cache if **none** of the conditions below is true:
 
 1. Request is a POST request.
-1. Request is a GET request with non-empty query string.
-1. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
-1. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
-1. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
-1. `DONOTCACHEPAGE` constant is set and evaluates to true.
-1. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
+2. Request is a GET request with non-empty query string.
+3. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
+4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
+5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
+6. `DONOTCACHEPAGE` constant is set and evaluates to true.
+7. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
 **Important!** Cache exclusion rules are essentialy defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
