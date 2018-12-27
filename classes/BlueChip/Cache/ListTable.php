@@ -63,7 +63,7 @@ class ListTable extends \WP_List_Table
     /**
      * @var string Sorting direction (asc or desc)
      */
-    private $order = 'desc';
+    private $order = 'asc';
 
     /**
      * @var string Sorting column
