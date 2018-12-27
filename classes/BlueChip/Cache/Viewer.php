@@ -69,7 +69,7 @@ class Viewer
 
 
     /**
-     * @hook https://developer.wordpress.org/reference/hooks/admin_menu/
+     * @action https://developer.wordpress.org/reference/hooks/admin_menu/
      */
     public function addAdminPage()
     {
@@ -91,6 +91,8 @@ class Viewer
     /**
      * @internal ListTable instance cannot be initialized in the constructor, because \WP_List_Table is unknown to PHP
      * at the time constructor is invoked.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/load-page_hook/
      */
     public function loadPage()
     {
@@ -108,7 +110,7 @@ class Viewer
         // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
-        echo '<p>' . sprintf(esc_html__('The paths below are relative to %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
+        echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
 
         echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($this->cache->getSize()) . '</strong>') . '</p>';
 

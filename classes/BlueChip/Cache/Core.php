@@ -8,19 +8,24 @@ namespace BlueChip\Cache;
 class Core
 {
     /**
-     * Path to root cache directory
+     * @var string Path to root cache directory
      */
     const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
 
     /**
-     * URL of root cache directory
+     * @var string URL of root cache directory
      */
     const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
-     * Name of transient used to cache cache size.
+     * @var string Name of transient used to cache cache size.
      */
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
+
+    /**
+     * @var string Key of default request variant.
+     */
+    const DEFAULT_REQUEST_VARIANT = '';
 
 
     /**
@@ -35,6 +40,8 @@ class Core
 
 
     /**
+     * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
+     *
      * @param string $data
      * @return string
      */
@@ -48,7 +55,7 @@ class Core
 
 
     /**
-     * Flush entire disk cache.
+     * Flush entire cache.
      *
      * @param bool $uninstall Not only flush cache entries, but remove any metadata as well.
      * @return bool True on success (there has been no error), false otherwise.
@@ -89,9 +96,10 @@ class Core
      * Delete data for given URL from cache. All request variants are deleted.
      *
      * @param string $url
+     * @param string $request_variant [optional] Request variant to delete.
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function delete(string $url): bool
+    public function delete(string $url, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
     {
         try {
             // Get directory for given URL.
@@ -115,7 +123,10 @@ class Core
         delete_transient(self::TRANSIENT_CACHE_SIZE);
 
         try {
-            $bytes_deleted = self::removeDirectoryContents($path);
+            $bytes_deleted
+                = self::deleteFile(self::getHtmlFilename($path, $request_variant))
+                + self::deleteFile(self::getGzipFilename($path, $request_variant))
+            ;
             // If cache size transient existed, set it anew with updated value.
             if ($cache_size !== false) {
                 set_transient(self::TRANSIENT_CACHE_SIZE, max($cache_size - $bytes_deleted, 0));
@@ -139,10 +150,10 @@ class Core
      *
      * @param string $url
      * @param string $data
-     * @param string $request_variant [optional] Request variant.
+     * @param string $request_variant [optional] Request variant to store the data under.
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function push(string $url, string $data, string $request_variant = ''): bool
+    public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
     {
         try {
             // Make directory for given URL.
@@ -185,6 +196,8 @@ class Core
 
 
     /**
+     * Get size of cache data.
+     *
      * @param bool $precise Calculate the size from disk, ignore any transient data.
      * @return int Size of cache data.
      */
@@ -208,51 +221,69 @@ class Core
      *
      * @internal Updates size cache transient automatically.
      *
-     * @return array List of all cache entries with information about `relative_path`, `size`, `url` and creation `timestamp`.
+     * @param array $request_variants List of all request variants to inspect.
+     * @return array List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
-    public function inspect(): array
+    public function inspect(array $request_variants): array
     {
         if (!is_dir(self::CACHE_DIR)) {
             // The cache seems to be empty.
+            set_transient(self::TRANSIENT_CACHE_SIZE, 0);
             return [];
         }
 
-        // Get directory sizes as base data.
-        $directory_sizes = self::getDirectorySizes(self::CACHE_DIR);
-
-        // Update cache size transient with total size of cache directory.
-        set_transient(self::TRANSIENT_CACHE_SIZE, $directory_sizes[self::CACHE_DIR]['total_size']);
-
-        // Do not report entries (directories) that only contain other directories, but hold no (cache) data themselves.
-        $items = array_filter($directory_sizes, function (array $item): bool { return $item['own_size'] > 0; });
+        // Get cache sizes.
+        $cache_sizes = self::getCacheSizes(self::CACHE_DIR, $request_variants);
 
         $state = [];
+        $cache_total_size = 0;
 
-        foreach ($items as $path => $item) {
-            $state[$path] = [
-                'relative_path' => substr($path, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)),
-                'size' => $item['own_size'],
-                'timestamp' => self::getCreationTimestamp($path),
-                'url' => self::getUrl($path),
+        foreach ($cache_sizes as $id => $item) {
+            try {
+                $url = self::getUrl($item['path']);
+            } catch (Exception $e) {
+                // Trigger a warning and let WordPress handle it.
+                trigger_error($e, E_USER_WARNING);
+                $url = null;
+            }
+
+            $size = $item['html_size'] + $item['gzip_size'];
+            $cache_total_size += $size; // !
+
+            $state[] = [
+                'entry_id' => substr($id, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
+                'url' => $url,
+                'request_variant' => $item['request_variant'],
+                'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
+                'size' => $size,
+                'html_size' => $item['html_size'],
+                'gzip_size' => $item['gzip_size'],
             ];
         }
+
+        // Update cache size transient with total size of all cache entries.
+        set_transient(self::TRANSIENT_CACHE_SIZE, $cache_total_size);
 
         return $state;
     }
 
 
     /**
+     * Get time (as Unix timestamp) of creation of cache entry under given $path.
+     *
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
-     * @return int Time (as Unix timestamp) of when given cache directory has been created.
+     * @return int|null Time (as Unix timestamp) of creation of cache entry under given $path or null in case of I/O error.
      */
-    private static function getCreationTimestamp(string $path, string $request_variant = ''): int
+    private static function getCreationTimestamp(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): ?int
     {
-        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: 0;
+        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
     }
 
 
     /**
+     * Return total size of all files in given directory and its subdirectories.
+     *
      * @param string $dirname
      * @return int Total size of all files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.
@@ -277,13 +308,14 @@ class Core
 
 
     /**
-     * Return an array with size information for given directory and all its subdirectories.
+     * Return an array with cache size information for given directory and all its subdirectories.
      *
      * @param string $dirname
-     * @return array
+     * @param array $request_variants
+     * @return array List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
      * @throws Exception
      */
-    private static function getDirectorySizes(string $dirname): array
+    private static function getCacheSizes(string $dirname, array $request_variants): array
     {
         if (!is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
@@ -291,48 +323,64 @@ class Core
 
         $it = new \DirectoryIterator($dirname);
 
-        // An array of all sizes.
-        $sizes = [];
+        // An array of all cache entries (path + request variant) and their sizes.
+        $entries = [];
 
-        $own_size = 0; // size of files in the directory
-        $total_size = 0; // size of files in the directory and all subdirectories
-
+        // Process any subdirectories first.
         foreach ($it as $fileinfo) {
-            if ($it->isDot()) {
-                // Skip '.' and '..' directories.
-                continue;
-            } elseif ($it->isDir()) {
+            if ($it->isDir() && !$it->isDot()) { // Skip '.' and '..' directories.
                 // Get the path.
                 $subdirname = $fileinfo->getPathname();
-                // Update the pool of directory sizes.
-                $sizes += self::getDirectorySizes($subdirname);
-                // Update the total of current directory with total of current subdirectory.
-                $total_size += $sizes[$subdirname]['total_size'];
-            } elseif ($it->isFile()) {
-                // Update the size of current directory itself.
-                $own_size += $fileinfo->getSize();
+                // Update the pool of cache sizes.
+                $entries += self::getCacheSizes($subdirname, $request_variants);
             }
         }
 
-        // Add directory size to total size.
-        $total_size += $own_size;
+        // Loop through all request variants and grab size information.
+        foreach ($request_variants as $request_variant) {
+            $request_variant_html_size = $request_variant_gzip_size = 0;
 
-        $sizes[$dirname] = [
-            'path'  => $dirname,
-            'own_size'  => $own_size,
-            'total_size' => $total_size,
-        ];
+            $htmlFilename = self::getHtmlFilename($dirname, $request_variant);
+            if (is_file($htmlFilename)) {
+                $request_variant_html_size = filesize($htmlFilename) ?: 0;
+            }
 
-        return $sizes;
+            $gzipFilename = self::getGzipFilename($dirname, $request_variant);
+            if (is_file($gzipFilename)) {
+                $request_variant_gzip_size = filesize($gzipFilename) ?: 0;
+            }
+
+            if (($request_variant_html_size + $request_variant_gzip_size) > 0) {
+                $entries[self::getBaseFilename($dirname, $request_variant)] = [
+                    'path'  => $dirname,
+                    'request_variant' => $request_variant,
+                    'html_size' => $request_variant_html_size,
+                    'gzip_size' => $request_variant_gzip_size,
+                ];
+            }
+        }
+
+        return $entries;
     }
 
 
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
-     * @return string Path to gzipped cache file for $path.
+     * @return string Path to cache basename file (cache entry ID) for given $path and $request variant.
      */
-    private static function getGzipFilename(string $path, string $request_variant = ''): string
+    private static function getBaseFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
+    {
+        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}";
+    }
+
+
+    /**
+     * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $request_variant [optional] Request variant (default empty).
+     * @return string Path to gzipped cache file for given $path and $request variant.
+     */
+    private static function getGzipFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html.gz";
     }
@@ -341,9 +389,9 @@ class Core
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
-     * @return string Path to HTML cache file for $path.
+     * @return string Path to HTML cache file for given $path and $request variant.
      */
-    private static function getHtmlFilename(string $path, string $request_variant = ''): string
+    private static function getHtmlFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html";
     }
@@ -473,44 +521,6 @@ class Core
 
 
     /**
-     * Wipe out any files in given directory (subdirectories are not affected).
-     *
-     * @param string $dirname
-     * @return int Total size of files removed from directory.
-     * @throws Exception
-     */
-    private static function removeDirectoryContents(string $dirname): int
-    {
-        if (!is_dir($dirname)) {
-            throw new Exception("{$dirname} is not a directory!");
-        }
-
-        $it = new \DirectoryIterator($dirname);
-
-        $bytes_deleted = 0;
-
-        foreach ($it as $fileinfo) {
-            if (!$it->isFile()) {
-                // Skip any non-files.
-                continue;
-            }
-
-            // Update the size of deleted files.
-            $bytes_deleted += $fileinfo->getSize();
-
-            // Get full path to the file
-            $path = $fileinfo->getPathname();
-
-            if (!unlink($path)) {
-                throw new Exception("Could not remove file {$path}.");
-            }
-        }
-
-        return $bytes_deleted;
-    }
-
-
-    /**
      * Normalize given absolute path: sanitize directory separators, resolve all empty parts as well as ".." and ".".
      *
      * @link https://secure.php.net/manual/en/function.realpath.php#84012
@@ -544,6 +554,34 @@ class Core
         }
 
         return implode(DIRECTORY_SEPARATOR, $absolutes);
+    }
+
+
+    /**
+     * @param string $filename
+     * @return int Number of bytes deleted (file size).
+     * @throws Exception
+     */
+    private static function deleteFile(string $filename): int
+    {
+        if (!file_exists($filename)) {
+            // Deleting non-existing file removes 0 bytes from disk.
+            return 0;
+        }
+
+        if (!is_file($filename)) {
+            throw new Exception("Could not delete a non-regular file {$filename}.");
+        }
+
+        if (($size = filesize($filename)) === false) {
+            throw new Exception("Failed to get size of file {$filename}.");
+        }
+
+        if (!unlink($filename)) {
+            throw new Exception("Failed to delete file {$filename}.");
+        }
+
+        return $size;
     }
 
 

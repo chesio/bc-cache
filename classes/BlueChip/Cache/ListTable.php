@@ -11,6 +11,11 @@ namespace BlueChip\Cache;
 class ListTable extends \WP_List_Table
 {
     /**
+     * @var string Separator between URL and request variant part in cache entry ID. Do not change!
+     */
+    const ENTRY_ID_SEPARATOR = '#';
+
+    /**
      * @var string Name of delete action
      */
     const ACTION_DELETE = 'delete';
@@ -51,9 +56,14 @@ class ListTable extends \WP_List_Table
     private $cache;
 
     /**
+     * @var array List of known request variants: id => label
+     */
+    private $request_variants = [];
+
+    /**
      * @var string Sorting direction (asc or desc)
      */
-    private $order = 'desc';
+    private $order = 'asc';
 
     /**
      * @var string Sorting column
@@ -80,6 +90,12 @@ class ListTable extends \WP_List_Table
         $this->cache = $cache;
         $this->url = $url;
 
+        // Get list of request variants.
+        $this->request_variants = apply_filters(
+            Hooks::FILTER_REQUEST_VARIANTS,
+            [Core::DEFAULT_REQUEST_VARIANT => __('Default', 'bc-cache')]
+        );
+
         $order_by = filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
         if (in_array($order_by, $this->get_sortable_columns(), true)) {
             $this->order_by = $order_by;
@@ -102,22 +118,37 @@ class ListTable extends \WP_List_Table
      */
     public function column_cb($item) // phpcs:ignore
     {
-        return sprintf('<input type="checkbox" name="urls[]" value="%s" />', $item['url']);
+        return sprintf(
+            '<input type="checkbox" name="urls[]" value="%s" />',
+            $item['url'] . self::ENTRY_ID_SEPARATOR . $item['request_variant']
+        );
     }
 
 
     /**
-     * Return content for "Relative path" column (including row actions).
+     * Return content for "ID" column (including row actions).
      *
      * @param array $item
      * @return string
      */
-    public function column_relative_path(array $item): string // phpcs:ignore
+    public function column_entry_id(array $item): string // phpcs:ignore
     {
         return
-            '<code>' . esc_html($item['relative_path']) . '</code>' . '<br>' .
+            '<code>' . esc_html($item['entry_id']) . '</code>' . '<br>' .
             $this->row_actions($this->getRowActions($item))
         ;
+    }
+
+
+    /**
+     * Return content for "Request variant" column.
+     *
+     * @param array $item
+     * @return string
+     */
+    public function column_request_variant(array $item): string // phpcs:ignore
+    {
+        return esc_html($this->request_variants[$item['request_variant']]);
     }
 
 
@@ -129,7 +160,11 @@ class ListTable extends \WP_List_Table
      */
     public function column_size(array $item): string // phpcs:ignore
     {
-        return $item['size'] ? esc_html(size_format($item['size'])) : self::UNKNOWN_VALUE;
+        return sprintf('%s | %s | %s',
+            esc_html(size_format($item['size'])),
+            esc_html(size_format($item['html_size'])),
+            esc_html(size_format($item['gzip_size']))
+        );
     }
 
 
@@ -156,7 +191,10 @@ class ListTable extends \WP_List_Table
      */
     public function column_url(array $item): string // phpcs:ignore
     {
-        return '<a href="' . esc_url($item['url']) . '">' . esc_html($item['url']) . '</a>';
+        return $item['url']
+            ? ('<a href="' . esc_url($item['url']) . '">' . esc_html($item['url']) . '</a>')
+            : self::UNKNOWN_VALUE
+        ;
     }
 
 
@@ -183,10 +221,11 @@ class ListTable extends \WP_List_Table
     {
         return [
             'cb' => '<input type="checkbox">',
-            'relative_path' => __('Relative path', 'bc-cache'),
+            'entry_id' => __('ID', 'bc-cache'),
             'url' => __('URL', 'bc-cache'),
+            'request_variant' => __('Request variant', 'bc-cache'),
             'timestamp' => __('Created', 'bc-cache'),
-            'size' => __('Size', 'bc-cache'),
+            'size' => __('Size: total | html | gzipped', 'bc-cache'),
         ];
     }
 
@@ -197,9 +236,9 @@ class ListTable extends \WP_List_Table
      */
     public function get_sortable_columns() // phpcs:ignore
     {
-        // All columns are sortable.
+        // All columns but request variant are sortable.
         return [
-            'relative_path' => 'relative_path',
+            'entry_id' => 'entry_id',
             'url' => 'url',
             'timestamp' => 'timestamp',
             'size' => 'size',
@@ -221,7 +260,7 @@ class ListTable extends \WP_List_Table
      */
     public function prepare_items() // phpcs:ignore
     {
-        $state = $this->cache->inspect();
+        $state = $this->cache->inspect(array_keys($this->request_variants));
 
         // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
         if ($this->order === 'asc') {
@@ -259,6 +298,11 @@ class ListTable extends \WP_List_Table
                 return;
             }
 
+            $request_variant = filter_input(INPUT_GET, 'request_variant', FILTER_SANITIZE_STRING);
+            if (!isset($this->request_variants[$request_variant])) {
+                return;
+            }
+
             $nonce = filter_input(INPUT_GET, self::NONCE_NAME);
             if (!wp_verify_nonce($nonce, sprintf('%s:%s', $action, $url))) {
                 // Nonce check failed
@@ -267,7 +311,7 @@ class ListTable extends \WP_List_Table
 
             if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
-                $query_arg = $this->cache->delete($url) ? self::NOTICE_ENTRY_DELETED : self::NOTICE_ENTRY_FAILED;
+                $query_arg = $this->cache->delete($url, $request_variant) ? self::NOTICE_ENTRY_DELETED : self::NOTICE_ENTRY_FAILED;
                 wp_redirect(add_query_arg($query_arg, 1, $this->url));
             }
         }
@@ -286,7 +330,8 @@ class ListTable extends \WP_List_Table
             $deleted = 0;
 
             foreach ($urls as $url) {
-                $deleted += $this->cache->delete($url) ? 1 : 0;
+                list($_url, $request_variant) = explode(self::ENTRY_ID_SEPARATOR, $url);
+                $deleted += $this->cache->delete($_url, $request_variant) ? 1 : 0;
             }
 
             if ($deleted < count($urls)) {
@@ -392,6 +437,7 @@ class ListTable extends \WP_List_Table
             $actions[self::ACTION_DELETE] = $this->renderRowAction(
                 self::ACTION_DELETE,
                 $item['url'],
+                $item['request_variant'],
                 'delete',
                 __('Delete entry', 'bc-cache')
             );
@@ -406,17 +452,18 @@ class ListTable extends \WP_List_Table
      *
      * @param string $action
      * @param string $url
+     * @param string $request_variant
      * @param string $class
      * @param string $label
      * @return string
      */
-    private function renderRowAction(string $action, string $url, string $class, string $label): string
+    private function renderRowAction(string $action, string $url, string $request_variant, string $class, string $label): string
     {
         return sprintf(
             '<span class="' . $class . '"><a href="%s">%s</a></span>',
             wp_nonce_url(
                 add_query_arg(
-                    ['action' => $action, 'url' => $url],
+                    ['action' => $action, 'url' => $url, 'request_variant' => $request_variant],
                     $this->url
                 ),
                 sprintf('%s:%s', $action, $url),

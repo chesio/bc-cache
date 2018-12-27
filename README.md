@@ -4,7 +4,7 @@ Simple disk cache for WordPress inspired by Cachify.
 
 ## Requirements
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://secure.php.net/) 7.0 or newer
+* [PHP](https://secure.php.net/) 7.1 or newer
 * [WordPress](https://wordpress.org/) 4.7 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
@@ -81,18 +81,19 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
 * `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
 * `bc-cache/filter:request-variant` - filters name of [request variant](#request-variants) of current HTTP request.
+* `bc-cache/filter:request-variants` - filters list of all available [request variants](#request-variants). You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
 
 ## Cache exclusions
 
 A response to HTTP(S) request is cached by BC Cache if **none** of the conditions below is true:
 
 1. Request is a POST request.
-1. Request is a GET request with non-empty query string.
-1. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
-1. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
-1. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
-1. `DONOTCACHEPAGE` constant is set and evaluates to true.
-1. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
+2. Request is a GET request with non-empty query string.
+3. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
+4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
+5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
+6. `DONOTCACHEPAGE` constant is set and evaluates to true.
+7. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
 **Important!** Cache exclusion rules are essentialy defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
@@ -116,6 +117,11 @@ Request variant name should be set whenever cookie notice is accepted (example u
 ```php
 add_filter('bc-cache/filter:request-variant', function (string $default_variant): string {
     return cn_cookies_accepted() ? '_cna' : $default_variant;
+}, 10, 1);
+
+add_filter('bc-cache/filter:request-variants', function (array $variants): array {
+    $variants['_cna'] = 'Cookie notice accepted';
+    return $variants;
 }, 10, 1);
 ```
 

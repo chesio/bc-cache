@@ -181,9 +181,9 @@ class Plugin
     public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar)
     {
         $wp_admin_bar->add_node([
-            'id' 	 => 'bc-cache',
+            'id'     => 'bc-cache',
             'parent' => 'top-secondary',
-            'title'	 => '<span class="ab-icon dashicons"></span><span class="bc-cache-spinner"></span>',
+            'title'  => '<span class="ab-icon dashicons"></span><span class="bc-cache-spinner"></span>',
             'meta'   => [
                 'title' => __('Flush the cache', 'bc-cache'),
             ],
@@ -295,7 +295,7 @@ class Plugin
             $this->cache->push(
                 Utils::getRequestUrl(),
                 $buffer . $this->getSignature(),
-                apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
+                apply_filters(Hooks::FILTER_REQUEST_VARIANT, Core::DEFAULT_REQUEST_VARIANT)
             );
         }
 
