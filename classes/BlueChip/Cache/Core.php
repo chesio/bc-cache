@@ -22,6 +22,11 @@ class Core
      */
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
+    /**
+     * @var string Key of default request variant.
+     */
+    const DEFAULT_REQUEST_VARIANT = '';
+
 
     /**
      * Initialize disk cache.
@@ -94,7 +99,7 @@ class Core
      * @param string $request_variant [optional] Request variant to delete.
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function delete(string $url, string $request_variant = ''): bool
+    public function delete(string $url, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
     {
         try {
             // Get directory for given URL.
@@ -148,7 +153,7 @@ class Core
      * @param string $request_variant [optional] Request variant to store the data under.
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function push(string $url, string $data, string $request_variant = ''): bool
+    public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
     {
         try {
             // Make directory for given URL.
@@ -268,7 +273,7 @@ class Core
      * @param string $request_variant [optional] Request variant (default empty).
      * @return int|null Time (as Unix timestamp) of creation of cache entry under given $path or null in case of I/O error.
      */
-    private static function getCreationTimestamp(string $path, string $request_variant = ''): ?int
+    private static function getCreationTimestamp(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): ?int
     {
         return filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
     }
@@ -362,7 +367,7 @@ class Core
      * @param string $request_variant [optional] Request variant (default empty).
      * @return string Path to cache basename file (cache entry ID) for given $path and $request variant.
      */
-    private static function getBaseFilename(string $path, string $request_variant = ''): string
+    private static function getBaseFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}";
     }
@@ -373,7 +378,7 @@ class Core
      * @param string $request_variant [optional] Request variant (default empty).
      * @return string Path to gzipped cache file for given $path and $request variant.
      */
-    private static function getGzipFilename(string $path, string $request_variant = ''): string
+    private static function getGzipFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html.gz";
     }
@@ -384,7 +389,7 @@ class Core
      * @param string $request_variant [optional] Request variant (default empty).
      * @return string Path to HTML cache file for given $path and $request variant.
      */
-    private static function getHtmlFilename(string $path, string $request_variant = ''): string
+    private static function getHtmlFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html";
     }

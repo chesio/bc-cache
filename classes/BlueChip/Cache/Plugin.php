@@ -295,7 +295,7 @@ class Plugin
             $this->cache->push(
                 Utils::getRequestUrl(),
                 $buffer . $this->getSignature(),
-                apply_filters(Hooks::FILTER_REQUEST_VARIANT, '')
+                apply_filters(Hooks::FILTER_REQUEST_VARIANT, Core::DEFAULT_REQUEST_VARIANT)
             );
         }
 

@@ -91,7 +91,10 @@ class ListTable extends \WP_List_Table
         $this->url = $url;
 
         // Get list of request variants.
-        $this->request_variants = apply_filters(Hooks::FILTER_REQUEST_VARIANTS, ['' => __('Default', 'bc-cache')]);
+        $this->request_variants = apply_filters(
+            Hooks::FILTER_REQUEST_VARIANTS,
+            [Core::DEFAULT_REQUEST_VARIANT => __('Default', 'bc-cache')]
+        );
 
         $order_by = filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
         if (in_array($order_by, $this->get_sortable_columns(), true)) {
