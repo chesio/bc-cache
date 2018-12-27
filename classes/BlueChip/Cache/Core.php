@@ -8,17 +8,17 @@ namespace BlueChip\Cache;
 class Core
 {
     /**
-     * Path to root cache directory
+     * @var string Path to root cache directory
      */
     const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
 
     /**
-     * URL of root cache directory
+     * @var string URL of root cache directory
      */
     const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
-     * Name of transient used to cache cache size.
+     * @var string Name of transient used to cache cache size.
      */
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
