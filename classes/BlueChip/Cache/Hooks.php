@@ -36,4 +36,9 @@ abstract class Hooks
      * Name of hook to filter current HTTP request variant.
      */
     const FILTER_REQUEST_VARIANT = 'bc-cache/filter:request-variant';
+
+    /**
+     * Name of hook to filter all configured HTTP request variants.
+     */
+    const FILTER_REQUEST_VARIANTS = 'bc-cache/filter:request-variants';
 }

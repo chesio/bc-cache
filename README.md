@@ -81,6 +81,7 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
 * `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
 * `bc-cache/filter:request-variant` - filters name of [request variant](#request-variants) of current HTTP request.
+* `bc-cache/filter:request-variants` - filters list of all available [request variants](#request-variants). You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
 
 ## Cache exclusions
 
@@ -116,6 +117,11 @@ Request variant name should be set whenever cookie notice is accepted (example u
 ```php
 add_filter('bc-cache/filter:request-variant', function (string $default_variant): string {
     return cn_cookies_accepted() ? '_cna' : $default_variant;
+}, 10, 1);
+
+add_filter('bc-cache/filter:request-variants', function (array $variants): array {
+    $variants['_cna'] = 'Cookie notice accepted';
+    return $variants;
 }, 10, 1);
 ```
 

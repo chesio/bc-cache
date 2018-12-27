@@ -110,7 +110,7 @@ class Viewer
         // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
-        echo '<p>' . sprintf(esc_html__('The paths below are relative to %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
+        echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
 
         echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($this->cache->getSize()) . '</strong>') . '</p>';
 
