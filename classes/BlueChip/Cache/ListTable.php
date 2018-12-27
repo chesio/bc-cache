@@ -160,7 +160,11 @@ class ListTable extends \WP_List_Table
      */
     public function column_size(array $item): string // phpcs:ignore
     {
-        return esc_html(size_format($item['size']));
+        return sprintf('%s | %s | %s',
+            esc_html(size_format($item['size'])),
+            esc_html(size_format($item['html_size'])),
+            esc_html(size_format($item['gzip_size']))
+        );
     }
 
 
@@ -221,7 +225,7 @@ class ListTable extends \WP_List_Table
             'url' => __('URL', 'bc-cache'),
             'request_variant' => __('Request variant', 'bc-cache'),
             'timestamp' => __('Created', 'bc-cache'),
-            'size' => __('Size', 'bc-cache'),
+            'size' => __('Size: total | html | gzipped', 'bc-cache'),
         ];
     }
 

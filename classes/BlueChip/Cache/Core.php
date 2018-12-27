@@ -256,6 +256,8 @@ class Core
                 'request_variant' => $item['request_variant'],
                 'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
                 'size' => $size,
+                'html_size' => $item['html_size'],
+                'gzip_size' => $item['gzip_size'],
             ];
         }
 
