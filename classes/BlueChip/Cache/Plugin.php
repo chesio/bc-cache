@@ -192,7 +192,7 @@ class Plugin
 
 
     /**
-     * Add info about cache size to "At a Glance" box on dashboard.
+     * Add info about cache size to "At a Glance" box on dashboard. The snippet is linked to cache viewer page.
      *
      * @param array $items
      * @return array
@@ -211,9 +211,11 @@ class Plugin
             : sprintf(__('%s cache', 'bc-cache'), size_format($size))
         ;
 
-        $label = '<span class="bc-cache-size" id="bc-cache-size">' . esc_html($cache_size) . '</span>';
+        // Label has ID, so we can target (update) it via JavaScript.
+        $label = '<span id="bc-cache-size">' . esc_html($cache_size) . '</span>';
 
-        $items[] = $icon . ' ' . $label;
+        // Wrap icon and label in a link to cache viewer.
+        $items[] = '<a class="bc-cache-size" href="' . Viewer::getUrl() . '">' . $icon . ' ' . $label . '</a>';
 
         return $items;
     }
@@ -224,7 +226,7 @@ class Plugin
      */
     public function printDashboardStyles()
     {
-        echo '<style>#dashboard_right_now li span.bc-cache-size:before { content: ""; display: none; }</style>';
+        echo '<style>#dashboard_right_now li .bc-cache-size:before { content: ""; display: none; }</style>';
     }
 
 
