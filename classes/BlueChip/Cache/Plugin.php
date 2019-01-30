@@ -109,7 +109,7 @@ class Plugin
     /**
      * Perform initialization tasks.
      *
-     * @internal Method should be invoked in `init` hook.
+     * @action https://developer.wordpress.org/reference/hooks/init/
      */
     public function init()
     {
@@ -145,6 +145,9 @@ class Plugin
     }
 
 
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
+     */
     public function enqueueFlushIconAssets()
     {
         wp_enqueue_style(
@@ -176,6 +179,8 @@ class Plugin
 
 
     /**
+     * @action https://developer.wordpress.org/reference/hooks/admin_bar_menu/
+     *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
     public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar)
@@ -193,6 +198,8 @@ class Plugin
 
     /**
      * Add info about cache size to "At a Glance" box on dashboard. The snippet is linked to cache viewer page.
+     *
+     * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
      * @param array $items
      * @return array
@@ -223,6 +230,8 @@ class Plugin
 
     /**
      * Print short HTML snippet with CSS rules for cache size information in "At a Glance" box.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/admin_print_footer_scripts/
      */
     public function printDashboardStyles()
     {
@@ -230,6 +239,9 @@ class Plugin
     }
 
 
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/rightnow_end/
+     */
     public function enqueueDashboardAssets()
     {
         // Print the styles in the footer.
@@ -276,6 +288,8 @@ class Plugin
 
     /**
      * Start caching of output, but only if current page should be cached.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/template_redirect/
      */
     public function startOutputBuffering()
     {
