@@ -41,7 +41,7 @@ class Cli
     public function delete(array $args, array $assoc_args)
     {
         if (empty($post_id = intval($args[0]))) {
-            \WP_CLI::error('Given post ID is not valid!');
+            \WP_CLI::error(sprintf('"%s" is not a valid post ID!', $args[0]));
             return;
         }
 
@@ -52,11 +52,11 @@ class Cli
         foreach ($request_variants as $request_variant) {
             if ($this->cache->delete($url, $request_variant)) {
                 \WP_CLI::success(
-                    sprintf('Cache data for post with ID = %d and request variant = "%s" has been deleted!', $post_id, $request_variant)
+                    sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant)
                 );
             } else {
                 \WP_CLI::error(
-                    sprintf('Failed to delete cache data for post with ID = %d and request variant = "%s"!', $post_id, $request_variant)
+                    sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant)
                 );
             }
         }
