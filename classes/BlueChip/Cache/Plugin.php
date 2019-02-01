@@ -103,6 +103,11 @@ class Plugin
 
         // Register method handling AJAX call from admin bar icon (or elsewhere).
         add_action('wp_ajax_bc_cache_flush_cache', [$this, 'processFlushRequest'], 10, 0);
+
+        // Integrate with WP-CLI.
+        add_action('cli_init', function () {
+            \WP_CLI::add_command('bc-cache', new Cli($this->cache));
+        });
     }
 
 
