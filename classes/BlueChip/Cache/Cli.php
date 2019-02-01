@@ -97,4 +97,39 @@ class Cli
 
         \WP_CLI::line($human_readable ? size_format($size_in_bytes) : $size_in_bytes);
     }
+
+
+    /**
+     * Remove cache data for particular URL.
+     *
+     * ## OPTIONS
+     *
+     * <url>
+     * : URL to remove from cache
+     *
+     * ## EXAMPLES
+     *
+     *  wp bc-cache remove http://www.example.com/some/thing/
+     */
+    public function remove(array $args, array $assoc_args)
+    {
+        if (empty($url = filter_var($args[0], FILTER_VALIDATE_URL))) {
+            \WP_CLI::error(sprintf('"%s" is not a valid URL!'), $args[0]);
+            return;
+        }
+
+        $request_variants = Core::getRequestVariants();
+
+        foreach ($request_variants as $request_variant) {
+            if ($this->cache->delete($url, $request_variant)) {
+                \WP_CLI::success(
+                    sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant)
+                );
+            } else {
+                \WP_CLI::error(
+                    sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant)
+                );
+            }
+        }
+    }
 }

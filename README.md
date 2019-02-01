@@ -141,6 +141,7 @@ Important: Variant names are appended to basename part of cache file names, so `
 You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache or get size information. BC Cache registers `bc-cache` command with following subcommands:
 
 * `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
+* `remove <url>` - deletes cache data (all request variants) of given URL
 * `flush` - flushes entire cache
 * `size [--human-readable]` -- retrieves cache size, optionally in human readable format
 
