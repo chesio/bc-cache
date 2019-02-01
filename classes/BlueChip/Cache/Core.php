@@ -55,6 +55,18 @@ class Core
 
 
     /**
+     * @return array Filtered list of request variants.
+     */
+    public static function getRequestVariants(): array
+    {
+        return apply_filters(
+            Hooks::FILTER_REQUEST_VARIANTS,
+            [Core::DEFAULT_REQUEST_VARIANT => __('Default', 'bc-cache')]
+        );
+    }
+
+
+    /**
      * Flush entire cache.
      *
      * @param bool $uninstall Not only flush cache entries, but remove any metadata as well.
