@@ -93,7 +93,7 @@ class Core
 
 
     /**
-     * Delete data for given URL from cache. All request variants are deleted.
+     * Delete data for given URL from cache.
      *
      * @param string $url
      * @param string $request_variant [optional] Request variant to delete.

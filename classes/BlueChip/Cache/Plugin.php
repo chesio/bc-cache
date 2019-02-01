@@ -13,7 +13,7 @@ class Plugin
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * List of actions that trigger cache flushing including priority with which the flush method is hooked.
+     * List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     const FLUSH_CACHE_HOOKS = [
         // Core code changes
