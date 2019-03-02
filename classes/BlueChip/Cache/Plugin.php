@@ -8,9 +8,24 @@ namespace BlueChip\Cache;
 class Plugin
 {
     /**
+     * @var string Path to root cache directory
+     */
+    const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
+
+    /**
+     * @var string URL of root cache directory
+     */
+    const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
+
+    /**
      * Name of nonce used for AJAX-ified flush cache requests.
      */
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
+
+    /**
+     * @var string Name of transient used to cache cache size.
+     */
+    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
     /**
      * List of default actions that trigger cache flushing including priority with which the flush method is hooked.
@@ -87,7 +102,7 @@ class Plugin
     public function __construct(string $plugin_filename)
     {
         $this->plugin_filename = $plugin_filename;
-        $this->cache = new Core();
+        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE);
     }
 
 
@@ -118,8 +133,8 @@ class Plugin
      */
     public function init()
     {
-        // Init the cache.
-        $this->cache->init();
+        // Add Disallow section to robots.txt.
+        add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
@@ -147,6 +162,21 @@ class Plugin
             // Add action to catch output buffer.
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
+    }
+
+
+    /**
+     * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
+     *
+     * @param string $data
+     * @return string
+     */
+    public function alterRobotsTxt(string $data): string
+    {
+        // Get path component of cache directory URL.
+        $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
+        // Disallow direct access to cache directory.
+        return $data . PHP_EOL . sprintf('Disallow: %s/', $path) . PHP_EOL;
     }
 
 

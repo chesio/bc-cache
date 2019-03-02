@@ -8,49 +8,30 @@ namespace BlueChip\Cache;
 class Core
 {
     /**
-     * @var string Path to root cache directory
-     */
-    const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
-
-    /**
-     * @var string URL of root cache directory
-     */
-    const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
-
-    /**
-     * @var string Name of transient used to cache cache size.
-     */
-    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
-
-    /**
      * @var string Key of default request variant.
      */
     const DEFAULT_REQUEST_VARIANT = '';
 
 
     /**
-     * Initialize disk cache.
-     *
-     * @internal Method should be invoked in `init` hook.
+     * @var string Path to root cache directory
      */
-    public function init()
-    {
-        add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
-    }
+    private $cache_dir;
+
+    /**
+     * @var string Name of transient used to cache cache size
+     */
+    private $cache_size_transient;
 
 
     /**
-     * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
-     *
-     * @param string $data
-     * @return string
+     * @param string $cache_dir Path to root cache directory
+     * @param string $cache_size_transient Name of transient used to cache cache size
      */
-    public function alterRobotsTxt(string $data): string
+    public function __construct(string $cache_dir, string $cache_size_transient)
     {
-        // Get path component of cache directory URL.
-        $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
-        // Disallow direct access to cache directory.
-        return $data . PHP_EOL . sprintf('Disallow: %s/', $path) . PHP_EOL;
+        $this->cache_dir = $cache_dir;
+        $this->cache_size_transient = $cache_size_transient;
     }
 
 
@@ -75,20 +56,20 @@ class Core
     public function flush(bool $uninstall = false): bool
     {
         // Cache size is going to change...
-        delete_transient(self::TRANSIENT_CACHE_SIZE);
+        delete_transient($this->cache_size_transient);
 
-        if (!file_exists(self::CACHE_DIR)) {
+        if (!file_exists($this->cache_dir)) {
             // Cache directory does not exist, so cache must be empty.
             return true;
         }
 
         try {
             // Try to remove cache directory...
-            self::removeDirectory(self::CACHE_DIR);
+            self::removeDirectory($this->cache_dir);
             // If not wiping everything out...
             if (!$uninstall) {
                 // ...update cache size meta.
-                set_transient(self::TRANSIENT_CACHE_SIZE, 0);
+                set_transient($this->cache_size_transient, 0);
             }
             // :)
             return true;
@@ -115,7 +96,7 @@ class Core
     {
         try {
             // Get directory for given URL.
-            $path = self::getPath($url);
+            $path = $this->getPath($url);
         } catch (Exception $e) {
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
@@ -129,10 +110,10 @@ class Core
         }
 
         // Get cache size before unlink attempts.
-        $cache_size = get_transient(self::TRANSIENT_CACHE_SIZE);
+        $cache_size = get_transient($this->cache_size_transient);
 
         // Cache size is going to change...
-        delete_transient(self::TRANSIENT_CACHE_SIZE);
+        delete_transient($this->cache_size_transient);
 
         try {
             $bytes_deleted
@@ -141,7 +122,7 @@ class Core
             ;
             // If cache size transient existed, set it anew with updated value.
             if ($cache_size !== false) {
-                set_transient(self::TRANSIENT_CACHE_SIZE, max($cache_size - $bytes_deleted, 0));
+                set_transient($this->cache_size_transient, max($cache_size - $bytes_deleted, 0));
             }
             // :)
             return true;
@@ -169,7 +150,7 @@ class Core
     {
         try {
             // Make directory for given URL.
-            $path = self::makeDirectory($url);
+            $path = $this->makeDirectory($url);
         } catch (Exception $e) {
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
@@ -178,10 +159,10 @@ class Core
         }
 
         // Get cache size before write attempts.
-        $cache_size = get_transient(self::TRANSIENT_CACHE_SIZE);
+        $cache_size = get_transient($this->cache_size_transient);
 
         // Cache size is going to change...
-        delete_transient(self::TRANSIENT_CACHE_SIZE);
+        delete_transient($this->cache_size_transient);
 
         try {
             // Write cache date to disk, get number of bytes written.
@@ -191,7 +172,7 @@ class Core
             }
             // If cache size transient existed, set it anew with updated value.
             if ($cache_size !== false) {
-                set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size + $bytes_written);
+                set_transient($this->cache_size_transient, $cache_size + $bytes_written);
             }
             // :)
             return true;
@@ -215,14 +196,14 @@ class Core
      */
     public function getSize(bool $precise = false): int
     {
-        if (!$precise && (($cache_size = get_transient(self::TRANSIENT_CACHE_SIZE)) !== false)) {
+        if (!$precise && (($cache_size = get_transient($this->cache_size_transient)) !== false)) {
             return $cache_size;
         }
 
         // Read cache size from disk...
-        $cache_size = is_dir(self::CACHE_DIR) ? self::getDirectorySize(self::CACHE_DIR) : 0;
+        $cache_size = is_dir($this->cache_dir) ? self::getDirectorySize($this->cache_dir) : 0;
         // ...update the transient...
-        set_transient(self::TRANSIENT_CACHE_SIZE, $cache_size);
+        set_transient($this->cache_size_transient, $cache_size);
         // ...and return it:
         return $cache_size;
     }
@@ -238,21 +219,21 @@ class Core
      */
     public function inspect(array $request_variants): array
     {
-        if (!is_dir(self::CACHE_DIR)) {
+        if (!is_dir($this->cache_dir)) {
             // The cache seems to be empty.
-            set_transient(self::TRANSIENT_CACHE_SIZE, 0);
+            set_transient($this->cache_size_transient, 0);
             return [];
         }
 
         // Get cache sizes.
-        $cache_sizes = self::getCacheSizes(self::CACHE_DIR, $request_variants);
+        $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
 
         $state = [];
         $cache_total_size = 0;
 
         foreach ($cache_sizes as $id => $item) {
             try {
-                $url = self::getUrl($item['path']);
+                $url = $this->getUrl($item['path']);
             } catch (Exception $e) {
                 // Trigger a warning and let WordPress handle it.
                 trigger_error($e, E_USER_WARNING);
@@ -263,7 +244,7 @@ class Core
             $cache_total_size += $size; // !
 
             $state[] = [
-                'entry_id' => substr($id, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
+                'entry_id' => substr($id, strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
                 'url' => $url,
                 'request_variant' => $item['request_variant'],
                 'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
@@ -274,7 +255,7 @@ class Core
         }
 
         // Update cache size transient with total size of all cache entries.
-        set_transient(self::TRANSIENT_CACHE_SIZE, $cache_total_size);
+        set_transient($this->cache_size_transient, $cache_total_size);
 
         return $state;
     }
@@ -418,12 +399,12 @@ class Core
      * @return string
      * @throws Exception
      */
-    private static function getPath(string $url): string
+    private function getPath(string $url): string
     {
         $url_parts = wp_parse_url($url);
 
         $path = implode([
-            self::CACHE_DIR,
+            $this->cache_dir,
             DIRECTORY_SEPARATOR,
             $url_parts['scheme'],
             DIRECTORY_SEPARATOR,
@@ -434,7 +415,7 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // Make sure that normalized path still points to a subdirectory of root cache directory.
-        if (strpos($normalized_path, self::CACHE_DIR . DIRECTORY_SEPARATOR) !== 0) {
+        if (strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
             throw new Exception("Could not retrieve a valid cache filename from URL {$url}.");
         }
 
@@ -451,18 +432,18 @@ class Core
      * @return string
      * @throws Exception
      */
-    private static function getUrl(string $path): string
+    private function getUrl(string $path): string
     {
         // Just in case.
         $normalized_path = self::normalizePath($path);
 
         // The path must point to a subdirectory of root cache directory.
-        if (strpos($normalized_path, self::CACHE_DIR . DIRECTORY_SEPARATOR) !== 0) {
+        if (strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
             throw new Exception("Path {$path} is not a valid cache path.");
         }
 
         // Strip the path to BC Cache directory from $path and break it into scheme and host + path parts.
-        $parts = explode(DIRECTORY_SEPARATOR, substr($normalized_path, strlen(self::CACHE_DIR . DIRECTORY_SEPARATOR)), 2);
+        $parts = explode(DIRECTORY_SEPARATOR, substr($normalized_path, strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
 
         if (count($parts) !== 2) {
             // At least scheme and host must be present.
@@ -480,9 +461,9 @@ class Core
      * @return string
      * @throws Exception
      */
-    private static function makeDirectory(string $url): string
+    private function makeDirectory(string $url): string
     {
-        $path = self::getPath($url);
+        $path = $this->getPath($url);
 
         /* Create directory */
         if (!wp_mkdir_p($path)) {
