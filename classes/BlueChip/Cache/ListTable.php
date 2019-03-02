@@ -157,7 +157,8 @@ class ListTable extends \WP_List_Table
      */
     public function column_size(array $item): string // phpcs:ignore
     {
-        return sprintf('%s | %s | %s',
+        return sprintf(
+            '%s | %s | %s',
             esc_html(size_format($item['size'])),
             esc_html(size_format($item['html_size'])),
             esc_html(size_format($item['gzip_size']))
