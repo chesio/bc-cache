@@ -259,11 +259,18 @@ class ListTable extends \WP_List_Table
     {
         $state = $this->cache->inspect(array_keys($this->request_variants));
 
-        // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
-        if ($this->order === 'asc') {
-            empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
+        if (is_null($state)) {
+            // There has been an error...
+            AdminNotices::add(__('Failed to read cache state information!', 'bc-cache'), AdminNotices::ERROR, false);
+            // ...thus there is nothing to show.
+            $state = [];
         } else {
-            empty($this->order_by) ? ksort($state) : usort($state, self::getDescSortingMethod($this->order_by));
+            // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
+            if ($this->order === 'asc') {
+                empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
+            } else {
+                empty($this->order_by) ? ksort($state) : usort($state, self::getDescSortingMethod($this->order_by));
+            }
         }
 
         $current_page = $this->get_pagenum();

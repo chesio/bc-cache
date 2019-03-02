@@ -18,6 +18,11 @@ class Plugin
     const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
+     * @var string Path to cache lock file - must be outside of cache directory!
+     */
+    const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+
+    /**
      * Name of nonce used for AJAX-ified flush cache requests.
      */
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
@@ -59,6 +64,11 @@ class Plugin
      */
     private $cache;
 
+    /**
+     * @var \BlueChip\Cache\Lock
+     */
+    private $cache_lock;
+
 
     /**
      * Perform activation and installation tasks.
@@ -68,8 +78,14 @@ class Plugin
      */
     public function activate()
     {
+        // Attempt to create cache lock file, but do not abort on error.
+        $this->cache_lock->setUp();
+
         // Attempt to create cache root directory.
         if (!$this->cache->setUp()) {
+            // Do not leave stray lock file behind.
+            $this->cache_lock->tearDown();
+
             // https://pento.net/2014/02/18/dont-let-your-plugin-be-activated-on-incompatible-sites/
             deactivate_plugins(plugin_basename($this->plugin_filename));
             wp_die(
@@ -102,6 +118,7 @@ class Plugin
     public function uninstall()
     {
         $this->cache->tearDown();
+        $this->cache_lock->tearDown();
     }
 
 
@@ -111,7 +128,8 @@ class Plugin
     public function __construct(string $plugin_filename)
     {
         $this->plugin_filename = $plugin_filename;
-        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE);
+        $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
+        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
     }
 
 
