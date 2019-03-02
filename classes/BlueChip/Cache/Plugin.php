@@ -68,7 +68,16 @@ class Plugin
      */
     public function activate()
     {
-        $this->cache->flush();
+        // Attempt to create cache root directory.
+        if (!$this->cache->setUp()) {
+            // https://pento.net/2014/02/18/dont-let-your-plugin-be-activated-on-incompatible-sites/
+            deactivate_plugins(plugin_basename($this->plugin_filename));
+            wp_die(
+                __('BC Cache failed to create root cache directory!', 'bc-cache'),
+                __('BC Cache activation failed', 'bc-cache'),
+                ['back_link' => true]
+            );
+        }
     }
 
 
@@ -92,7 +101,7 @@ class Plugin
      */
     public function uninstall()
     {
-        $this->cache->flush(true);
+        $this->cache->tearDown();
     }
 
 

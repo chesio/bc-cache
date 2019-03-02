@@ -36,6 +36,48 @@ class Core
 
 
     /**
+     * Make sure root cache directory exists or has been created and is empty and writable.
+     *
+     * @return bool True, if root cache directory exists (or has been created successfully) and is writable and empty, false otherwise.
+     */
+    public function setUp(): bool
+    {
+        if (is_dir($this->cache_dir)) {
+            // If cache directory exists, make sure it is empty.
+            try {
+                self::removeDirectory($this->cache_dir, true);
+            } catch (Exception $e) {
+                trigger_error($e, E_USER_WARNING);
+                return false;
+            }
+        } elseif (!wp_mkdir_p($this->cache_dir)) {
+            trigger_error(sprintf('Failed to create root cache directory %s.', $this->cache_dir), E_USER_WARNING);
+            return false;
+        }
+
+        if (!is_writable($this->cache_dir)) {
+            trigger_error(sprintf('Root cache directory %s is not writable!', $this->cache_dir), E_USER_WARNING);
+            return false;
+        }
+
+        set_transient($this->cache_size_transient, 0); // Initialize cache size to 0.
+
+        return true;
+    }
+
+
+    /**
+     * Flush the cache and remove the root cache directory.
+     *
+     * @return bool True on success, false on otherwise.
+     */
+    public function tearDown(): bool
+    {
+        return $this->flush(true);
+    }
+
+
+    /**
      * @return array Filtered list of request variants.
      */
     public static function getRequestVariants(): array
@@ -64,8 +106,8 @@ class Core
         }
 
         try {
-            // Try to remove cache directory...
-            self::removeDirectory($this->cache_dir);
+            // Remove cache directory - remove contents only, if not uninstalling.
+            self::removeDirectory($this->cache_dir, !$uninstall);
             // If not wiping everything out...
             if (!$uninstall) {
                 // ...update cache size meta.
@@ -478,9 +520,10 @@ class Core
      * Remove given directory including all subdirectories.
      *
      * @param string $dirname
+     * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
      * @throws Exception
      */
-    private static function removeDirectory(string $dirname)
+    private static function removeDirectory(string $dirname, bool $contents_only = false)
     {
         if (!is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
@@ -506,8 +549,8 @@ class Core
             }
         }
 
-        // Remove the directory itself.
-        if (!rmdir($dirname)) {
+        // Optionally, remove the directory itself.
+        if (!$contents_only && !rmdir($dirname)) {
             throw new Exception("Could not remove {$dirname} directory.");
         }
     }
