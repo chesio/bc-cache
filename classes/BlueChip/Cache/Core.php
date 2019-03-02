@@ -234,9 +234,9 @@ class Core
      * Get size of cache data.
      *
      * @param bool $precise Calculate the size from disk, ignore any transient data.
-     * @return int Size of cache data.
+     * @return int|null Size of cache data or null if size cannot be determined.
      */
-    public function getSize(bool $precise = false): int
+    public function getSize(bool $precise = false): ?int
     {
         if (!$precise && (($cache_size = get_transient($this->cache_size_transient)) !== false)) {
             return $cache_size;

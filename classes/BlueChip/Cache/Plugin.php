@@ -257,9 +257,12 @@ class Plugin
             plugins_url('assets/icons.svg', $this->plugin_filename)
         );
 
-        $cache_size = empty($size)
-            ? __('Empty cache', 'bc-cache')
-            : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+        $cache_size = is_int($size)
+            ? (empty($size)
+                ? __('Empty cache', 'bc-cache')
+                : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+            )
+            : __('Unknown size', 'bc-cache')
         ;
 
         // Label has ID, so we can target (update) it via JavaScript.
