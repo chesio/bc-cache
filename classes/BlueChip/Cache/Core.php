@@ -23,14 +23,21 @@ class Core
      */
     private $cache_size_transient;
 
+    /**
+     * @var \BlueChip\Cache\Lock Flock wrapper for atomic cache reading/writing
+     */
+    private $cache_lock;
+
 
     /**
      * @param string $cache_dir Path to root cache directory
      * @param string $cache_size_transient Name of transient used to cache cache size
+     * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, string $cache_size_transient)
+    public function __construct(string $cache_dir, string $cache_size_transient, Lock $cache_lock)
     {
         $this->cache_dir = $cache_dir;
+        $this->cache_lock = $cache_lock;
         $this->cache_size_transient = $cache_size_transient;
     }
 
@@ -97,10 +104,18 @@ class Core
      */
     public function flush(bool $uninstall = false): bool
     {
+        // Wait for exclusive lock.
+        if (!$this->lockCache(true)) {
+            // Exclusive lock could not be acquired, bail.
+            return false;
+        }
+
         // Cache size is going to change...
         delete_transient($this->cache_size_transient);
 
-        if (!file_exists($this->cache_dir)) {
+        if (!is_dir($this->cache_dir)) {
+            // Unlock cache for other operations.
+            $this->unlockCache();
             // Cache directory does not exist, so cache must be empty.
             return true;
         }
@@ -123,6 +138,8 @@ class Core
         } finally {
             // Always clear stat cache.
             clearstatcache();
+            // Unlock cache for other operations.
+            $this->unlockCache();
         }
     }
 
@@ -151,6 +168,12 @@ class Core
             return true;
         }
 
+        // Wait for exclusive lock.
+        if (!$this->lockCache(true)) {
+            // Exclusive lock could not be acquired, bail.
+            return false;
+        }
+
         // Get cache size before unlink attempts.
         $cache_size = get_transient($this->cache_size_transient);
 
@@ -176,6 +199,8 @@ class Core
         } finally {
             // Always clear stat cache.
             clearstatcache();
+            // Unlock cache for other operations.
+            $this->unlockCache();
         }
     }
 
@@ -190,10 +215,18 @@ class Core
      */
     public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
     {
+        // Try to acquire exclusive lock, but do not wait for it.
+        if (!$this->lockCache(true, true)) {
+            // Exclusive lock could not be acquired immediately, so bail.
+            return false;
+        }
+
         try {
             // Make directory for given URL.
             $path = $this->makeDirectory($url);
         } catch (Exception $e) {
+            // Unlock cache for other operations.
+            $this->unlockCache();
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
             // :(
@@ -226,6 +259,8 @@ class Core
         } finally {
             // Always clear stat cache.
             clearstatcache();
+            // Unlock cache for other operations.
+            $this->unlockCache();
         }
     }
 
@@ -234,19 +269,27 @@ class Core
      * Get size of cache data.
      *
      * @param bool $precise Calculate the size from disk, ignore any transient data.
-     * @return int Size of cache data.
+     * @return int|null Size of cache data or null if size cannot be determined.
      */
-    public function getSize(bool $precise = false): int
+    public function getSize(bool $precise = false): ?int
     {
         if (!$precise && (($cache_size = get_transient($this->cache_size_transient)) !== false)) {
             return $cache_size;
+        }
+
+        // Wait for non-exclusive lock.
+        if (!$this->lockCache(false)) {
+            // Non-exclusive lock could not be acquired.
+            return null;
         }
 
         // Read cache size from disk...
         $cache_size = is_dir($this->cache_dir) ? self::getDirectorySize($this->cache_dir) : 0;
         // ...update the transient...
         set_transient($this->cache_size_transient, $cache_size);
-        // ...and return it:
+        // ...unlock cache for other operations...
+        $this->unlockCache();
+        // ...and return the size:
         return $cache_size;
     }
 
@@ -259,11 +302,21 @@ class Core
      * @param array $request_variants List of all request variants to inspect.
      * @return array List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
-    public function inspect(array $request_variants): array
+    public function inspect(array $request_variants): ?array
     {
+        // Wait for non-exclusive lock.
+        if (!$this->lockCache(false)) {
+            // Non-exclusive lock could not be acquired.
+            return null;
+        }
+
         if (!is_dir($this->cache_dir)) {
             // The cache seems to be empty.
-            set_transient($this->cache_size_transient, 0);
+            delete_transient($this->cache_size_transient);
+
+            // Unlock cache for other operations.
+            $this->unlockCache();
+
             return [];
         }
 
@@ -299,7 +352,30 @@ class Core
         // Update cache size transient with total size of all cache entries.
         set_transient($this->cache_size_transient, $cache_total_size);
 
+        // Unlock cache for other operations.
+        $this->unlockCache();
+
         return $state;
+    }
+
+
+    /**
+     * @param bool $exclusive If true, require exclusive lock. If false, require shared lock.
+     * @param bool $non_blocking [optional] If true, do not wait for lock, but fail immediately.
+     * @return bool True on success, false on failure.
+     */
+    private function lockCache(bool $exclusive, bool $non_blocking = false): bool
+    {
+        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->acquire($exclusive, $non_blocking);
+    }
+
+
+    /**
+     * @return bool True on success, false on failure.
+     */
+    private function unlockCache(): bool
+    {
+        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->release();
     }
 
 

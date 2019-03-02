@@ -93,9 +93,11 @@ class Cli
         // Process arguments.
         $human_readable = $assoc_args['human-readable'] ?? false;
 
-        $size_in_bytes = $this->cache->getSize(true);
-
-        \WP_CLI::line($human_readable ? size_format($size_in_bytes) : $size_in_bytes);
+        if (is_int($size_in_bytes = $this->cache->getSize(true))) {
+            \WP_CLI::line($human_readable ? size_format($size_in_bytes) : $size_in_bytes);
+        } else {
+            \WP_CLI::error('Failed to determine cache size!');
+        }
     }
 
 
