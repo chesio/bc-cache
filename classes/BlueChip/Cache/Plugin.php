@@ -8,12 +8,32 @@ namespace BlueChip\Cache;
 class Plugin
 {
     /**
+     * @var string Path to root cache directory
+     */
+    const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
+
+    /**
+     * @var string URL of root cache directory
+     */
+    const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
+
+    /**
+     * @var string Path to cache lock file - must be outside of cache directory!
+     */
+    const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+
+    /**
      * Name of nonce used for AJAX-ified flush cache requests.
      */
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * List of actions that trigger cache flushing including priority with which the flush method is hooked.
+     * @var string Name of transient used to cache cache size.
+     */
+    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
+
+    /**
+     * List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     const FLUSH_CACHE_HOOKS = [
         // Core code changes
@@ -44,6 +64,11 @@ class Plugin
      */
     private $cache;
 
+    /**
+     * @var \BlueChip\Cache\Lock
+     */
+    private $cache_lock;
+
 
     /**
      * Perform activation and installation tasks.
@@ -53,7 +78,22 @@ class Plugin
      */
     public function activate()
     {
-        $this->cache->flush();
+        // Attempt to create cache lock file, but do not abort on error.
+        $this->cache_lock->setUp();
+
+        // Attempt to create cache root directory.
+        if (!$this->cache->setUp()) {
+            // Do not leave stray lock file behind.
+            $this->cache_lock->tearDown();
+
+            // https://pento.net/2014/02/18/dont-let-your-plugin-be-activated-on-incompatible-sites/
+            deactivate_plugins(plugin_basename($this->plugin_filename));
+            wp_die(
+                __('BC Cache failed to create root cache directory!', 'bc-cache'),
+                __('BC Cache activation failed', 'bc-cache'),
+                ['back_link' => true]
+            );
+        }
     }
 
 
@@ -77,7 +117,8 @@ class Plugin
      */
     public function uninstall()
     {
-        $this->cache->flush(true);
+        $this->cache->tearDown();
+        $this->cache_lock->tearDown();
     }
 
 
@@ -87,7 +128,8 @@ class Plugin
     public function __construct(string $plugin_filename)
     {
         $this->plugin_filename = $plugin_filename;
-        $this->cache = new Core();
+        $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
+        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
     }
 
 
@@ -103,18 +145,23 @@ class Plugin
 
         // Register method handling AJAX call from admin bar icon (or elsewhere).
         add_action('wp_ajax_bc_cache_flush_cache', [$this, 'processFlushRequest'], 10, 0);
+
+        // Integrate with WP-CLI.
+        add_action('cli_init', function () {
+            \WP_CLI::add_command('bc-cache', new Cli($this->cache));
+        });
     }
 
 
     /**
      * Perform initialization tasks.
      *
-     * @internal Method should be invoked in `init` hook.
+     * @action https://developer.wordpress.org/reference/hooks/init/
      */
     public function init()
     {
-        // Init the cache.
-        $this->cache->init();
+        // Add Disallow section to robots.txt.
+        add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
@@ -145,6 +192,24 @@ class Plugin
     }
 
 
+    /**
+     * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
+     *
+     * @param string $data
+     * @return string
+     */
+    public function alterRobotsTxt(string $data): string
+    {
+        // Get path component of cache directory URL.
+        $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
+        // Disallow direct access to cache directory.
+        return $data . PHP_EOL . sprintf('Disallow: %s/', $path) . PHP_EOL;
+    }
+
+
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
+     */
     public function enqueueFlushIconAssets()
     {
         wp_enqueue_style(
@@ -176,6 +241,8 @@ class Plugin
 
 
     /**
+     * @action https://developer.wordpress.org/reference/hooks/admin_bar_menu/
+     *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
     public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar)
@@ -192,7 +259,9 @@ class Plugin
 
 
     /**
-     * Add info about cache size to "At a Glance" box on dashboard.
+     * Add info about cache size to "At a Glance" box on dashboard. The snippet is linked to cache viewer page.
+     *
+     * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
      * @param array $items
      * @return array
@@ -206,14 +275,19 @@ class Plugin
             plugins_url('assets/icons.svg', $this->plugin_filename)
         );
 
-        $cache_size = empty($size)
-            ? __('Empty cache', 'bc-cache')
-            : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+        $cache_size = is_int($size)
+            ? (empty($size)
+                ? __('Empty cache', 'bc-cache')
+                : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+            )
+            : __('Unknown size', 'bc-cache')
         ;
 
-        $label = '<span class="bc-cache-size" id="bc-cache-size">' . esc_html($cache_size) . '</span>';
+        // Label has ID, so we can target (update) it via JavaScript.
+        $label = '<span id="bc-cache-size">' . esc_html($cache_size) . '</span>';
 
-        $items[] = $icon . ' ' . $label;
+        // Wrap icon and label in a link to cache viewer.
+        $items[] = '<a class="bc-cache-size" href="' . Viewer::getUrl() . '">' . $icon . ' ' . $label . '</a>';
 
         return $items;
     }
@@ -221,13 +295,18 @@ class Plugin
 
     /**
      * Print short HTML snippet with CSS rules for cache size information in "At a Glance" box.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/admin_print_footer_scripts/
      */
     public function printDashboardStyles()
     {
-        echo '<style>#dashboard_right_now li span.bc-cache-size:before { content: ""; display: none; }</style>';
+        echo '<style>#dashboard_right_now li .bc-cache-size:before { content: ""; display: none; }</style>';
     }
 
 
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/rightnow_end/
+     */
     public function enqueueDashboardAssets()
     {
         // Print the styles in the footer.
@@ -274,6 +353,8 @@ class Plugin
 
     /**
      * Start caching of output, but only if current page should be cached.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/template_redirect/
      */
     public function startOutputBuffering()
     {

@@ -3,12 +3,12 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple disk cache plugin inspired by Cachify.
- * Version: 1.3.0
+ * Version: 1.4.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.1
  * Requires WP: 4.7
- * Tested up to: 4.9
+ * Tested up to: 5.1
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  */

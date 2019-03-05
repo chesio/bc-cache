@@ -62,7 +62,7 @@ class Viewer
     /**
      * @return string URL of viewer page.
      */
-    public function getUrl(): string
+    public static function getUrl(): string
     {
         return add_query_arg('page', self::ADMIN_PAGE_SLUG, admin_url('tools.php'));
     }
@@ -96,7 +96,7 @@ class Viewer
      */
     public function loadPage()
     {
-        $this->list_table = new ListTable($this->cache, $this->getUrl());
+        $this->list_table = new ListTable($this->cache, self::getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
@@ -110,9 +110,11 @@ class Viewer
         // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
-        echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Core::CACHE_DIR . '</code>') . '</p>';
+        echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Plugin::CACHE_DIR . '</code>') . '</p>';
 
-        echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($this->cache->getSize()) . '</strong>') . '</p>';
+        if (is_int($cache_size = $this->cache->getSize())) {
+            echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($cache_size) . '</strong>') . '</p>';
+        }
 
         // View table
         $this->list_table->views();

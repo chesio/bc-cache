@@ -91,10 +91,7 @@ class ListTable extends \WP_List_Table
         $this->url = $url;
 
         // Get list of request variants.
-        $this->request_variants = apply_filters(
-            Hooks::FILTER_REQUEST_VARIANTS,
-            [Core::DEFAULT_REQUEST_VARIANT => __('Default', 'bc-cache')]
-        );
+        $this->request_variants = Core::getRequestVariants();
 
         $order_by = filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
         if (in_array($order_by, $this->get_sortable_columns(), true)) {
@@ -160,7 +157,8 @@ class ListTable extends \WP_List_Table
      */
     public function column_size(array $item): string // phpcs:ignore
     {
-        return sprintf('%s | %s | %s',
+        return sprintf(
+            '%s | %s | %s',
             esc_html(size_format($item['size'])),
             esc_html(size_format($item['html_size'])),
             esc_html(size_format($item['gzip_size']))
@@ -262,11 +260,18 @@ class ListTable extends \WP_List_Table
     {
         $state = $this->cache->inspect(array_keys($this->request_variants));
 
-        // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
-        if ($this->order === 'asc') {
-            empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
+        if (is_null($state)) {
+            // There has been an error...
+            AdminNotices::add(__('Failed to read cache state information!', 'bc-cache'), AdminNotices::ERROR, false);
+            // ...thus there is nothing to show.
+            $state = [];
         } else {
-            empty($this->order_by) ? ksort($state) : usort($state, self::getDescSortingMethod($this->order_by));
+            // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
+            if ($this->order === 'asc') {
+                empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
+            } else {
+                empty($this->order_by) ? ksort($state) : usort($state, self::getDescSortingMethod($this->order_by));
+            }
         }
 
         $current_page = $this->get_pagenum();
