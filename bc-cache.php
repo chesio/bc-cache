@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
- * Description: Simple disk cache plugin inspired by Cachify.
+ * Description: Simple full page cache plugin inspired by Cachify.
  * Version: develop
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
