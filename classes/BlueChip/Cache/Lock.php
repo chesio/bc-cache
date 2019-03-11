@@ -20,10 +20,14 @@ class Lock
     private $file_name;
 
     /**
-     * @var resource
+     * @var resource|bool
      */
     private $file_handle;
 
+    /**
+     * @var int
+     */
+    private $operation;
 
     /**
      * @param string $file_name Lock file name.
@@ -31,7 +35,6 @@ class Lock
     public function __construct(string $file_name)
     {
         $this->file_name = $file_name;
-        $this->file_handle = null;
         $this->operation = 0;
     }
 
@@ -69,6 +72,7 @@ class Lock
     public function tearDown(): bool
     {
         if (file_exists($this->file_name)) {
+            $status = false;
             if (is_resource($this->file_handle)) {
                 $status = $this->release();
             }
@@ -85,7 +89,7 @@ class Lock
      * @internal
      *
      * @param bool $exclusive
-     * @param bool $blocking
+     * @param bool $non_blocking
      * @return bool True on success, false on failure.
      */
     public function acquire(bool $exclusive, bool $non_blocking = false): bool

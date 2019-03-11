@@ -110,14 +110,14 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "checkbox" column.
      *
-     * @param array $item
+     * @param object $item
      * @return string
      */
     public function column_cb($item) // phpcs:ignore
     {
         return sprintf(
             '<input type="checkbox" name="urls[]" value="%s" />',
-            $item['url'] . self::ENTRY_ID_SEPARATOR . $item['request_variant']
+            $item->url . self::ENTRY_ID_SEPARATOR . $item->request_variant
         );
     }
 

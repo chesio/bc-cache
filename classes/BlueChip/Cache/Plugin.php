@@ -318,7 +318,7 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
-     * @return Cached result of call to Core::flush().
+     * @return bool Cached result of call to Core::flush().
      */
     public function flushCacheOnce(): bool
     {
@@ -410,7 +410,7 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', current_time('timestamp'))
+                date_i18n('d.m.Y H:i:s', intval(current_time('timestamp')))
             )
         );
     }

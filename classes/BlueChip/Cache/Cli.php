@@ -46,6 +46,7 @@ class Cli
         }
 
         $url = get_permalink($post_id);
+        // FIXME if (false === $url ) {
 
         $request_variants = Core::getRequestVariants();
 
@@ -116,7 +117,7 @@ class Cli
     public function remove(array $args, array $assoc_args)
     {
         if (empty($url = filter_var($args[0], FILTER_VALIDATE_URL))) {
-            \WP_CLI::error(sprintf('"%s" is not a valid URL!'), $args[0]);
+            \WP_CLI::error(sprintf('"%s" is not a valid URL!', $args[0]));
             return;
         }
 
