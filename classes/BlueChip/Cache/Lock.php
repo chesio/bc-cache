@@ -20,14 +20,10 @@ class Lock
     private $file_name;
 
     /**
-     * @var resource|bool
+     * @var resource|bool|null File handle if lock file has been opened successfully, false in case of failure, null if file has not been opened yet.
      */
     private $file_handle;
 
-    /**
-     * @var int
-     */
-    private $operation;
 
     /**
      * @param string $file_name Lock file name.
@@ -35,7 +31,7 @@ class Lock
     public function __construct(string $file_name)
     {
         $this->file_name = $file_name;
-        $this->operation = 0;
+        $this->file_handle = null;
     }
 
 
@@ -72,13 +68,11 @@ class Lock
     public function tearDown(): bool
     {
         if (file_exists($this->file_name)) {
-            $status = false;
-            if (is_resource($this->file_handle)) {
-                $status = $this->release();
-            }
+            // Release the lock (and close the file) if file is open.
+            $file_closed = is_resource($this->file_handle) ? $this->release() : true;
 
             // Only attempt to remove the file, if closed.
-            return $status ? unlink($this->file_name) : false;
+            return $file_closed ? unlink($this->file_name) : false;
         }
 
         return true;

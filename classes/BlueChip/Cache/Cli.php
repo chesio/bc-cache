@@ -45,8 +45,10 @@ class Cli
             return;
         }
 
-        $url = get_permalink($post_id);
-        // FIXME if (false === $url ) {
+        if (empty($url = get_permalink($post_id))) {
+            \WP_CLI::error(sprintf('No URL could be generated for post with ID "%d"', $post_id));
+            return;
+        }
 
         $request_variants = Core::getRequestVariants();
 
