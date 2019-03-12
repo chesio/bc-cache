@@ -45,7 +45,10 @@ class Cli
             return;
         }
 
-        $url = get_permalink($post_id);
+        if (empty($url = get_permalink($post_id))) {
+            \WP_CLI::error(sprintf('No URL could be generated for post with ID "%d"', $post_id));
+            return;
+        }
 
         $request_variants = Core::getRequestVariants();
 
@@ -116,7 +119,7 @@ class Cli
     public function remove(array $args, array $assoc_args)
     {
         if (empty($url = filter_var($args[0], FILTER_VALIDATE_URL))) {
-            \WP_CLI::error(sprintf('"%s" is not a valid URL!'), $args[0]);
+            \WP_CLI::error(sprintf('"%s" is not a valid URL!', $args[0]));
             return;
         }
 

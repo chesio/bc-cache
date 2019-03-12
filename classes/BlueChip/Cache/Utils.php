@@ -56,7 +56,7 @@ abstract class Utils
         }
 
         foreach (array_keys($_COOKIE) as $cookie_name) {
-            if (preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', $cookie_name)) {
+            if (preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', (string) $cookie_name)) {
                 return false;
             }
         }
