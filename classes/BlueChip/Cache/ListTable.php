@@ -266,7 +266,7 @@ class ListTable extends \WP_List_Table
             // ...thus there is nothing to show.
             $state = [];
         } else {
-            // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
+            // Sort items. Sort by key (ie. absolute path) if no explicit sorting column is selected.
             if ($this->order === 'asc') {
                 empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
             } else {

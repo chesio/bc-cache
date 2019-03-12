@@ -47,7 +47,7 @@ abstract class Utils
 
     /**
      * Check, whether user interacted with the site in any way that would make him see personalized content.
-     * @return bool True, if user seems to be just a regular Anonymous Joe, false otherwise.
+     * @return bool True if user seems to be just a regular Anonymous Joe, false otherwise.
      */
     public static function isAnonymousUser(): bool
     {

@@ -36,7 +36,7 @@ class Lock
 
 
     /**
-     * Attempt to create readable lock file, if it does not exist yet.
+     * Attempt to create readable lock file if it does not exist yet.
      *
      * @return bool True on success (lock file exists or has been created and is readable), false otherwise.
      */
@@ -61,7 +61,7 @@ class Lock
 
 
     /**
-     * Remove the lock file from file system. Attempt to release the lock first, if the file is open.
+     * Remove the lock file from file system. Attempt to release the lock first if the file is open.
      *
      * @return bool True on success, false on otherwise.
      */
@@ -71,7 +71,7 @@ class Lock
             // Release the lock (and close the file) if file is open.
             $file_closed = is_resource($this->file_handle) ? $this->release() : true;
 
-            // Only attempt to remove the file, if closed.
+            // Only attempt to remove the file if closed.
             return $file_closed ? unlink($this->file_name) : false;
         }
 
@@ -89,7 +89,7 @@ class Lock
     public function acquire(bool $exclusive, bool $non_blocking = false): bool
     {
         if ($this->file_handle === false) {
-            // Do not attempt to open lock file, if previous attempt failed => silently pass.
+            // Do not attempt to open lock file if previous attempt failed => silently pass.
             return true;
         }
 

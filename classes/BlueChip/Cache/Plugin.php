@@ -339,7 +339,7 @@ class Plugin
      */
     public function processFlushRequest()
     {
-        // Check AJAX referer - die, if invalid.
+        // Check AJAX referer - die if invalid.
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
@@ -385,7 +385,7 @@ class Plugin
 
 
     /**
-     * @return bool True, if current user can explicitly flush the cache, false otherwise.
+     * @return bool True if current user can explicitly flush the cache, false otherwise.
      */
     public static function canUserFlushCache(): bool
     {
@@ -417,7 +417,7 @@ class Plugin
 
 
     /**
-     * @return bool True, if cache should be skipped, false otherwise.
+     * @return bool True if cache should be skipped, false otherwise.
      */
     private static function skipCache(): bool
     {
@@ -441,7 +441,7 @@ class Plugin
             return true;
         }
 
-        // Do not cache page, if WooCommerce says so.
+        // Do not cache page if WooCommerce says so.
         if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             return true;
         }
