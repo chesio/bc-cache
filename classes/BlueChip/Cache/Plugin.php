@@ -324,7 +324,7 @@ class Plugin
     {
         static $is_flushed = null;
 
-        if (is_null($is_flushed)) {
+        if ($is_flushed === null) {
             $is_flushed = $this->cache->flush();
         }
 
