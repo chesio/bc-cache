@@ -138,6 +138,10 @@ The [default configuration](#installation) needs to be extended as well and set 
 
 Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
 
+## Flushing the cache programmatically
+
+If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
+
 ## WP-CLI integration
 
 You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache or get size information. BC Cache registers `bc-cache` command with following subcommands:
