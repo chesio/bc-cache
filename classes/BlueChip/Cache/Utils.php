@@ -70,6 +70,6 @@ abstract class Utils
      */
     public static function isIndex(): bool
     {
-        return basename($_SERVER['SCRIPT_NAME']) === 'index.php';
+        return ( defined('WP_USE_THEMES') && WP_USE_THEMES );
     }
 }
