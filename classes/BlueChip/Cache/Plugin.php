@@ -426,8 +426,8 @@ class Plugin
             return true;
         }
 
-        // Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
-        if (!Utils::isIndex()) {
+        // Only cache requests routed through main index.php and using themes.
+        if (!Utils::isWordPressUsingThemes()) {
             return true;
         }
 

@@ -91,7 +91,7 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 
 1. Request is a POST request.
 2. Request is a GET request with non-empty query string.
-3. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
+3. Request is not routed through main `index.php` file (ie. `WP_USE_THEMES` is not set to `true`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
 6. `DONOTCACHEPAGE` constant is set and evaluates to true.

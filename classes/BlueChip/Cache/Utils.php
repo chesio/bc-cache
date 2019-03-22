@@ -68,8 +68,8 @@ abstract class Utils
     /**
      * @return bool
      */
-    public static function isIndex(): bool
+    public static function isWordPressUsingThemes(): bool
     {
-        return ( defined('WP_USE_THEMES') && WP_USE_THEMES );
+        return defined('WP_USE_THEMES') && WP_USE_THEMES;
     }
 }
