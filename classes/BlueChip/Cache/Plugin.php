@@ -168,6 +168,9 @@ class Plugin
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
         }
 
+        // Add action to flush entire cache whenever Autoptimize's cache is purged.
+        add_action('autoptimize_action_cachepurged', [$this, 'flushCacheOnce'], 10, 0);
+
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
 
