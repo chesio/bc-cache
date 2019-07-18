@@ -47,7 +47,7 @@ abstract class Utils
 
     /**
      * Check, whether user interacted with the site in any way that would make him see personalized content.
-     * @return bool True, if user seems to be just a regular Anonymous Joe, false otherwise.
+     * @return bool True if user seems to be just a regular Anonymous Joe, false otherwise.
      */
     public static function isAnonymousUser(): bool
     {
@@ -56,7 +56,7 @@ abstract class Utils
         }
 
         foreach (array_keys($_COOKIE) as $cookie_name) {
-            if (preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', $cookie_name)) {
+            if (preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', (string) $cookie_name)) {
                 return false;
             }
         }
@@ -68,8 +68,8 @@ abstract class Utils
     /**
      * @return bool
      */
-    public static function isIndex(): bool
+    public static function isWordPressUsingThemes(): bool
     {
-        return basename($_SERVER['SCRIPT_NAME']) === 'index.php';
+        return defined('WP_USE_THEMES') && WP_USE_THEMES;
     }
 }

@@ -45,7 +45,7 @@ class Core
     /**
      * Make sure root cache directory exists or has been created and is empty and writable.
      *
-     * @return bool True, if root cache directory exists (or has been created successfully) and is writable and empty, false otherwise.
+     * @return bool True if root cache directory exists (or has been created successfully) and is writable and empty, false otherwise.
      */
     public function setUp(): bool
     {
@@ -121,7 +121,7 @@ class Core
         }
 
         try {
-            // Remove cache directory - remove contents only, if not uninstalling.
+            // Remove cache directory - remove contents only if not uninstalling.
             self::removeDirectory($this->cache_dir, !$uninstall);
             // If not wiping everything out...
             if (!$uninstall) {

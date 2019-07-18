@@ -260,13 +260,13 @@ class ListTable extends \WP_List_Table
     {
         $state = $this->cache->inspect(array_keys($this->request_variants));
 
-        if (is_null($state)) {
+        if ($state === null) {
             // There has been an error...
             AdminNotices::add(__('Failed to read cache state information!', 'bc-cache'), AdminNotices::ERROR, false);
             // ...thus there is nothing to show.
             $state = [];
         } else {
-            // Sort items. Sort by key (ie. absolute path), if no explicit sorting column is selected.
+            // Sort items. Sort by key (ie. absolute path) if no explicit sorting column is selected.
             if ($this->order === 'asc') {
                 empty($this->order_by) ? krsort($state) : usort($state, self::getAscSortingMethod($this->order_by));
             } else {

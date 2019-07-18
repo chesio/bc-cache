@@ -1,10 +1,11 @@
 # BC Cache
 
-Simple disk cache for WordPress inspired by Cachify.
+Simple full page cache plugin for WordPress inspired by Cachify.
 
 ## Requirements
+
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://secure.php.net/) 7.1 or newer
+* [PHP](https://www.php.net/) 7.1 or newer
 * [WordPress](https://wordpress.org/) 4.7 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
@@ -90,11 +91,12 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 
 1. Request is a POST request.
 2. Request is a GET request with non-empty query string.
-3. Request is not routed through main `index.php` file (ie. AJAX, WP-CLI or WP-Cron calls are not cached).
+3. Request is not routed through main `index.php` file (ie. `WP_USE_THEMES` is not set to `true`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
-6. `DONOTCACHEPAGE` constant is set and evaluates to true.
-7. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
+6. [Fatal error recovery mode](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) is active.
+7. `DONOTCACHEPAGE` constant is set and evaluates to true.
+8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
 **Important!** Cache exclusion rules are essentialy defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
@@ -136,6 +138,14 @@ The [default configuration](#installation) needs to be extended as well and set 
 ```
 
 Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
+
+## Flushing the cache programmatically
+
+If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
+
+## Autoptimize integration
+
+[Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
 
 ## WP-CLI integration
 

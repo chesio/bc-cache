@@ -168,6 +168,9 @@ class Plugin
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
         }
 
+        // Add action to flush entire cache whenever Autoptimize's cache is purged.
+        add_action('autoptimize_action_cachepurged', [$this, 'flushCacheOnce'], 10, 0);
+
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
 
@@ -318,13 +321,13 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
-     * @return Cached result of call to Core::flush().
+     * @return bool Cached result of call to Core::flush().
      */
     public function flushCacheOnce(): bool
     {
         static $is_flushed = null;
 
-        if (is_null($is_flushed)) {
+        if ($is_flushed === null) {
             $is_flushed = $this->cache->flush();
         }
 
@@ -339,7 +342,7 @@ class Plugin
      */
     public function processFlushRequest()
     {
-        // Check AJAX referer - die, if invalid.
+        // Check AJAX referer - die if invalid.
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
@@ -385,7 +388,7 @@ class Plugin
 
 
     /**
-     * @return bool True, if current user can explicitly flush the cache, false otherwise.
+     * @return bool True if current user can explicitly flush the cache, false otherwise.
      */
     public static function canUserFlushCache(): bool
     {
@@ -410,14 +413,14 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', current_time('timestamp'))
+                date_i18n('d.m.Y H:i:s', intval(current_time('timestamp')))
             )
         );
     }
 
 
     /**
-     * @return bool True, if cache should be skipped, false otherwise.
+     * @return bool True if cache should be skipped, false otherwise.
      */
     private static function skipCache(): bool
     {
@@ -426,8 +429,8 @@ class Plugin
             return true;
         }
 
-        // Only cache requests routed through main index.php (skip AJAX, WP-Cron, WP-CLI etc.)
-        if (!Utils::isIndex()) {
+        // Only cache requests routed through main index.php and using themes.
+        if (!Utils::isWordPressUsingThemes()) {
             return true;
         }
 
@@ -441,7 +444,12 @@ class Plugin
             return true;
         }
 
-        // Do not cache page, if WooCommerce says so.
+        // WordPress 5.2+: Do not cache page, if website is in recovery mode.
+        if (function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
+            return true;
+        }
+
+        // Do not cache page if WooCommerce says so.
         if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             return true;
         }

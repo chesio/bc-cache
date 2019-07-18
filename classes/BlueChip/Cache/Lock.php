@@ -20,7 +20,7 @@ class Lock
     private $file_name;
 
     /**
-     * @var resource
+     * @var resource|bool|null File handle if lock file has been opened successfully, false in case of failure, null if file has not been opened yet.
      */
     private $file_handle;
 
@@ -32,12 +32,11 @@ class Lock
     {
         $this->file_name = $file_name;
         $this->file_handle = null;
-        $this->operation = 0;
     }
 
 
     /**
-     * Attempt to create readable lock file, if it does not exist yet.
+     * Attempt to create readable lock file if it does not exist yet.
      *
      * @return bool True on success (lock file exists or has been created and is readable), false otherwise.
      */
@@ -62,19 +61,18 @@ class Lock
 
 
     /**
-     * Remove the lock file from file system. Attempt to release the lock first, if the file is open.
+     * Remove the lock file from file system. Attempt to release the lock first if the file is open.
      *
      * @return bool True on success, false on otherwise.
      */
     public function tearDown(): bool
     {
         if (file_exists($this->file_name)) {
-            if (is_resource($this->file_handle)) {
-                $status = $this->release();
-            }
+            // Release the lock (and close the file) if file is open.
+            $file_closed = is_resource($this->file_handle) ? $this->release() : true;
 
-            // Only attempt to remove the file, if closed.
-            return $status ? unlink($this->file_name) : false;
+            // Only attempt to remove the file if closed.
+            return $file_closed ? unlink($this->file_name) : false;
         }
 
         return true;
@@ -85,13 +83,13 @@ class Lock
      * @internal
      *
      * @param bool $exclusive
-     * @param bool $blocking
+     * @param bool $non_blocking
      * @return bool True on success, false on failure.
      */
     public function acquire(bool $exclusive, bool $non_blocking = false): bool
     {
         if ($this->file_handle === false) {
-            // Do not attempt to open lock file, if previous attempt failed => silently pass.
+            // Do not attempt to open lock file if previous attempt failed => silently pass.
             return true;
         }
 

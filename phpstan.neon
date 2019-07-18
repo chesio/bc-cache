@@ -1,0 +1,11 @@
+parameters:
+    level: 2
+    paths:
+        - %currentWorkingDirectory%/classes/
+    autoload_files:
+        - %currentWorkingDirectory%/vendor/giacocorsiglia/wordpress-stubs/wordpress-stubs.php
+        - %currentWorkingDirectory%/tests/static-analysis/bootstrap.php
+        - %currentWorkingDirectory%/autoload.php
+    ignoreErrors:
+        - '#^Function add_query_arg invoked with [23] parameters, 0 required\.$#'
+        - '#^Call to static method \S+\(\) on an unknown class WP_CLI\.$#'
