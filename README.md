@@ -94,8 +94,9 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 3. Request is not routed through main `index.php` file (ie. `WP_USE_THEMES` is not set to `true`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
-6. `DONOTCACHEPAGE` constant is set and evaluates to true.
-7. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
+6. [Fatal error recovery mode](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) is active.
+7. `DONOTCACHEPAGE` constant is set and evaluates to true.
+8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
 **Important!** Cache exclusion rules are essentialy defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.

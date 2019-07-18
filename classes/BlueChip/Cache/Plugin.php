@@ -444,6 +444,11 @@ class Plugin
             return true;
         }
 
+        // WordPress 5.2+: Do not cache page, if website is in recovery mode.
+        if (function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
+            return true;
+        }
+
         // Do not cache page if WooCommerce says so.
         if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             return true;
