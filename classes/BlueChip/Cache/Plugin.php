@@ -41,16 +41,16 @@ class Plugin
         // Front-end layout changes
         'switch_theme' => 10,
         'wp_update_nav_menu' => 10,
-        // Post content changes
-        'save_post' => 20,
-        'edit_post' => 20,
-        'delete_post' => 20,
-        'wp_trash_post' => 20,
+        // Post visibility changes - see also: registerPublicPostTypesFlushHooks()
+        'publish_to_draft' => 10,
+        'publish_to_future' => 10,
+        'publish_to_pending' => 10,
         // Comment content changes
         'comment_post' => 10,
         'edit_comment' => 10,
         'delete_comment' => 10,
         'wp_set_comment_status' => 10,
+        'wp_update_comment_count' => 10,
     ];
 
 
@@ -163,6 +163,9 @@ class Plugin
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
+        // Register additional flush hooks for public post types.
+        add_filter(Hooks::FILTER_FLUSH_HOOKS, [$this, 'registerPublicPostTypesFlushHooks'], 0, 1);
+
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
@@ -192,6 +195,29 @@ class Plugin
             // Add action to catch output buffer.
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
+    }
+
+
+    /**
+     * Register cache flush hooks for public post types.
+     *
+     * @filter bc-cache/filter:flush-hooks
+     *
+     * @param array $hooks
+     * @return array
+     */
+    public function registerPublicPostTypesFlushHooks(array $hooks): array
+    {
+        $public_post_types = get_post_types(['public' => true]);
+
+        foreach ($public_post_types as $public_post_type) {
+            // Flush cache when a public post type is published (created or edited) or trashed.
+            // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
+            $hooks["publish_{$public_post_type}"] = 10;
+            $hooks["trash_{$public_post_type}"] = 10;
+        }
+
+        return $hooks;
     }
 
 
