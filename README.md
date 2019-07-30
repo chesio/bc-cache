@@ -84,13 +84,14 @@ BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
 * `bc-cache/filter:request-variant` - filters name of [request variant](#request-variants) of current HTTP request.
 * `bc-cache/filter:request-variants` - filters list of all available [request variants](#request-variants). You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
+* `bc-cache/filter:query-string-fields-whitelist` - filters list of [query string](https://en.wikipedia.org/wiki/Query_string#Structure) fields that do not prevent cache write.
 
 ## Cache exclusions
 
 A response to HTTP(S) request is cached by BC Cache if **none** of the conditions below is true:
 
 1. Request is a POST request.
-2. Request is a GET request with non-empty query string.
+2. Request is a GET request with only whitelisted fields in query string. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044?hl=en), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#configuration).
 3. Request is not routed through main `index.php` file (ie. `WP_USE_THEMES` is not set to `true`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
