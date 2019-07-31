@@ -275,7 +275,7 @@ class Plugin
             'bc-cache-toolbar',
             plugins_url('assets/toolbar.js', $this->plugin_filename),
             ['jquery'],
-            '20181201',
+            '20190731',
             true
         );
 
