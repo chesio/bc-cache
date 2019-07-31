@@ -57,10 +57,10 @@ class Plugin
      * @var array List of whitelisted query string fields (these do not prevent cache write).
      */
     const WHITELISTED_QUERY_STRING_FIELDS = [
-        // https://support.google.com/searchads/answer/7342044?hl=en
+        // https://support.google.com/searchads/answer/7342044
         'gclid',
         'gclsrc',
-        // https://fbclid.com/ - unofficial information, I found no official docs...
+        // https://www.facebook.com/business/help/330994334179410 "URL in ad can't contain Facebook Click ID" section
         'fbclid',
         // https://en.wikipedia.org/wiki/UTM_parameters
         'utm_campaign',
