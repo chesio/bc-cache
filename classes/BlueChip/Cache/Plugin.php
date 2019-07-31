@@ -515,6 +515,6 @@ class Plugin
         );
 
         // All $fields must be present in whitelist.
-        return count(array_diff($fields, $whitelisted_fields)) === 0;
+        return array_diff($fields, $whitelisted_fields) === [];
     }
 }
