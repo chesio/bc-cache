@@ -33,7 +33,7 @@ class Plugin
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
     /**
-     * List of default actions that trigger cache flushing including priority with which the flush method is hooked.
+     * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     const FLUSH_CACHE_HOOKS = [
         // Core code changes
@@ -51,6 +51,23 @@ class Plugin
         'delete_comment' => 10,
         'wp_set_comment_status' => 10,
         'wp_update_comment_count' => 10,
+    ];
+
+    /**
+     * @var array List of whitelisted query string fields (these do not prevent cache write).
+     */
+    const WHITELISTED_QUERY_STRING_FIELDS = [
+        // https://support.google.com/searchads/answer/7342044?hl=en
+        'gclid',
+        'gclsrc',
+        // https://fbclid.com/ - unofficial information, I found no official docs...
+        'fbclid',
+        // https://en.wikipedia.org/wiki/UTM_parameters
+        'utm_campaign',
+        'utm_content',
+        'utm_medium',
+        'utm_source',
+        'utm_term',
     ];
 
 
@@ -450,8 +467,8 @@ class Plugin
      */
     private static function skipCache(): bool
     {
-        // Only cache GET requests without query string (~ static pages).
-        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !empty($_GET)) {
+        // Only cache GET requests with whitelisted query string fields.
+        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(array_keys($_GET))) {
             return true;
         }
 
@@ -481,5 +498,23 @@ class Plugin
         }
 
         return apply_filters(Hooks::FILTER_SKIP_CACHE, false);
+    }
+
+
+    /**
+     * Check whether query string $fields allow page to be cached.
+     *
+     * @param array $fields Query string fields (keys).
+     * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
+     */
+    private static function checkQueryString(array $fields): bool
+    {
+        $whitelisted_fields = apply_filters(
+            Hooks::FILTER_WHITELISTED_QUERY_STRING_FIELDS,
+            self::WHITELISTED_QUERY_STRING_FIELDS
+        );
+
+        // All $fields must be present in whitelist.
+        return count(array_diff($fields, $whitelisted_fields)) === 0;
     }
 }

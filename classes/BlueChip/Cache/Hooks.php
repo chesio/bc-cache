@@ -46,4 +46,9 @@ abstract class Hooks
      * Name of hook to filter all configured HTTP request variants.
      */
     const FILTER_REQUEST_VARIANTS = 'bc-cache/filter:request-variants';
+
+    /**
+     * Name of hook to filter list of whitelisted query string arguments.
+     */
+    const FILTER_WHITELISTED_QUERY_STRING_FIELDS = 'bc-cache/filter:query-string-fields-whitelist';
 }
