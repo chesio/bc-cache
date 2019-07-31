@@ -59,9 +59,9 @@ AddDefaultCharset utf-8
     AddEncoding gzip .gz
   </IfModule>
 
-  # Main rules: serve only GET requests without query string from anonymous users.
+  # Main rules: serve only GET requests with whitelisted query string fields coming from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
-  RewriteCond %{QUERY_STRING} =""
+  RewriteCond %{QUERY_STRING} ^(?:(?:gclid|gclsrc|fbclid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
@@ -104,6 +104,7 @@ A response to HTTP(S) request is cached by BC Cache if **none** of the condition
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
 When you add new rule for *cache writing* via `bc-cache/filter:skip-cache` filter, you should always consider whether the rule should be also enforced for *cache reading* via `.htaccess` file. In general, if your rule has no relation to request URI (for example you check cookies or `User-Agent` string), you probably want to have the rule in both places.
+The same applies to `bc-cache/filter:query-string-fields-whitelist` filter - any extra whitelisted fields will not prevent *cache writing* anymore, but will still prevent *cache reading* unless they are integrated into respective rule in `.htaccess` file.
 
 ## Cache viewer
 
