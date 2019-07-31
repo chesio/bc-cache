@@ -28,7 +28,12 @@ class Plugin
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * @var string Name of transient used to cache cache size.
+     * @var string Name of transient used to store cache age.
+     */
+    const TRANSIENT_CACHE_AGE = 'bc-cache/transient:cache-age';
+
+    /**
+     * @var string Name of transient used to store cache size.
      */
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
@@ -146,7 +151,7 @@ class Plugin
     {
         $this->plugin_filename = $plugin_filename;
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
-        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
+        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_AGE, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
     }
 
 

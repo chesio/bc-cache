@@ -19,7 +19,12 @@ class Core
     private $cache_dir;
 
     /**
-     * @var string Name of transient used to cache cache size
+     * @var string Name of transient used to store cache age
+     */
+    private $cache_age_transient;
+
+    /**
+     * @var string Name of transient used to store cache size
      */
     private $cache_size_transient;
 
@@ -31,13 +36,15 @@ class Core
 
     /**
      * @param string $cache_dir Path to root cache directory
-     * @param string $cache_size_transient Name of transient used to cache cache size
+     * @param string $cache_age_transient Name of transient used to store cache age
+     * @param string $cache_size_transient Name of transient used to store cache size
      * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, string $cache_size_transient, Lock $cache_lock)
+    public function __construct(string $cache_dir, string $cache_age_transient, string $cache_size_transient, Lock $cache_lock)
     {
         $this->cache_dir = $cache_dir;
         $this->cache_lock = $cache_lock;
+        $this->cache_age_transient = $cache_age_transient;
         $this->cache_size_transient = $cache_size_transient;
     }
 
@@ -110,10 +117,19 @@ class Core
             return false;
         }
 
-        // Cache size is going to change...
+        // Cache age meta only has to be deleted, if uninstalling.
+        if ($uninstall) {
+            delete_transient($this->cache_age_transient);
+        }
+        // Cache age size has to be deleted always as it becomes stale also in case of I/O error.
         delete_transient($this->cache_size_transient);
 
         if (!is_dir($this->cache_dir)) {
+            if (!$uninstall) {
+                // Treat as successful cache flush nevertheless.
+                set_transient($this->cache_age_transient, time());
+                set_transient($this->cache_size_transient, 0);
+            }
             // Unlock cache for other operations.
             $this->unlockCache();
             // Cache directory does not exist, so cache must be empty.
@@ -125,7 +141,8 @@ class Core
             self::removeDirectory($this->cache_dir, !$uninstall);
             // If not wiping everything out...
             if (!$uninstall) {
-                // ...update cache size meta.
+                // ...update cache age and size meta.
+                set_transient($this->cache_age_transient, time());
                 set_transient($this->cache_size_transient, 0);
             }
             // :)
@@ -262,6 +279,17 @@ class Core
             // Unlock cache for other operations.
             $this->unlockCache();
         }
+    }
+
+
+    /**
+     * Get "age" of the cache.
+     *
+     * @return int|null Time (as Unix timestamp) when the cache has been fully flushed or null if unknown.
+     */
+    public function getAge(): ?int
+    {
+        return get_transient($this->cache_age_transient) ?: null;
     }
 
 

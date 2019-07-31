@@ -112,8 +112,25 @@ class Viewer
 
         echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Plugin::CACHE_DIR . '</code>') . '</p>';
 
+        // Gather cache statistics (age and size), if available.
+        $stats = [];
+
+        if (is_int($cache_age = $this->cache->getAge())) {
+            $stats[] = sprintf(
+                esc_html__('Cache has been fully flushed %s ago.', 'bc-cache'),
+                '<strong><abbr title="' . Utils::formatWpDateTime('Y-m-d H:i:s', $cache_age) . '">' . human_time_diff($cache_age) . '</abbr></strong>'
+            );
+        }
+
         if (is_int($cache_size = $this->cache->getSize())) {
-            echo '<p>' . sprintf(esc_html__('Cache files occupy %s of space in total.', 'bc-cache'), '<strong>' . size_format($cache_size) . '</strong>') . '</p>';
+            $stats[] = sprintf(
+                esc_html__('Cache files occupy %s of space in total.', 'bc-cache'),
+                '<strong><abbr title="' . sprintf(_n('%d byte', '%d bytes', $cache_size, 'bc-cache'), $cache_size)  .'">' . size_format($cache_size) . '</abbr></strong>'
+            );
+        }
+
+        if ($stats !== []) {
+            echo '<p>' . implode(' ', $stats) . '</p>';
         }
 
         // View table
