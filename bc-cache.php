@@ -3,7 +3,7 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: develop
+ * Version: 1.6.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.1
