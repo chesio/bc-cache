@@ -28,12 +28,17 @@ class Plugin
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * @var string Name of transient used to cache cache size.
+     * @var string Name of transient used to store cache age.
+     */
+    const TRANSIENT_CACHE_AGE = 'bc-cache/transient:cache-age';
+
+    /**
+     * @var string Name of transient used to store cache size.
      */
     const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
 
     /**
-     * List of default actions that trigger cache flushing including priority with which the flush method is hooked.
+     * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     const FLUSH_CACHE_HOOKS = [
         // Core code changes
@@ -41,16 +46,33 @@ class Plugin
         // Front-end layout changes
         'switch_theme' => 10,
         'wp_update_nav_menu' => 10,
-        // Post content changes
-        'save_post' => 20,
-        'edit_post' => 20,
-        'delete_post' => 20,
-        'wp_trash_post' => 20,
+        // Post visibility changes - see also: registerPublicPostTypesFlushHooks()
+        'publish_to_draft' => 10,
+        'publish_to_future' => 10,
+        'publish_to_pending' => 10,
         // Comment content changes
         'comment_post' => 10,
         'edit_comment' => 10,
         'delete_comment' => 10,
         'wp_set_comment_status' => 10,
+        'wp_update_comment_count' => 10,
+    ];
+
+    /**
+     * @var array List of whitelisted query string fields (these do not prevent cache write).
+     */
+    const WHITELISTED_QUERY_STRING_FIELDS = [
+        // https://support.google.com/searchads/answer/7342044
+        'gclid',
+        'gclsrc',
+        // https://www.facebook.com/business/help/330994334179410 "URL in ad can't contain Facebook Click ID" section
+        'fbclid',
+        // https://en.wikipedia.org/wiki/UTM_parameters
+        'utm_campaign',
+        'utm_content',
+        'utm_medium',
+        'utm_source',
+        'utm_term',
     ];
 
 
@@ -129,7 +151,7 @@ class Plugin
     {
         $this->plugin_filename = $plugin_filename;
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
-        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
+        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_AGE, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
     }
 
 
@@ -163,6 +185,9 @@ class Plugin
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
+        // Register additional flush hooks for public post types.
+        add_filter(Hooks::FILTER_FLUSH_HOOKS, [$this, 'registerPublicPostTypesFlushHooks'], 0, 1);
+
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
@@ -192,6 +217,29 @@ class Plugin
             // Add action to catch output buffer.
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
+    }
+
+
+    /**
+     * Register cache flush hooks for public post types.
+     *
+     * @filter bc-cache/filter:flush-hooks
+     *
+     * @param array $hooks
+     * @return array
+     */
+    public function registerPublicPostTypesFlushHooks(array $hooks): array
+    {
+        $public_post_types = get_post_types(['public' => true]);
+
+        foreach ($public_post_types as $public_post_type) {
+            // Flush cache when a public post type is published (created or edited) or trashed.
+            // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
+            $hooks["publish_{$public_post_type}"] = 10;
+            $hooks["trash_{$public_post_type}"] = 10;
+        }
+
+        return $hooks;
     }
 
 
@@ -227,7 +275,7 @@ class Plugin
             'bc-cache-toolbar',
             plugins_url('assets/toolbar.js', $this->plugin_filename),
             ['jquery'],
-            '20181201',
+            '20190731',
             true
         );
 
@@ -424,8 +472,8 @@ class Plugin
      */
     private static function skipCache(): bool
     {
-        // Only cache GET requests without query string (~ static pages).
-        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !empty($_GET)) {
+        // Only cache GET requests with whitelisted query string fields.
+        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(array_keys($_GET))) {
             return true;
         }
 
@@ -455,5 +503,23 @@ class Plugin
         }
 
         return apply_filters(Hooks::FILTER_SKIP_CACHE, false);
+    }
+
+
+    /**
+     * Check whether query string $fields allow page to be cached.
+     *
+     * @param array $fields Query string fields (keys).
+     * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
+     */
+    private static function checkQueryString(array $fields): bool
+    {
+        $whitelisted_fields = apply_filters(
+            Hooks::FILTER_WHITELISTED_QUERY_STRING_FIELDS,
+            self::WHITELISTED_QUERY_STRING_FIELDS
+        );
+
+        // All $fields must be present in whitelist.
+        return array_diff($fields, $whitelisted_fields) === [];
     }
 }
