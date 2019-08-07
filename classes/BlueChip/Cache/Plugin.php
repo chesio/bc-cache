@@ -23,7 +23,7 @@ class Plugin
     const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
 
     /**
-     * Name of nonce used for AJAX-ified flush cache requests.
+     * @var string Name of nonce used for AJAX-ified flush cache requests.
      */
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
