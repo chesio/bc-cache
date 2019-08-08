@@ -325,34 +325,28 @@ class Core
     /**
      * Get cache state information.
      *
-     * @internal Updates size cache transient automatically.
-     *
      * @param array $request_variants List of all request variants to inspect.
      * @return array List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
     public function inspect(array $request_variants): ?array
     {
+        if (!is_dir($this->cache_dir)) {
+            return [];
+        }
+
         // Wait for non-exclusive lock.
         if (!$this->lockCache(false)) {
             // Non-exclusive lock could not be acquired.
             return null;
         }
 
-        if (!is_dir($this->cache_dir)) {
-            // The cache seems to be empty.
-            delete_transient($this->cache_size_transient);
-
-            // Unlock cache for other operations.
-            $this->unlockCache();
-
-            return [];
-        }
-
         // Get cache sizes.
         $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
 
+        // Unlock cache for other operations.
+        $this->unlockCache();
+
         $state = [];
-        $cache_total_size = 0;
 
         foreach ($cache_sizes as $id => $item) {
             try {
@@ -363,25 +357,16 @@ class Core
                 $url = null;
             }
 
-            $size = $item['html_size'] + $item['gzip_size'];
-            $cache_total_size += $size; // !
-
             $state[] = [
                 'entry_id' => substr($id, strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
                 'url' => $url,
                 'request_variant' => $item['request_variant'],
                 'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
-                'size' => $size,
+                'size' => $item['html_size'] + $item['gzip_size'],
                 'html_size' => $item['html_size'],
                 'gzip_size' => $item['gzip_size'],
             ];
         }
-
-        // Update cache size transient with total size of all cache entries.
-        set_transient($this->cache_size_transient, $cache_total_size);
-
-        // Unlock cache for other operations.
-        $this->unlockCache();
 
         return $state;
     }
@@ -421,10 +406,12 @@ class Core
 
 
     /**
-     * Return total size of all files in given directory and its subdirectories.
+     * Return total size of all directories and files in given directory and its subdirectories.
+     *
+     * @internal Strives to match the output of `du -sb` Unix command on $dirname.
      *
      * @param string $dirname
-     * @return int Total size of all files in given directory and its subdirectories.
+     * @return int Total size of all directories and files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.
      */
     private static function getDirectorySize(string $dirname): int
@@ -439,6 +426,11 @@ class Core
 
         $size = 0;
         foreach ($it as $fileinfo) {
+            if ($fileinfo->isDir() && ($fileinfo->getFilename() === '..')) {
+                // Parent directories are listed as well, thus skip them!
+                continue;
+            }
+
             $size += $fileinfo->getSize();
         }
 

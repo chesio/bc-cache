@@ -75,6 +75,11 @@ class ListTable extends \WP_List_Table
      */
     private $url;
 
+    /**
+     * @var int|null Total size of all files (entries) reported in the list.
+     */
+    private $cache_files_size = null;
+
 
     /**
      * @param \BlueChip\Cache\Core $cache
@@ -104,6 +109,15 @@ class ListTable extends \WP_List_Table
             $this->order = $order;
             $this->url = add_query_arg('order', $order, $this->url);
         }
+    }
+
+
+    /**
+     * @return int|null Total size of all files (entries) reported in the list or null if unknown.
+     */
+    public function getCacheFilesSize(): ?int
+    {
+        return $this->cache_files_size;
     }
 
 
@@ -272,6 +286,9 @@ class ListTable extends \WP_List_Table
             } else {
                 empty($this->order_by) ? ksort($state) : usort($state, self::getDescSortingMethod($this->order_by));
             }
+
+            // Also calculate total cache files size.
+            $this->cache_files_size = array_sum(array_column($state, 'size'));
         }
 
         $current_page = $this->get_pagenum();
