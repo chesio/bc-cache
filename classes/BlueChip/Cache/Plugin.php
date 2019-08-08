@@ -28,14 +28,9 @@ class Plugin
     const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * @var string Name of transient used to store cache age.
+     * @var string Name of transient used to keep cache age and size information.
      */
-    const TRANSIENT_CACHE_AGE = 'bc-cache/transient:cache-age';
-
-    /**
-     * @var string Name of transient used to store cache size.
-     */
-    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
+    const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
 
     /**
      * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
@@ -85,6 +80,11 @@ class Plugin
      * @var \BlueChip\Cache\Core
      */
     private $cache;
+
+    /**
+     * @var \BlueChip\Cache\Info
+     */
+    private $cache_info;
 
     /**
      * @var \BlueChip\Cache\Lock
@@ -140,6 +140,7 @@ class Plugin
     public function uninstall()
     {
         $this->cache->tearDown();
+        $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
 
@@ -150,8 +151,9 @@ class Plugin
     public function __construct(string $plugin_filename)
     {
         $this->plugin_filename = $plugin_filename;
+        $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
-        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_AGE, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
+        $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
     }
 
 

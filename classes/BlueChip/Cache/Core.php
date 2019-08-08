@@ -19,14 +19,9 @@ class Core
     private $cache_dir;
 
     /**
-     * @var string Name of transient used to store cache age
+     * @var \BlueChip\Cache\Info Cache information handler
      */
-    private $cache_age_transient;
-
-    /**
-     * @var string Name of transient used to store cache size
-     */
-    private $cache_size_transient;
+    private $cache_info;
 
     /**
      * @var \BlueChip\Cache\Lock Flock wrapper for atomic cache reading/writing
@@ -36,16 +31,14 @@ class Core
 
     /**
      * @param string $cache_dir Path to root cache directory
-     * @param string $cache_age_transient Name of transient used to store cache age
-     * @param string $cache_size_transient Name of transient used to store cache size
+     * @param \BlueChip\Cache\Info $cache_info Cache information (age, size) handler
      * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, string $cache_age_transient, string $cache_size_transient, Lock $cache_lock)
+    public function __construct(string $cache_dir, Info $cache_info, Lock $cache_lock)
     {
         $this->cache_dir = $cache_dir;
+        $this->cache_info = $cache_info;
         $this->cache_lock = $cache_lock;
-        $this->cache_age_transient = $cache_age_transient;
-        $this->cache_size_transient = $cache_size_transient;
     }
 
 
@@ -74,7 +67,8 @@ class Core
             return false;
         }
 
-        set_transient($this->cache_size_transient, 0); // Initialize cache size to 0.
+        // With respect to cache information, setup equals cache flush.
+        $this->cache_info->reset()->write();
 
         return true;
     }
@@ -106,7 +100,7 @@ class Core
     /**
      * Flush entire cache.
      *
-     * @param bool $uninstall Not only flush cache entries, but remove any metadata as well.
+     * @param bool $uninstall Not only flush cache entries, but remove cache directory as well.
      * @return bool True on success (there has been no error), false otherwise.
      */
     public function flush(bool $uninstall = false): bool
@@ -117,42 +111,32 @@ class Core
             return false;
         }
 
-        // Cache age meta only has to be deleted, if uninstalling.
-        if ($uninstall) {
-            delete_transient($this->cache_age_transient);
-        }
-        // Cache age size has to be deleted always as it becomes stale also in case of I/O error.
-        delete_transient($this->cache_size_transient);
-
         if (!is_dir($this->cache_dir)) {
-            if (!$uninstall) {
-                // Treat as successful cache flush nevertheless.
-                set_transient($this->cache_age_transient, time());
-                set_transient($this->cache_size_transient, 0);
-            }
+            // Treat as successful cache flush.
+            $this->cache_info->reset()->write();
             // Unlock cache for other operations.
             $this->unlockCache();
-            // Cache directory does not exist, so cache must be empty.
+            // Cache directory does not exist, therefore report success.
             return true;
         }
 
         try {
-            // Remove cache directory - remove contents only if not uninstalling.
+            // Remove cache directory - if not uninstalling, remove contents only.
             self::removeDirectory($this->cache_dir, !$uninstall);
-            // If not wiping everything out...
-            if (!$uninstall) {
-                // ...update cache age and size meta.
-                set_transient($this->cache_age_transient, time());
-                set_transient($this->cache_size_transient, 0);
-            }
+            // Reset cache age and size.
+            $this->cache_info->reset();
             // :)
             return true;
         } catch (Exception $e) {
+            // Clear information about cache size, it might be corrupted.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Persist cache info changes.
+            $this->cache_info->write();
             // Always clear stat cache.
             clearstatcache();
             // Unlock cache for other operations.
@@ -191,29 +175,25 @@ class Core
             return false;
         }
 
-        // Get cache size before unlink attempts.
-        $cache_size = get_transient($this->cache_size_transient);
-
-        // Cache size is going to change...
-        delete_transient($this->cache_size_transient);
-
         try {
             $bytes_deleted
                 = self::deleteFile(self::getHtmlFilename($path, $request_variant))
                 + self::deleteFile(self::getGzipFilename($path, $request_variant))
             ;
-            // If cache size transient existed, set it anew with updated value.
-            if ($cache_size !== false) {
-                set_transient($this->cache_size_transient, max($cache_size - $bytes_deleted, 0));
-            }
+            // Update cache size.
+            $this->cache_info->decrementSize($bytes_deleted);
             // :)
             return true;
         } catch (Exception $e) {
+            // I/O error - clear information about cache size, it might be no longer valid.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Persist cache info changes.
+            $this->cache_info->write();
             // Always clear stat cache.
             clearstatcache();
             // Unlock cache for other operations.
@@ -250,30 +230,26 @@ class Core
             return false;
         }
 
-        // Get cache size before write attempts.
-        $cache_size = get_transient($this->cache_size_transient);
-
-        // Cache size is going to change...
-        delete_transient($this->cache_size_transient);
-
         try {
             // Write cache date to disk, get number of bytes written.
             $bytes_written = self::writeFile(self::getHtmlFilename($path, $request_variant), $data);
             if (($gzip = gzencode($data, 9)) !== false) {
                 $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
             }
-            // If cache size transient existed, set it anew with updated value.
-            if ($cache_size !== false) {
-                set_transient($this->cache_size_transient, $cache_size + $bytes_written);
-            }
+            // Increment cache size.
+            $this->cache_info->incrementSize($bytes_written);
             // :)
             return true;
         } catch (Exception $e) {
+            // Clear information about cache size, it might be corrupted.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
             trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Update cache info.
+            $this->cache_info->write();
             // Always clear stat cache.
             clearstatcache();
             // Unlock cache for other operations.
@@ -289,7 +265,7 @@ class Core
      */
     public function getAge(): ?int
     {
-        return get_transient($this->cache_age_transient) ?: null;
+        return $this->cache_info->getAge();
     }
 
 
@@ -301,7 +277,7 @@ class Core
      */
     public function getSize(bool $precise = false): ?int
     {
-        if (!$precise && (($cache_size = get_transient($this->cache_size_transient)) !== false)) {
+        if (!$precise && (($cache_size = $this->cache_info->getSize()) !== null)) {
             return $cache_size;
         }
 
@@ -313,8 +289,8 @@ class Core
 
         // Read cache size from disk...
         $cache_size = is_dir($this->cache_dir) ? self::getDirectorySize($this->cache_dir) : 0;
-        // ...update the transient...
-        set_transient($this->cache_size_transient, $cache_size);
+        // ...update cache information...
+        $this->cache_info->setSize($cache_size)->write();
         // ...unlock cache for other operations...
         $this->unlockCache();
         // ...and return the size:
