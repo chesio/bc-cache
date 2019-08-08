@@ -111,8 +111,8 @@ The same applies to `bc-cache/filter:query-string-fields-whitelist` filter - any
 Contents of cache can be inspected (by any user with `manage_options` capability) via _Cache Viewer_ management page (under _Tools_). Users who can flush the cache are able to delete individual cache entries.
 
 You may notice that Cache Viewer displays cache size twice - there is a subtle, but sometimes important [difference](https://github.com/chesio/bc-cache/issues/35):
-1. Apparent cache directory size includes size of all directories and files within root cache directory and should always match the output of Unix `du -sb` command.
-2. Cache files size is sum of sizes of all valid cache files, ie. what Cache Viewer reports in the table. If list of all available [request variants](#request-variants) is set up correctly via `bc-cache/filter:request-variants` filter, the difference to apparent cache directory size should be negligible as it should only equal to total size of (sub)directories.
+1. *Apparent cache directory size* includes size of all directories and files within root cache directory and should always match the output of Unix `du -sb` command.
+2. *Cache files size* is sum of sizes of all valid cache files, ie. what Cache Viewer reports in the table. If list of all available [request variants](#request-variants) is set up correctly via `bc-cache/filter:request-variants` filter, the difference to apparent cache directory size should be negligible as it should only equal to total size of (sub)directories.
 
 ## Request variants
 
