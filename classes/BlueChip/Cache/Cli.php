@@ -7,7 +7,7 @@
 namespace BlueChip\Cache;
 
 /**
- * Delete items from, flush or get size information of BC Cache cache
+ * Delete items from, flush or get size of BC Cache cache
  */
 class Cli
 {
@@ -82,7 +82,7 @@ class Cli
 
 
     /**
-     * Display size information.
+     * Display apparent size of cache directory.
      *
      * ## OPTIONS
      *

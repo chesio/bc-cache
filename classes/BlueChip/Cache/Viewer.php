@@ -110,27 +110,42 @@ class Viewer
         // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
-        echo '<p>' . sprintf(esc_html__('Cache data are stored in %s directory.', 'bc-cache'), '<code>' . Plugin::CACHE_DIR . '</code>') . '</p>';
+        // Gather cache directory information (path and apparent size).
+        $directory_info = [
+            sprintf(
+                esc_html__('Cache data are stored in %s directory.', 'bc-cache'),
+                '<code>' . Plugin::CACHE_DIR . '</code>'
+            ),
+        ];
+
+        if (is_int($cache_size = $this->cache->getSize(true))) {
+            $directory_info[] = sprintf(
+                esc_html__('Apparent directory size is %s.', 'bc-cache'),
+                '<strong><abbr title="' . sprintf(_n('%d byte', '%d bytes', $cache_size, 'bc-cache'), $cache_size)  .'">' . size_format($cache_size) . '</abbr></strong>'
+            );
+        }
+
+        echo '<p>' . implode(' ', $directory_info) . '</p>';
 
         // Gather cache statistics (age and size), if available.
-        $stats = [];
+        $cache_info = [];
 
         if (is_int($cache_age = $this->cache->getAge())) {
-            $stats[] = sprintf(
+            $cache_info[] = sprintf(
                 esc_html__('Cache has been fully flushed %s ago.', 'bc-cache'),
                 '<strong><abbr title="' . Utils::formatWpDateTime('Y-m-d H:i:s', $cache_age) . '">' . human_time_diff($cache_age) . '</abbr></strong>'
             );
         }
 
-        if (is_int($cache_size = $this->cache->getSize())) {
-            $stats[] = sprintf(
+        if (is_int($cache_files_size = $this->list_table->getCacheFilesSize())) {
+            $cache_info[] = sprintf(
                 esc_html__('Cache files occupy %s of space in total.', 'bc-cache'),
-                '<strong><abbr title="' . sprintf(_n('%d byte', '%d bytes', $cache_size, 'bc-cache'), $cache_size)  .'">' . size_format($cache_size) . '</abbr></strong>'
+                '<strong><abbr title="' . sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size)  .'">' . size_format($cache_files_size) . '</abbr></strong>'
             );
         }
 
-        if ($stats !== []) {
-            echo '<p>' . implode(' ', $stats) . '</p>';
+        if ($cache_info !== []) {
+            echo '<p>' . implode(' ', $cache_info) . '</p>';
         }
 
         // View table
