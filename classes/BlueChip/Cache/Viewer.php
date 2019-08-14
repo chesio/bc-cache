@@ -10,12 +10,12 @@ class Viewer
     /**
      * @var string Slug for cache viewer page
      */
-    const ADMIN_PAGE_SLUG = 'bc-cache-view';
+    private const ADMIN_PAGE_SLUG = 'bc-cache-view';
 
     /**
      * @var string Capability required to view cache viewer
      */
-    const REQUIRED_CAPABILITY = 'manage_options';
+    private const REQUIRED_CAPABILITY = 'manage_options';
 
     /**
      * @var \BlueChip\Cache\Core

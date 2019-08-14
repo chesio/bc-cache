@@ -10,32 +10,32 @@ class Plugin
     /**
      * @var string Path to root cache directory
      */
-    const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
+    public const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
 
     /**
      * @var string URL of root cache directory
      */
-    const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
+    public const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
      * @var string Path to cache lock file - must be outside of cache directory!
      */
-    const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+    private const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
 
     /**
      * @var string Name of nonce used for AJAX-ified flush cache requests.
      */
-    const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
+    private const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
      * @var string Name of transient used to keep cache age and size information.
      */
-    const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
+    private const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
 
     /**
      * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
-    const FLUSH_CACHE_HOOKS = [
+    private const FLUSH_CACHE_HOOKS = [
         // Core code changes
         '_core_updated_successfully' => 10,
         // Front-end layout changes
@@ -56,7 +56,7 @@ class Plugin
     /**
      * @var array List of whitelisted query string fields (these do not prevent cache write).
      */
-    const WHITELISTED_QUERY_STRING_FIELDS = [
+    private const WHITELISTED_QUERY_STRING_FIELDS = [
         // https://support.google.com/searchads/answer/7342044
         'gclid',
         'gclsrc',

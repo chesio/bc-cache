@@ -13,42 +13,42 @@ class ListTable extends \WP_List_Table
     /**
      * @var string Separator between URL and request variant part in cache entry ID. Do not change!
      */
-    const ENTRY_ID_SEPARATOR = '#';
+    private const ENTRY_ID_SEPARATOR = '#';
 
     /**
      * @var string Name of delete action
      */
-    const ACTION_DELETE = 'delete';
+    private const ACTION_DELETE = 'delete';
 
     /**
      * @var string Name of bulk delete action
      */
-    const BULK_ACTION_DELETE = 'bulk-delete';
+    private const BULK_ACTION_DELETE = 'bulk-delete';
 
     /**
      * @var string Name of deleted notice query argument
      */
-    const NOTICE_ENTRY_DELETED = 'deleted';
+    private const NOTICE_ENTRY_DELETED = 'deleted';
 
     /**
      * @var string Name of failed notice query argument
      */
-    const NOTICE_ENTRY_FAILED = 'failed';
+    private const NOTICE_ENTRY_FAILED = 'failed';
 
     /**
      * @var string Nonce name used for actions
      */
-    const NONCE_NAME = '_wpnonce';
+    private const NONCE_NAME = '_wpnonce';
 
     /**
      * @var int Number of items displayed per page.
      */
-    const PER_PAGE = 100;
+    private const PER_PAGE = 100;
 
     /**
      * @var string String to display when actual value is unknown.
      */
-    const UNKNOWN_VALUE = '--';
+    private const UNKNOWN_VALUE = '--';
 
     /**
      * @var \BlueChip\Cache\Core
