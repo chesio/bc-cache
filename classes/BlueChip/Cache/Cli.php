@@ -82,7 +82,7 @@ class Cli
 
 
     /**
-     * Display apparent size of cache directory.
+     * Display total size of all files in cache directory.
      *
      * ## OPTIONS
      *
