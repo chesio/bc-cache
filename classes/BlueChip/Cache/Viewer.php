@@ -114,7 +114,7 @@ class Viewer
 
         // Cache directory path.
         echo '<p>';
-        echo sprintf(
+        echo \sprintf(
             esc_html__('Cache data are stored in %s directory.', 'bc-cache'),
             '<code>' . Plugin::CACHE_DIR . '</code>'
         );
@@ -123,22 +123,22 @@ class Viewer
         // Gather cache statistics (age and size), if available.
         $cache_info = [];
 
-        if (is_int($cache_age = $this->cache->getAge())) {
-            $cache_info[] = sprintf(
+        if (\is_int($cache_age = $this->cache->getAge())) {
+            $cache_info[] = \sprintf(
                 esc_html__('Cache has been fully flushed %s ago.', 'bc-cache'),
                 '<strong><abbr title="' . Utils::formatWpDateTime('Y-m-d H:i:s', $cache_age) . '">' . human_time_diff($cache_age) . '</abbr></strong>'
             );
         }
 
-        if (is_int($cache_files_size = $this->list_table->getCacheFilesSize())) {
-            $cache_info[] = sprintf(
+        if (\is_int($cache_files_size = $this->list_table->getCacheFilesSize())) {
+            $cache_info[] = \sprintf(
                 esc_html__('Cache files occupy %s of space in total.', 'bc-cache'),
-                '<strong><abbr title="' . sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size)  .'">' . size_format($cache_files_size) . '</abbr></strong>'
+                '<strong><abbr title="' . \sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size)  .'">' . size_format($cache_files_size) . '</abbr></strong>'
             );
         }
 
         if ($cache_info !== []) {
-            echo '<p>' . implode(' ', $cache_info) . '</p>';
+            echo '<p>' . \implode(' ', $cache_info) . '</p>';
         }
 
         // View table
@@ -161,10 +161,10 @@ class Viewer
 
         if (\is_int($cache_files_size) && \is_int($cache_size) && ($cache_files_size !== $cache_size)) {
             AdminNotices::add(
-                sprintf(
+                \sprintf(
                     __('Total size of recognized cache files (%s) differs from total size of all files in cache directory (%s). Please, make sure that you have set up request variants filters correctly and then flush the cache.', 'bc-cache'),
-                    '<strong>' . sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size) . '</strong>',
-                    '<strong>' . sprintf(_n('%d byte', '%d bytes', $cache_size, 'bc-cache'), $cache_size) . '</strong>'
+                    '<strong>' . \sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size) . '</strong>',
+                    '<strong>' . \sprintf(_n('%d byte', '%d bytes', $cache_size, 'bc-cache'), $cache_size) . '</strong>'
                 ),
                 AdminNotices::WARNING,
                 false,

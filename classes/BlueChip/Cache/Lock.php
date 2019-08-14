@@ -42,21 +42,21 @@ class Lock
      */
     public function setUp(): bool
     {
-        if (!file_exists($this->file_name)) {
-            $dirname = dirname($this->file_name);
+        if (!\file_exists($this->file_name)) {
+            $dirname = \dirname($this->file_name);
 
-            if (!is_dir($dirname) && !wp_mkdir_p($dirname)) {
-                trigger_error(sprintf('Failed to create lock file directory %s.', $dirname), E_USER_WARNING);
+            if (!\is_dir($dirname) && !wp_mkdir_p($dirname)) {
+                \trigger_error(\sprintf('Failed to create lock file directory %s.', $dirname), E_USER_WARNING);
                 return false;
             }
 
-            if (!touch($this->file_name)) {
-                trigger_error(sprintf('Failed to create lock file %s.', $this->file_name), E_USER_WARNING);
+            if (!\touch($this->file_name)) {
+                \trigger_error(\sprintf('Failed to create lock file %s.', $this->file_name), E_USER_WARNING);
                 return false;
             }
         }
 
-        return is_readable($this->file_name);
+        return \is_readable($this->file_name);
     }
 
 
@@ -67,12 +67,12 @@ class Lock
      */
     public function tearDown(): bool
     {
-        if (file_exists($this->file_name)) {
+        if (\file_exists($this->file_name)) {
             // Release the lock (and close the file) if file is open.
-            $file_closed = is_resource($this->file_handle) ? $this->release() : true;
+            $file_closed = \is_resource($this->file_handle) ? $this->release() : true;
 
             // Only attempt to remove the file if closed.
-            return $file_closed ? unlink($this->file_name) : false;
+            return $file_closed ? \unlink($this->file_name) : false;
         }
 
         return true;
@@ -93,15 +93,15 @@ class Lock
             return true;
         }
 
-        if (!is_resource($this->file_handle)) {
+        if (!\is_resource($this->file_handle)) {
             // Lock file not opened yet or closed already.
 
-            if (!file_exists($this->file_name) && !$this->setUp()) {
+            if (!\file_exists($this->file_name) && !$this->setUp()) {
                 // Lock file not available => silently pass.
                 return true;
             }
 
-            $this->file_handle = fopen($this->file_name, 'r+');
+            $this->file_handle = \fopen($this->file_name, 'r+');
 
             if ($this->file_handle === false) {
                 // Failed to open lock file => silently pass.
@@ -115,7 +115,7 @@ class Lock
             $operation |= LOCK_NB;
         }
 
-        return flock($this->file_handle, $operation);
+        return \flock($this->file_handle, $operation);
     }
 
 
@@ -126,8 +126,8 @@ class Lock
      */
     public function release(): bool
     {
-        return is_resource($this->file_handle)
-            ? flock($this->file_handle, LOCK_UN) && fclose($this->file_handle)
+        return \is_resource($this->file_handle)
+            ? \flock($this->file_handle, LOCK_UN) && \fclose($this->file_handle)
             : true
         ;
     }

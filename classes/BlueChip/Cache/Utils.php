@@ -39,8 +39,8 @@ abstract class Utils
         }
         $offset  = get_option('gmt_offset');
         $hours   = (int) $offset;
-        $minutes = abs(($offset - (int) $offset) * 60);
-        $offset  = sprintf('%+03d:%02d', $hours, $minutes);
+        $minutes = \abs(($offset - (int) $offset) * 60);
+        $offset  = \sprintf('%+03d:%02d', $hours, $minutes);
         return new \DateTimeZone($offset);
     }
 
@@ -55,8 +55,8 @@ abstract class Utils
             return true;
         }
 
-        foreach (array_keys($_COOKIE) as $cookie_name) {
-            if (preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', (string) $cookie_name)) {
+        foreach (\array_keys($_COOKIE) as $cookie_name) {
+            if (\preg_match('/^(wp-postpass|wordpress_logged_in|comment_author)_/', (string) $cookie_name)) {
                 return false;
             }
         }
@@ -70,6 +70,6 @@ abstract class Utils
      */
     public static function isWordPressUsingThemes(): bool
     {
-        return defined('WP_USE_THEMES') && WP_USE_THEMES;
+        return \defined('WP_USE_THEMES') && WP_USE_THEMES;
     }
 }

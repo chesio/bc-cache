@@ -256,7 +256,7 @@ class Plugin
         // Get path component of cache directory URL.
         $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
         // Disallow direct access to cache directory.
-        return $data . PHP_EOL . sprintf('Disallow: %s/', $path) . PHP_EOL;
+        return $data . PHP_EOL . \sprintf('Disallow: %s/', $path) . PHP_EOL;
     }
 
 
@@ -323,15 +323,15 @@ class Plugin
     {
         $size = $this->cache->getSize();
 
-        $icon = sprintf(
+        $icon = \sprintf(
             '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-hdd"></svg>',
             plugins_url('assets/icons.svg', $this->plugin_filename)
         );
 
-        $cache_size = is_int($size)
+        $cache_size = \is_int($size)
             ? (empty($size)
                 ? __('Empty cache', 'bc-cache')
-                : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+                : \sprintf(__('%s cache', 'bc-cache'), size_format($size))
             )
             : __('Unknown size', 'bc-cache')
         ;
@@ -412,7 +412,7 @@ class Plugin
     public function startOutputBuffering()
     {
         if (!self::skipCache()) {
-            ob_start([$this, 'handleOutputBuffer']);
+            \ob_start([$this, 'handleOutputBuffer']);
         }
     }
 
@@ -458,12 +458,12 @@ class Plugin
     {
         return apply_filters(
             Hooks::FILTER_HTML_SIGNATURE,
-            sprintf(
+            \sprintf(
                 "%s<!-- %s | %s @ %s -->",
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', intval(current_time('timestamp')))
+                date_i18n('d.m.Y H:i:s', \intval(current_time('timestamp')))
             )
         );
     }
@@ -475,7 +475,7 @@ class Plugin
     private static function skipCache(): bool
     {
         // Only cache GET requests with whitelisted query string fields.
-        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(array_keys($_GET))) {
+        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(\array_keys($_GET))) {
             return true;
         }
 
@@ -495,12 +495,12 @@ class Plugin
         }
 
         // WordPress 5.2+: Do not cache page, if website is in recovery mode.
-        if (function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
+        if (\function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
             return true;
         }
 
         // Do not cache page if WooCommerce says so.
-        if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
+        if (\defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             return true;
         }
 
@@ -522,6 +522,6 @@ class Plugin
         );
 
         // All $fields must be present in whitelist.
-        return array_diff($fields, $whitelisted_fields) === [];
+        return \array_diff($fields, $whitelisted_fields) === [];
     }
 }
