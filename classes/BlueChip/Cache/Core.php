@@ -272,7 +272,7 @@ class Core
     /**
      * Get size of cache data.
      *
-     * @param bool $precise Calculate the size from disk, ignore any transient data.
+     * @param bool $precise Calculate the size from disk (ignore any cached information).
      * @return int|null Size of cache data or null if size cannot be determined.
      */
     public function getSize(bool $precise = false): ?int
@@ -288,7 +288,7 @@ class Core
         }
 
         // Read cache size from disk...
-        $cache_size = is_dir($this->cache_dir) ? self::getDirectorySize($this->cache_dir) : 0;
+        $cache_size = is_dir($this->cache_dir) ? self::getFilesSize($this->cache_dir) : 0;
         // ...update cache information...
         $this->cache_info->setSize($cache_size)->write();
         // ...unlock cache for other operations...
@@ -382,15 +382,13 @@ class Core
 
 
     /**
-     * Return total size of all directories and files in given directory and its subdirectories.
-     *
-     * @internal Strives to match the output of `du -sb` Unix command on $dirname.
+     * Return total size of all regular files in given directory and its subdirectories.
      *
      * @param string $dirname
-     * @return int Total size of all directories and files in given directory and its subdirectories.
+     * @return int Total size of all regular files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.
      */
-    private static function getDirectorySize(string $dirname): int
+    private static function getFilesSize(string $dirname): int
     {
         if (!is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
@@ -402,12 +400,9 @@ class Core
 
         $size = 0;
         foreach ($it as $fileinfo) {
-            if ($fileinfo->isDir() && ($fileinfo->getFilename() === '..')) {
-                // Parent directories are listed as well, thus skip them!
-                continue;
+            if ($fileinfo->isFile()) {
+                $size += $fileinfo->getSize();
             }
-
-            $size += $fileinfo->getSize();
         }
 
         return $size;

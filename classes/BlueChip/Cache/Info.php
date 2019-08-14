@@ -37,13 +37,13 @@ class Info
     private $is_dirty = false;
 
     /**
-     * @var string
+     * @var string Name of transient to store information as.
      */
     private $transient_key;
 
 
     /**
-     * @param string $transient_key Name of transient to use for info storage.
+     * @param string $transient_key Name of transient to store information as.
      */
     public function __construct(string $transient_key)
     {
@@ -52,7 +52,7 @@ class Info
 
 
     /**
-     * Reset cache info (on cache flush).
+     * Reset cache info (= cache has just been flushed).
      */
     public function reset(): self
     {
@@ -216,7 +216,7 @@ class Info
         }
 
         if (\count($this->data) < \count(self::DEFAULT_DATA)) {
-            // One more or keys are missing, load them from database first.
+            // One or more data pieces are missing, load them from database first.
             $this->read();
         }
 
