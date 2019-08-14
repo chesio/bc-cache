@@ -10,37 +10,32 @@ class Plugin
     /**
      * @var string Path to root cache directory
      */
-    const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
+    public const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
 
     /**
      * @var string URL of root cache directory
      */
-    const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
+    public const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
      * @var string Path to cache lock file - must be outside of cache directory!
      */
-    const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+    private const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
 
     /**
-     * Name of nonce used for AJAX-ified flush cache requests.
+     * @var string Name of nonce used for AJAX-ified flush cache requests.
      */
-    const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
+    private const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
 
     /**
-     * @var string Name of transient used to store cache age.
+     * @var string Name of transient used to keep cache age and size information.
      */
-    const TRANSIENT_CACHE_AGE = 'bc-cache/transient:cache-age';
-
-    /**
-     * @var string Name of transient used to store cache size.
-     */
-    const TRANSIENT_CACHE_SIZE = 'bc-cache/transient:cache-size';
+    private const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
 
     /**
      * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
-    const FLUSH_CACHE_HOOKS = [
+    private const FLUSH_CACHE_HOOKS = [
         // Core code changes
         '_core_updated_successfully' => 10,
         // Front-end layout changes
@@ -61,7 +56,7 @@ class Plugin
     /**
      * @var array List of whitelisted query string fields (these do not prevent cache write).
      */
-    const WHITELISTED_QUERY_STRING_FIELDS = [
+    private const WHITELISTED_QUERY_STRING_FIELDS = [
         // https://support.google.com/searchads/answer/7342044
         'gclid',
         'gclsrc',
@@ -85,6 +80,11 @@ class Plugin
      * @var \BlueChip\Cache\Core
      */
     private $cache;
+
+    /**
+     * @var \BlueChip\Cache\Info
+     */
+    private $cache_info;
 
     /**
      * @var \BlueChip\Cache\Lock
@@ -140,6 +140,7 @@ class Plugin
     public function uninstall()
     {
         $this->cache->tearDown();
+        $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
 
@@ -150,8 +151,9 @@ class Plugin
     public function __construct(string $plugin_filename)
     {
         $this->plugin_filename = $plugin_filename;
+        $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
-        $this->cache = new Core(self::CACHE_DIR, self::TRANSIENT_CACHE_AGE, self::TRANSIENT_CACHE_SIZE, $this->cache_lock);
+        $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
     }
 
 
@@ -254,7 +256,7 @@ class Plugin
         // Get path component of cache directory URL.
         $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
         // Disallow direct access to cache directory.
-        return $data . PHP_EOL . sprintf('Disallow: %s/', $path) . PHP_EOL;
+        return $data . PHP_EOL . \sprintf('Disallow: %s/', $path) . PHP_EOL;
     }
 
 
@@ -321,15 +323,15 @@ class Plugin
     {
         $size = $this->cache->getSize();
 
-        $icon = sprintf(
+        $icon = \sprintf(
             '<svg style="width: 20px; height: 20px; fill: #82878c; float: left; margin-right: 5px;" aria-hidden="true" role="img"><use xlink:href="%s#bc-cache-icon-hdd"></svg>',
             plugins_url('assets/icons.svg', $this->plugin_filename)
         );
 
-        $cache_size = is_int($size)
+        $cache_size = \is_int($size)
             ? (empty($size)
                 ? __('Empty cache', 'bc-cache')
-                : sprintf(__('%s cache', 'bc-cache'), size_format($size))
+                : \sprintf(__('%s cache', 'bc-cache'), size_format($size))
             )
             : __('Unknown size', 'bc-cache')
         ;
@@ -410,7 +412,7 @@ class Plugin
     public function startOutputBuffering()
     {
         if (!self::skipCache()) {
-            ob_start([$this, 'handleOutputBuffer']);
+            \ob_start([$this, 'handleOutputBuffer']);
         }
     }
 
@@ -456,12 +458,12 @@ class Plugin
     {
         return apply_filters(
             Hooks::FILTER_HTML_SIGNATURE,
-            sprintf(
+            \sprintf(
                 "%s<!-- %s | %s @ %s -->",
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', intval(current_time('timestamp')))
+                date_i18n('d.m.Y H:i:s', \intval(current_time('timestamp')))
             )
         );
     }
@@ -473,7 +475,7 @@ class Plugin
     private static function skipCache(): bool
     {
         // Only cache GET requests with whitelisted query string fields.
-        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(array_keys($_GET))) {
+        if (($_SERVER['REQUEST_METHOD'] !== 'GET') || !self::checkQueryString(\array_keys($_GET))) {
             return true;
         }
 
@@ -493,12 +495,12 @@ class Plugin
         }
 
         // WordPress 5.2+: Do not cache page, if website is in recovery mode.
-        if (function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
+        if (\function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
             return true;
         }
 
         // Do not cache page if WooCommerce says so.
-        if (defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
+        if (\defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
             return true;
         }
 
@@ -520,6 +522,6 @@ class Plugin
         );
 
         // All $fields must be present in whitelist.
-        return array_diff($fields, $whitelisted_fields) === [];
+        return \array_diff($fields, $whitelisted_fields) === [];
     }
 }

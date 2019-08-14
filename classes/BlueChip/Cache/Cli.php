@@ -40,13 +40,13 @@ class Cli
      */
     public function delete(array $args, array $assoc_args)
     {
-        if (empty($post_id = intval($args[0]))) {
-            \WP_CLI::error(sprintf('"%s" is not a valid post ID!', $args[0]));
+        if (empty($post_id = \intval($args[0]))) {
+            \WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
             return;
         }
 
         if (empty($url = get_permalink($post_id))) {
-            \WP_CLI::error(sprintf('No URL could be generated for post with ID "%d"', $post_id));
+            \WP_CLI::error(\sprintf('No URL could be generated for post with ID "%d"', $post_id));
             return;
         }
 
@@ -55,11 +55,11 @@ class Cli
         foreach ($request_variants as $request_variant) {
             if ($this->cache->delete($url, $request_variant)) {
                 \WP_CLI::success(
-                    sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant)
+                    \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant)
                 );
             } else {
                 \WP_CLI::error(
-                    sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant)
+                    \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant)
                 );
             }
         }
@@ -82,7 +82,7 @@ class Cli
 
 
     /**
-     * Display apparent size of cache directory.
+     * Display total size of all files in cache directory.
      *
      * ## OPTIONS
      *
@@ -96,7 +96,7 @@ class Cli
         // Process arguments.
         $human_readable = $assoc_args['human-readable'] ?? false;
 
-        if (is_int($size_in_bytes = $this->cache->getSize(true))) {
+        if (\is_int($size_in_bytes = $this->cache->getSize(true))) {
             \WP_CLI::line($human_readable ? size_format($size_in_bytes) : $size_in_bytes);
         } else {
             \WP_CLI::error('Failed to determine cache size!');
@@ -118,8 +118,8 @@ class Cli
      */
     public function remove(array $args, array $assoc_args)
     {
-        if (empty($url = filter_var($args[0], FILTER_VALIDATE_URL))) {
-            \WP_CLI::error(sprintf('"%s" is not a valid URL!', $args[0]));
+        if (empty($url = \filter_var($args[0], FILTER_VALIDATE_URL))) {
+            \WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));
             return;
         }
 
@@ -128,11 +128,11 @@ class Cli
         foreach ($request_variants as $request_variant) {
             if ($this->cache->delete($url, $request_variant)) {
                 \WP_CLI::success(
-                    sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant)
+                    \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant)
                 );
             } else {
                 \WP_CLI::error(
-                    sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant)
+                    \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant)
                 );
             }
         }

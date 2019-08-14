@@ -10,7 +10,7 @@ class Core
     /**
      * @var string Key of default request variant.
      */
-    const DEFAULT_REQUEST_VARIANT = '';
+    public const DEFAULT_REQUEST_VARIANT = '';
 
 
     /**
@@ -19,14 +19,9 @@ class Core
     private $cache_dir;
 
     /**
-     * @var string Name of transient used to store cache age
+     * @var \BlueChip\Cache\Info Cache information handler
      */
-    private $cache_age_transient;
-
-    /**
-     * @var string Name of transient used to store cache size
-     */
-    private $cache_size_transient;
+    private $cache_info;
 
     /**
      * @var \BlueChip\Cache\Lock Flock wrapper for atomic cache reading/writing
@@ -36,16 +31,14 @@ class Core
 
     /**
      * @param string $cache_dir Path to root cache directory
-     * @param string $cache_age_transient Name of transient used to store cache age
-     * @param string $cache_size_transient Name of transient used to store cache size
+     * @param \BlueChip\Cache\Info $cache_info Cache information (age, size) handler
      * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, string $cache_age_transient, string $cache_size_transient, Lock $cache_lock)
+    public function __construct(string $cache_dir, Info $cache_info, Lock $cache_lock)
     {
         $this->cache_dir = $cache_dir;
+        $this->cache_info = $cache_info;
         $this->cache_lock = $cache_lock;
-        $this->cache_age_transient = $cache_age_transient;
-        $this->cache_size_transient = $cache_size_transient;
     }
 
 
@@ -56,25 +49,26 @@ class Core
      */
     public function setUp(): bool
     {
-        if (is_dir($this->cache_dir)) {
+        if (\is_dir($this->cache_dir)) {
             // If cache directory exists, make sure it is empty.
             try {
                 self::removeDirectory($this->cache_dir, true);
             } catch (Exception $e) {
-                trigger_error($e, E_USER_WARNING);
+                \trigger_error($e, E_USER_WARNING);
                 return false;
             }
         } elseif (!wp_mkdir_p($this->cache_dir)) {
-            trigger_error(sprintf('Failed to create root cache directory %s.', $this->cache_dir), E_USER_WARNING);
+            \trigger_error(\sprintf('Failed to create root cache directory %s.', $this->cache_dir), E_USER_WARNING);
             return false;
         }
 
-        if (!is_writable($this->cache_dir)) {
-            trigger_error(sprintf('Root cache directory %s is not writable!', $this->cache_dir), E_USER_WARNING);
+        if (!\is_writable($this->cache_dir)) {
+            \trigger_error(\sprintf('Root cache directory %s is not writable!', $this->cache_dir), E_USER_WARNING);
             return false;
         }
 
-        set_transient($this->cache_size_transient, 0); // Initialize cache size to 0.
+        // With respect to cache information, setup equals cache flush.
+        $this->cache_info->reset()->write();
 
         return true;
     }
@@ -106,7 +100,7 @@ class Core
     /**
      * Flush entire cache.
      *
-     * @param bool $uninstall Not only flush cache entries, but remove any metadata as well.
+     * @param bool $uninstall Not only flush cache entries, but remove cache directory as well.
      * @return bool True on success (there has been no error), false otherwise.
      */
     public function flush(bool $uninstall = false): bool
@@ -117,44 +111,34 @@ class Core
             return false;
         }
 
-        // Cache age meta only has to be deleted, if uninstalling.
-        if ($uninstall) {
-            delete_transient($this->cache_age_transient);
-        }
-        // Cache age size has to be deleted always as it becomes stale also in case of I/O error.
-        delete_transient($this->cache_size_transient);
-
-        if (!is_dir($this->cache_dir)) {
-            if (!$uninstall) {
-                // Treat as successful cache flush nevertheless.
-                set_transient($this->cache_age_transient, time());
-                set_transient($this->cache_size_transient, 0);
-            }
+        if (!\is_dir($this->cache_dir)) {
+            // Treat as successful cache flush.
+            $this->cache_info->reset()->write();
             // Unlock cache for other operations.
             $this->unlockCache();
-            // Cache directory does not exist, so cache must be empty.
+            // Cache directory does not exist, therefore report success.
             return true;
         }
 
         try {
-            // Remove cache directory - remove contents only if not uninstalling.
+            // Remove cache directory - if not uninstalling, remove contents only.
             self::removeDirectory($this->cache_dir, !$uninstall);
-            // If not wiping everything out...
-            if (!$uninstall) {
-                // ...update cache age and size meta.
-                set_transient($this->cache_age_transient, time());
-                set_transient($this->cache_size_transient, 0);
-            }
+            // Reset cache age and size.
+            $this->cache_info->reset();
             // :)
             return true;
         } catch (Exception $e) {
+            // Clear information about cache size, it might be corrupted.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            trigger_error($e, E_USER_WARNING);
+            \trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Persist cache info changes.
+            $this->cache_info->write();
             // Always clear stat cache.
-            clearstatcache();
+            \clearstatcache();
             // Unlock cache for other operations.
             $this->unlockCache();
         }
@@ -175,12 +159,12 @@ class Core
             $path = $this->getPath($url);
         } catch (Exception $e) {
             // Trigger a warning and let WordPress handle it.
-            trigger_error($e, E_USER_WARNING);
+            \trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         }
 
-        if (!file_exists($path)) {
+        if (!\file_exists($path)) {
             // No cache entries for given URL not exist, so we're done.
             return true;
         }
@@ -191,31 +175,27 @@ class Core
             return false;
         }
 
-        // Get cache size before unlink attempts.
-        $cache_size = get_transient($this->cache_size_transient);
-
-        // Cache size is going to change...
-        delete_transient($this->cache_size_transient);
-
         try {
             $bytes_deleted
                 = self::deleteFile(self::getHtmlFilename($path, $request_variant))
                 + self::deleteFile(self::getGzipFilename($path, $request_variant))
             ;
-            // If cache size transient existed, set it anew with updated value.
-            if ($cache_size !== false) {
-                set_transient($this->cache_size_transient, max($cache_size - $bytes_deleted, 0));
-            }
+            // Update cache size.
+            $this->cache_info->decrementSize($bytes_deleted);
             // :)
             return true;
         } catch (Exception $e) {
+            // I/O error - clear information about cache size, it might be no longer valid.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            trigger_error($e, E_USER_WARNING);
+            \trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Persist cache info changes.
+            $this->cache_info->write();
             // Always clear stat cache.
-            clearstatcache();
+            \clearstatcache();
             // Unlock cache for other operations.
             $this->unlockCache();
         }
@@ -245,37 +225,33 @@ class Core
             // Unlock cache for other operations.
             $this->unlockCache();
             // Trigger a warning and let WordPress handle it.
-            trigger_error($e, E_USER_WARNING);
+            \trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         }
 
-        // Get cache size before write attempts.
-        $cache_size = get_transient($this->cache_size_transient);
-
-        // Cache size is going to change...
-        delete_transient($this->cache_size_transient);
-
         try {
             // Write cache date to disk, get number of bytes written.
             $bytes_written = self::writeFile(self::getHtmlFilename($path, $request_variant), $data);
-            if (($gzip = gzencode($data, 9)) !== false) {
+            if (($gzip = \gzencode($data, 9)) !== false) {
                 $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
             }
-            // If cache size transient existed, set it anew with updated value.
-            if ($cache_size !== false) {
-                set_transient($this->cache_size_transient, $cache_size + $bytes_written);
-            }
+            // Increment cache size.
+            $this->cache_info->incrementSize($bytes_written);
             // :)
             return true;
         } catch (Exception $e) {
+            // Clear information about cache size, it might be corrupted.
+            $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            trigger_error($e, E_USER_WARNING);
+            \trigger_error($e, E_USER_WARNING);
             // :(
             return false;
         } finally {
+            // Update cache info.
+            $this->cache_info->write();
             // Always clear stat cache.
-            clearstatcache();
+            \clearstatcache();
             // Unlock cache for other operations.
             $this->unlockCache();
         }
@@ -289,19 +265,19 @@ class Core
      */
     public function getAge(): ?int
     {
-        return get_transient($this->cache_age_transient) ?: null;
+        return $this->cache_info->getAge();
     }
 
 
     /**
      * Get size of cache data.
      *
-     * @param bool $precise Calculate the size from disk, ignore any transient data.
+     * @param bool $precise Calculate the size from disk (ignore any cached information).
      * @return int|null Size of cache data or null if size cannot be determined.
      */
     public function getSize(bool $precise = false): ?int
     {
-        if (!$precise && (($cache_size = get_transient($this->cache_size_transient)) !== false)) {
+        if (!$precise && (($cache_size = $this->cache_info->getSize()) !== null)) {
             return $cache_size;
         }
 
@@ -312,9 +288,9 @@ class Core
         }
 
         // Read cache size from disk...
-        $cache_size = is_dir($this->cache_dir) ? self::getDirectorySize($this->cache_dir) : 0;
-        // ...update the transient...
-        set_transient($this->cache_size_transient, $cache_size);
+        $cache_size = \is_dir($this->cache_dir) ? self::getFilesSize($this->cache_dir) : 0;
+        // ...update cache information...
+        $this->cache_info->setSize($cache_size)->write();
         // ...unlock cache for other operations...
         $this->unlockCache();
         // ...and return the size:
@@ -330,7 +306,7 @@ class Core
      */
     public function inspect(array $request_variants): ?array
     {
-        if (!is_dir($this->cache_dir)) {
+        if (!\is_dir($this->cache_dir)) {
             return [];
         }
 
@@ -353,12 +329,12 @@ class Core
                 $url = $this->getUrl($item['path']);
             } catch (Exception $e) {
                 // Trigger a warning and let WordPress handle it.
-                trigger_error($e, E_USER_WARNING);
+                \trigger_error($e, E_USER_WARNING);
                 $url = null;
             }
 
             $state[] = [
-                'entry_id' => substr($id, strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
+                'entry_id' => \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
                 'url' => $url,
                 'request_variant' => $item['request_variant'],
                 'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
@@ -401,22 +377,20 @@ class Core
      */
     private static function getCreationTimestamp(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): ?int
     {
-        return filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
+        return \filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
     }
 
 
     /**
-     * Return total size of all directories and files in given directory and its subdirectories.
-     *
-     * @internal Strives to match the output of `du -sb` Unix command on $dirname.
+     * Return total size of all regular files in given directory and its subdirectories.
      *
      * @param string $dirname
-     * @return int Total size of all directories and files in given directory and its subdirectories.
+     * @return int Total size of all regular files in given directory and its subdirectories.
      * @throws Exception If $dirname does not exists or is not a directory.
      */
-    private static function getDirectorySize(string $dirname): int
+    private static function getFilesSize(string $dirname): int
     {
-        if (!is_dir($dirname)) {
+        if (!\is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
         }
 
@@ -426,12 +400,9 @@ class Core
 
         $size = 0;
         foreach ($it as $fileinfo) {
-            if ($fileinfo->isDir() && ($fileinfo->getFilename() === '..')) {
-                // Parent directories are listed as well, thus skip them!
-                continue;
+            if ($fileinfo->isFile()) {
+                $size += $fileinfo->getSize();
             }
-
-            $size += $fileinfo->getSize();
         }
 
         return $size;
@@ -448,7 +419,7 @@ class Core
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
     {
-        if (!is_dir($dirname)) {
+        if (!\is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
         }
 
@@ -472,13 +443,13 @@ class Core
             $request_variant_html_size = $request_variant_gzip_size = 0;
 
             $htmlFilename = self::getHtmlFilename($dirname, $request_variant);
-            if (is_file($htmlFilename)) {
-                $request_variant_html_size = filesize($htmlFilename) ?: 0;
+            if (\is_file($htmlFilename)) {
+                $request_variant_html_size = \filesize($htmlFilename) ?: 0;
             }
 
             $gzipFilename = self::getGzipFilename($dirname, $request_variant);
-            if (is_file($gzipFilename)) {
-                $request_variant_gzip_size = filesize($gzipFilename) ?: 0;
+            if (\is_file($gzipFilename)) {
+                $request_variant_gzip_size = \filesize($gzipFilename) ?: 0;
             }
 
             if (($request_variant_html_size + $request_variant_gzip_size) > 0) {
@@ -541,7 +512,7 @@ class Core
     {
         $url_parts = wp_parse_url($url);
 
-        $path = implode([
+        $path = \implode([
             $this->cache_dir,
             DIRECTORY_SEPARATOR,
             $url_parts['scheme'],
@@ -553,7 +524,7 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // Make sure that normalized path still points to a subdirectory of root cache directory.
-        if (strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
             throw new Exception("Could not retrieve a valid cache filename from URL {$url}.");
         }
 
@@ -576,19 +547,19 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // The path must point to a subdirectory of root cache directory.
-        if (strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
             throw new Exception("Path {$path} is not a valid cache path.");
         }
 
         // Strip the path to BC Cache directory from $path and break it into scheme and host + path parts.
-        $parts = explode(DIRECTORY_SEPARATOR, substr($normalized_path, strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
+        $parts = \explode(DIRECTORY_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
 
-        if (count($parts) !== 2) {
+        if (\count($parts) !== 2) {
             // At least scheme and host must be present.
             throw new Exception("Could not retrieve a valid URL from cache path {$path}.");
         }
 
-        return $parts[0] . '://' . str_replace(DIRECTORY_SEPARATOR, '/', $parts[1]) . '/';
+        return $parts[0] . '://' . \str_replace(DIRECTORY_SEPARATOR, '/', $parts[1]) . '/';
     }
 
 
@@ -621,7 +592,7 @@ class Core
      */
     private static function removeDirectory(string $dirname, bool $contents_only = false)
     {
-        if (!is_dir($dirname)) {
+        if (!\is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");
         }
 
@@ -635,18 +606,18 @@ class Core
             $path = $fileinfo->getPathname();
 
             if ($fileinfo->isDir() && !$fileinfo->isLink()) {
-                if (!rmdir($path)) {
+                if (!\rmdir($path)) {
                     throw new Exception("Could not remove directory {$path}.");
                 }
             } else {
-                if (!unlink($path)) {
+                if (!\unlink($path)) {
                     throw new Exception("Could not remove file {$path}.");
                 }
             }
         }
 
         // Optionally, remove the directory itself.
-        if (!$contents_only && !rmdir($dirname)) {
+        if (!$contents_only && !\rmdir($dirname)) {
             throw new Exception("Could not remove {$dirname} directory.");
         }
     }
@@ -663,15 +634,15 @@ class Core
     private static function normalizePath(string $path): string
     {
         // Sanitize directory separators.
-        $sanitized = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        $sanitized = \str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
 
         // Break path into directory parts.
-        if (empty($parts = explode(DIRECTORY_SEPARATOR, $sanitized))) {
+        if (empty($parts = \explode(DIRECTORY_SEPARATOR, $sanitized))) {
             return '';
         }
 
         // Always keep the first part (even if empty) - assume absolute path.
-        $absolutes = [array_shift($parts)];
+        $absolutes = [\array_shift($parts)];
 
         foreach ($parts as $part) {
             if (empty($part) || $part === '.') {
@@ -679,13 +650,13 @@ class Core
             }
 
             if ($part === '..') {
-                array_pop($absolutes);
+                \array_pop($absolutes);
             } else {
-                array_push($absolutes, $part);
+                \array_push($absolutes, $part);
             }
         }
 
-        return implode(DIRECTORY_SEPARATOR, $absolutes);
+        return \implode(DIRECTORY_SEPARATOR, $absolutes);
     }
 
 
@@ -696,20 +667,20 @@ class Core
      */
     private static function deleteFile(string $filename): int
     {
-        if (!file_exists($filename)) {
+        if (!\file_exists($filename)) {
             // Deleting non-existing file removes 0 bytes from disk.
             return 0;
         }
 
-        if (!is_file($filename)) {
+        if (!\is_file($filename)) {
             throw new Exception("Could not delete a non-regular file {$filename}.");
         }
 
-        if (($size = filesize($filename)) === false) {
+        if (($size = \filesize($filename)) === false) {
             throw new Exception("Failed to get size of file {$filename}.");
         }
 
-        if (!unlink($filename)) {
+        if (!\unlink($filename)) {
             throw new Exception("Failed to delete file {$filename}.");
         }
 
@@ -725,13 +696,13 @@ class Core
      */
     private static function writeFile(string $filename, string $data): int
     {
-        if (!$handle = fopen($filename, 'wb')) {
+        if (!$handle = \fopen($filename, 'wb')) {
             throw new Exception("Could not open file {$filename} for writing.");
         }
 
         /* Write */
-        $status = fwrite($handle, $data);
-        fclose($handle);
+        $status = \fwrite($handle, $data);
+        \fclose($handle);
 
         if ($status === false) {
             throw new Exception("Could not write data to file {$filename}.");
