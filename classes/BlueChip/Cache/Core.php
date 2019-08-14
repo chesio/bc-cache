@@ -10,7 +10,7 @@ class Core
     /**
      * @var string Key of default request variant.
      */
-    const DEFAULT_REQUEST_VARIANT = '';
+    public const DEFAULT_REQUEST_VARIANT = '';
 
 
     /**
