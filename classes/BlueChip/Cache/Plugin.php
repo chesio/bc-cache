@@ -41,7 +41,7 @@ class Plugin
         // Front-end layout changes
         'switch_theme' => 10,
         'wp_update_nav_menu' => 10,
-        // Post visibility changes - see also: registerPublicPostTypesFlushHooks()
+        // Post is unpublished (but not trashed yet) - see also: registerPostType()
         'publish_to_draft' => 10,
         'publish_to_future' => 10,
         'publish_to_pending' => 10,
@@ -174,6 +174,10 @@ class Plugin
         add_action('cli_init', function () {
             \WP_CLI::add_command('bc-cache', new Cli($this->cache));
         });
+
+        // Listen for registration of (public) post types.
+        // They may (in fact should) happen as late as in init hook, therefore special handling is required.
+        add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
     }
 
 
@@ -186,9 +190,6 @@ class Plugin
     {
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
-
-        // Register additional flush hooks for public post types.
-        add_filter(Hooks::FILTER_FLUSH_HOOKS, [$this, 'registerPublicPostTypesFlushHooks'], 0, 1);
 
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
@@ -223,25 +224,21 @@ class Plugin
 
 
     /**
-     * Register cache flush hooks for public post types.
+     * Register cache flush hooks for public post types (including built-in ones).
      *
-     * @filter bc-cache/filter:flush-hooks
+     * @action https://developer.wordpress.org/reference/hooks/registered_post_type/
      *
-     * @param array $hooks
-     * @return array
+     * @param string $post_type
+     * @param \WP_Post_Type $post_type_object
      */
-    public function registerPublicPostTypesFlushHooks(array $hooks): array
+    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object)
     {
-        $public_post_types = get_post_types(['public' => true]);
-
-        foreach ($public_post_types as $public_post_type) {
+        if (apply_filters(Hooks::FILTER_IS_PUBLIC_POST_TYPE, $post_type_object->public, $post_type)) {
             // Flush cache when a public post type is published (created or edited) or trashed.
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
-            $hooks["publish_{$public_post_type}"] = 10;
-            $hooks["trash_{$public_post_type}"] = 10;
+            add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
         }
-
-        return $hooks;
     }
 
 

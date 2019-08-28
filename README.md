@@ -79,12 +79,42 @@ AddDefaultCharset utf-8
 BC Cache has no settings. You can modify plugin behavior with following filters:
 * `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
 * `bc-cache/filter:disable-cache-locking` - filters whether cache locking should be disabled. By default, cache locking is enabled, but if your webserver has issues with [flock()](https://secure.php.net/manual/en/function.flock.php) or you notice degraded performance due to cache locking, you may want to disable it.
-* `bc-cache/filter:flush-hooks` - filters list of actions that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
+* `bc-cache/filter:flush-hooks` - filters [list of actions](#automatic-cache-flushing) that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
+* `bc-cache/filter:is-public-post-type` - filters whether given post type should be deemed as public or not. Publishing or trashing of public post type items triggers [cache flush](#special-posts-handling), but related action hooks cannot be filtered with the `bc-cache/filter:flush-hooks` filter, you have to use this filter.
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
 * `bc-cache/filter:skip-cache` - filters whether response to current HTTP(S) request should be cached. Filter is only executed, when none from [built-in skip rules](#cache-exclusions) is matched - this means that you cannot override built-in skip rules with this filter, only add your own rules.
 * `bc-cache/filter:request-variant` - filters name of [request variant](#request-variants) of current HTTP request.
 * `bc-cache/filter:request-variants` - filters list of all available [request variants](#request-variants). You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
 * `bc-cache/filter:query-string-fields-whitelist` - filters list of [query string](https://en.wikipedia.org/wiki/Query_string#Structure) fields that do not prevent cache write.
+
+## Automatic cache flushing
+
+The cache is flushed automatically on core actions listed below. The list of actions can be [filtered](#configuration) with `bc-cache/filter:flush-hooks` filter.
+
+* WordPress gets updated:
+  1. [`_core_updated_successfully`](https://developer.wordpress.org/reference/hooks/_core_updated_successfully/)
+
+* Frontend changes:
+  1. [`switch_theme`](https://developer.wordpress.org/reference/hooks/switch_theme/)
+  2. [`wp_update_nav_menu`](https://developer.wordpress.org/reference/hooks/wp_update_nav_menu/)
+
+* Post state changes from publish to another one (except trash). Note: publish and trash related actions are handled separately and for public posts only - [see below](#posts-changes)):
+  1. [`publish_to_draft`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
+  2. [`publish_to_future`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
+  3. [`publish_to_pending`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
+
+* Comment changes:
+  1. [`comment_post`](https://developer.wordpress.org/reference/hooks/comment_post/)
+  2. [`edit_comment`](https://developer.wordpress.org/reference/hooks/edit_comment/)
+  3. [`delete_comment`](https://developer.wordpress.org/reference/hooks/delete_comment/)
+  4. [`wp_set_comment_status`](https://developer.wordpress.org/reference/hooks/wp_set_comment_status/)
+  5. [`wp_update_comment_count`](https://developer.wordpress.org/reference/hooks/wp_update_comment_count/)
+
+### Special posts handling
+
+In WordPress, posts can be used to hold various types of data, including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#configuration) to determine whether a particular post type is deemed as public for cache flushing purposes or not.
+
+Note: Changing post status to _draft_, _future_ or _pending_ always triggers cache flush (regardless of the post type).
 
 ## Cache exclusions
 
