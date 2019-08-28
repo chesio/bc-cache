@@ -98,7 +98,7 @@ The cache is flushed automatically on core actions listed below. The list of act
   1. [`switch_theme`](https://developer.wordpress.org/reference/hooks/switch_theme/)
   2. [`wp_update_nav_menu`](https://developer.wordpress.org/reference/hooks/wp_update_nav_menu/)
 
-* Post state changes from publish to another one (except trash). Note: publish and trash related actions are handled separately and for public posts only - [see below](#posts-changes)):
+* Post state changes from publish to another one (except trash). Note: publish and trash related actions are handled separately and for public posts only - [see below](#special-posts-handling)):
   1. [`publish_to_draft`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
   2. [`publish_to_future`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
   3. [`publish_to_pending`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
