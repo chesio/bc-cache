@@ -112,7 +112,7 @@ The cache is flushed automatically on core actions listed below. The list of act
 
 ### Special posts handling
 
-In WordPress, posts can be used to hold various types of data, including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#configuration) to determine whether a particular post type is deemed as public for cache flushing purposes or not.
+In WordPress, posts can be used to hold various types of data - including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#configuration) to determine whether a particular post type is deemed as public for cache flushing purposes or not.
 
 Note: Changing post status to _draft_, _future_ or _pending_ always triggers cache flush (regardless of the post type).
 
