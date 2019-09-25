@@ -412,16 +412,16 @@
         },
         {
             "name": "nette/finder",
-            "version": "v2.5.0",
+            "version": "v2.5.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nette/finder.git",
-                "reference": "6be1b83ea68ac558aff189d640abe242e0306fe2"
+                "reference": "14164e1ddd69e9c5f627ff82a10874b3f5bba5fe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nette/finder/zipball/6be1b83ea68ac558aff189d640abe242e0306fe2",
-                "reference": "6be1b83ea68ac558aff189d640abe242e0306fe2",
+                "url": "https://api.github.com/repos/nette/finder/zipball/14164e1ddd69e9c5f627ff82a10874b3f5bba5fe",
+                "reference": "14164e1ddd69e9c5f627ff82a10874b3f5bba5fe",
                 "shasum": ""
             },
             "require": {
@@ -470,7 +470,7 @@
                 "iterator",
                 "nette"
             ],
-            "time": "2019-02-28T18:13:25+00:00"
+            "time": "2019-07-11T18:02:17+00:00"
         },
         {
             "name": "nette/neon",
@@ -789,16 +789,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.2.3",
+            "version": "v4.2.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "e612609022e935f3d0337c1295176505b41188c8"
+                "reference": "97e59c7a16464196a8b9c77c47df68e4a39a45c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/e612609022e935f3d0337c1295176505b41188c8",
-                "reference": "e612609022e935f3d0337c1295176505b41188c8",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/97e59c7a16464196a8b9c77c47df68e4a39a45c4",
+                "reference": "97e59c7a16464196a8b9c77c47df68e4a39a45c4",
                 "shasum": ""
             },
             "require": {
@@ -836,7 +836,7 @@
                 "parser",
                 "php"
             ],
-            "time": "2019-08-12T20:17:41+00:00"
+            "time": "2019-09-01T07:51:21+00:00"
         },
         {
             "name": "ocramius/package-versions",
@@ -938,16 +938,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "0.11.12",
+            "version": "0.11.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "56b3eb2a371b60537fd20794e24af9e7e8ed4e30"
+                "reference": "635cf20f3b92ce34ee94a8d2f282d62eb9dc6e1b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/56b3eb2a371b60537fd20794e24af9e7e8ed4e30",
-                "reference": "56b3eb2a371b60537fd20794e24af9e7e8ed4e30",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/635cf20f3b92ce34ee94a8d2f282d62eb9dc6e1b",
+                "reference": "635cf20f3b92ce34ee94a8d2f282d62eb9dc6e1b",
                 "shasum": ""
             },
             "require": {
@@ -958,7 +958,7 @@
                 "nette/robot-loader": "^3.0.1",
                 "nette/schema": "^1.0",
                 "nette/utils": "^2.4.5 || ^3.0",
-                "nikic/php-parser": "^4.0.2",
+                "nikic/php-parser": "^4.2.3",
                 "php": "~7.1",
                 "phpstan/phpdoc-parser": "^0.3.5",
                 "symfony/console": "~3.2 || ~4.0",
@@ -968,7 +968,7 @@
                 "symfony/console": "3.4.16 || 4.1.5"
             },
             "require-dev": {
-                "brianium/paratest": "^2.0",
+                "brianium/paratest": "^2.0 || ^3.0",
                 "consistence/coding-standard": "^3.5",
                 "dealerdirect/phpcodesniffer-composer-installer": "^0.4.4",
                 "ext-intl": "*",
@@ -983,7 +983,7 @@
                 "phpstan/phpstan-php-parser": "^0.11",
                 "phpstan/phpstan-phpunit": "^0.11",
                 "phpstan/phpstan-strict-rules": "^0.11",
-                "phpunit/phpunit": "^7.0",
+                "phpunit/phpunit": "^7.5.14 || ^8.0",
                 "slevomat/coding-standard": "^4.7.2",
                 "squizlabs/php_codesniffer": "^3.3.2"
             },
@@ -999,8 +999,7 @@
             "autoload": {
                 "psr-4": {
                     "PHPStan\\": [
-                        "src/",
-                        "build/PHPStan"
+                        "src/"
                     ]
                 }
             },
@@ -1009,7 +1008,7 @@
                 "MIT"
             ],
             "description": "PHPStan - PHP Static Analysis Tool",
-            "time": "2019-07-08T06:55:18+00:00"
+            "time": "2019-09-17T11:19:51+00:00"
         },
         {
             "name": "psr/container",
@@ -1160,16 +1159,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v4.3.3",
+            "version": "v4.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "8b0ae5742ce9aaa8b0075665862c1ca397d1c1d9"
+                "reference": "de63799239b3881b8a08f8481b22348f77ed7b36"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/8b0ae5742ce9aaa8b0075665862c1ca397d1c1d9",
-                "reference": "8b0ae5742ce9aaa8b0075665862c1ca397d1c1d9",
+                "url": "https://api.github.com/repos/symfony/console/zipball/de63799239b3881b8a08f8481b22348f77ed7b36",
+                "reference": "de63799239b3881b8a08f8481b22348f77ed7b36",
                 "shasum": ""
             },
             "require": {
@@ -1231,20 +1230,20 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "https://symfony.com",
-            "time": "2019-07-24T17:13:59+00:00"
+            "time": "2019-08-26T08:26:39+00:00"
         },
         {
             "name": "symfony/finder",
-            "version": "v4.3.3",
+            "version": "v4.3.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/finder.git",
-                "reference": "9638d41e3729459860bb96f6247ccb61faaa45f2"
+                "reference": "86c1c929f0a4b24812e1eb109262fc3372c8e9f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/finder/zipball/9638d41e3729459860bb96f6247ccb61faaa45f2",
-                "reference": "9638d41e3729459860bb96f6247ccb61faaa45f2",
+                "url": "https://api.github.com/repos/symfony/finder/zipball/86c1c929f0a4b24812e1eb109262fc3372c8e9f2",
+                "reference": "86c1c929f0a4b24812e1eb109262fc3372c8e9f2",
                 "shasum": ""
             },
             "require": {
@@ -1280,7 +1279,7 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "https://symfony.com",
-            "time": "2019-06-28T13:16:30+00:00"
+            "time": "2019-08-14T12:26:46+00:00"
         },
         {
             "name": "symfony/polyfill-mbstring",
@@ -1401,16 +1400,16 @@
         },
         {
             "name": "symfony/service-contracts",
-            "version": "v1.1.5",
+            "version": "v1.1.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/service-contracts.git",
-                "reference": "f391a00de78ec7ec8cf5cdcdae59ec7b883edb8d"
+                "reference": "ea7263d6b6d5f798b56a45a5b8d686725f2719a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/f391a00de78ec7ec8cf5cdcdae59ec7b883edb8d",
-                "reference": "f391a00de78ec7ec8cf5cdcdae59ec7b883edb8d",
+                "url": "https://api.github.com/repos/symfony/service-contracts/zipball/ea7263d6b6d5f798b56a45a5b8d686725f2719a3",
+                "reference": "ea7263d6b6d5f798b56a45a5b8d686725f2719a3",
                 "shasum": ""
             },
             "require": {
@@ -1455,7 +1454,7 @@
                 "interoperability",
                 "standards"
             ],
-            "time": "2019-06-13T11:15:36+00:00"
+            "time": "2019-08-20T14:44:19+00:00"
         }
     ],
     "aliases": [],
