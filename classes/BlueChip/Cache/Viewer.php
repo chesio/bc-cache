@@ -133,7 +133,7 @@ class Viewer
         if (\is_int($cache_files_size = $this->list_table->getCacheFilesSize())) {
             $cache_info[] = \sprintf(
                 esc_html__('Cache files occupy %s of space in total.', 'bc-cache'),
-                '<strong><abbr title="' . \sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size)  .'">' . size_format($cache_files_size) . '</abbr></strong>'
+                '<strong><abbr title="' . \sprintf(_n('%d byte', '%d bytes', $cache_files_size, 'bc-cache'), $cache_files_size) . '">' . size_format($cache_files_size) . '</abbr></strong>'
             );
         }
 
