@@ -118,7 +118,7 @@ Note: Changing post status to _draft_, _future_ or _pending_ always triggers cac
 
 ## Cache exclusions
 
-A response to HTTP(S) request is cached by BC Cache if **none** of the conditions below is true:
+A response to HTTP(S) request is **not** cached by BC Cache if **any** of the conditions below evaluates as true:
 
 1. Request is a POST request.
 2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#configuration).
