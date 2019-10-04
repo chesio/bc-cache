@@ -122,8 +122,8 @@ A response to HTTP(S) request is **not** cached by BC Cache if **any** of the co
 
 1. Request is a POST request.
 2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#configuration).
-3. Request is not routed through main `index.php` file (ie. `WP_USE_THEMES` is not set to `true`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
-4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post)
+3. Request is not for a front-end page (ie. [`wp_using_themes`](https://developer.wordpress.org/reference/functions/wp_using_themes/) returns `false`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
+4. Request comes from logged in user or non-anonymous user (ie. user that left a comment or accessed password protected page/post).
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
 6. [Fatal error recovery mode](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) is active.
 7. `DONOTCACHEPAGE` constant is set and evaluates to true.

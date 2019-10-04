@@ -477,7 +477,7 @@ class Plugin
         }
 
         // Only cache requests routed through main index.php and using themes.
-        if (!Utils::isWordPressUsingThemes()) {
+        if (!wp_using_themes()) {
             return true;
         }
 

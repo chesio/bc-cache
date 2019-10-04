@@ -63,13 +63,4 @@ abstract class Utils
 
         return true;
     }
-
-
-    /**
-     * @return bool
-     */
-    public static function isWordPressUsingThemes(): bool
-    {
-        return \defined('WP_USE_THEMES') && WP_USE_THEMES;
-    }
 }
