@@ -3,9 +3,10 @@ parameters:
     paths:
         - %currentWorkingDirectory%/classes/
     autoload_files:
-        - %currentWorkingDirectory%/vendor/giacocorsiglia/wordpress-stubs/wordpress-stubs.php
+        - %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
         - %currentWorkingDirectory%/tests/static-analysis/bootstrap.php
         - %currentWorkingDirectory%/autoload.php
     ignoreErrors:
         - '#^Function add_query_arg invoked with [23] parameters, 0 required\.$#'
+        - '#^Function apply_filters invoked with [3] parameters, 2 required\.$#'
         - '#^Call to static method \S+\(\) on an unknown class WP_CLI\.$#'
