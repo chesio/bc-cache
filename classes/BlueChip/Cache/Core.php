@@ -333,7 +333,7 @@ class Core
                 $url = null;
             }
 
-            $state[] = [
+            $state[] = (object) [
                 'entry_id' => \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
                 'url' => $url,
                 'request_variant' => $item['request_variant'],
