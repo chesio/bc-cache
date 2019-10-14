@@ -5,7 +5,7 @@ Simple full page cache plugin for WordPress inspired by Cachify.
 ## Requirements
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://www.php.net/) 7.1 or newer
+* [PHP](https://www.php.net/) 7.2 or newer
 * [WordPress](https://wordpress.org/) 5.1 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
