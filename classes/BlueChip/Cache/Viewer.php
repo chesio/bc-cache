@@ -40,7 +40,7 @@ class Viewer
     /**
      * Initialize cache viewer.
      */
-    public function init()
+    public function init(): void
     {
         add_action('admin_menu', [$this, 'addAdminPage']);
     }
@@ -53,7 +53,7 @@ class Viewer
      *
      * @param string $page_hook
      */
-    public function setPageHook(string $page_hook)
+    public function setPageHook(string $page_hook): void
     {
         add_action('load-' . $page_hook, [$this, 'loadPage']);
     }
@@ -71,7 +71,7 @@ class Viewer
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_menu/
      */
-    public function addAdminPage()
+    public function addAdminPage(): void
     {
         $page_hook = add_management_page(
             __('BC Cache Viewer', 'bc-cache'),
@@ -94,7 +94,7 @@ class Viewer
      *
      * @action https://developer.wordpress.org/reference/hooks/load-page_hook/
      */
-    public function loadPage()
+    public function loadPage(): void
     {
         $this->list_table = new ListTable($this->cache, self::getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
@@ -105,7 +105,7 @@ class Viewer
     }
 
 
-    public function renderAdminPage()
+    public function renderAdminPage(): void
     {
         echo '<div class="wrap">';
 
@@ -154,7 +154,7 @@ class Viewer
     /**
      * Display a warning if total size of cache files differs from total size of files in cache folder.
      */
-    private function checkCacheSize()
+    private function checkCacheSize(): void
     {
         $cache_files_size = $this->list_table->getCacheFilesSize();
         $cache_size = $this->cache->getSize(true);

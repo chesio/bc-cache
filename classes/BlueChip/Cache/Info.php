@@ -27,7 +27,7 @@ class Info
 
 
     /**
-     * @var array Cache data (lazy loaded)
+     * @var mixed[] Cache data (lazy loaded)
      */
     private $data = [];
 
@@ -196,7 +196,7 @@ class Info
      *
      * @internal Care must be taken to not overwrite values already present in data.
      */
-    private function read()
+    private function read(): void
     {
         // Transient data beat default data, current data beat all.
         $this->data = \array_merge(self::DEFAULT_DATA, \get_transient($this->transient_key) ?: [], $this->data);

@@ -20,12 +20,12 @@ abstract class AdminNotices
      *
      * @link https://make.wordpress.org/core/2015/04/23/spinners-and-dismissible-admin-notices-in-4-2/
      *
-     * @param array|string $message Single message or array of messages.
+     * @param string[]|string $message Single message or array of messages.
      * @param string $type [optional] Type: 'notice-error', 'notice-warning', 'notice-success' or 'notice-info] (default).
      * @param bool $is_dismissible [optional] Should the notice be dismissible? Default is true.
      * @param bool $escape_html [optional] Should the content of message be HTML escaped? Default is true.
      */
-    public static function add($message, string $type = self::INFO, bool $is_dismissible = true, bool $escape_html = true)
+    public static function add($message, string $type = self::INFO, bool $is_dismissible = true, bool $escape_html = true): void
     {
         $classes = \implode(' ', \array_filter(['notice', $type, $is_dismissible ? 'is-dismissible' : '']));
         add_action('admin_notices', function () use ($message, $classes, $escape_html) {

@@ -98,7 +98,7 @@ class Plugin
      * @internal Method should be run on plugin activation.
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
-    public function activate()
+    public function activate(): void
     {
         // Attempt to create cache lock file, but do not abort on error.
         $this->cache_lock->setUp();
@@ -125,7 +125,7 @@ class Plugin
      * @internal Method should be run on plugin deactivation.
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
-    public function deactivate()
+    public function deactivate(): void
     {
         $this->cache->flush();
     }
@@ -137,7 +137,7 @@ class Plugin
      * @internal Method should be run on plugin uninstall.
      * @link https://developer.wordpress.org/plugins/the-basics/uninstall-methods/
      */
-    public function uninstall()
+    public function uninstall(): void
     {
         $this->cache->tearDown();
         $this->cache_info->tearDown();
@@ -162,7 +162,7 @@ class Plugin
      *
      * @internal Method should be invoked immediately on plugin load.
      */
-    public function load()
+    public function load(): void
     {
         // Register initialization method.
         add_action('init', [$this, 'init'], 10, 0);
@@ -186,7 +186,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/init/
      */
-    public function init()
+    public function init(): void
     {
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
@@ -231,7 +231,7 @@ class Plugin
      * @param string $post_type
      * @param \WP_Post_Type $post_type_object
      */
-    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object)
+    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
     {
         if (apply_filters(Hooks::FILTER_IS_PUBLIC_POST_TYPE, $post_type_object->public, $post_type)) {
             // Flush cache when a public post type is published (created or edited) or trashed.
@@ -260,7 +260,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
      */
-    public function enqueueFlushIconAssets()
+    public function enqueueFlushIconAssets(): void
     {
         wp_enqueue_style(
             'bc-cache-toolbar',
@@ -295,7 +295,7 @@ class Plugin
      *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
-    public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar)
+    public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
     {
         $wp_admin_bar->add_node([
             'id'     => 'bc-cache',
@@ -313,8 +313,8 @@ class Plugin
      *
      * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
-     * @param array $items
-     * @return array
+     * @param string[] $items
+     * @return string[]
      */
     public function addDashboardInfo(array $items): array
     {
@@ -348,7 +348,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/admin_print_footer_scripts/
      */
-    public function printDashboardStyles()
+    public function printDashboardStyles(): void
     {
         echo '<style>#dashboard_right_now li .bc-cache-size:before { content: ""; display: none; }</style>';
     }
@@ -357,7 +357,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/rightnow_end/
      */
-    public function enqueueDashboardAssets()
+    public function enqueueDashboardAssets(): void
     {
         // Print the styles in the footer.
         add_action('admin_print_footer_scripts', [$this, 'printDashboardStyles'], 10, 0);
@@ -387,7 +387,7 @@ class Plugin
      *
      * @internal Should be executed in context of AJAX request only.
      */
-    public function processFlushRequest()
+    public function processFlushRequest(): void
     {
         // Check AJAX referer - die if invalid.
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
@@ -406,7 +406,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/template_redirect/
      */
-    public function startOutputBuffering()
+    public function startOutputBuffering(): void
     {
         if (!self::skipCache()) {
             \ob_start([$this, 'handleOutputBuffer']);
@@ -508,7 +508,7 @@ class Plugin
     /**
      * Check whether query string $fields allow page to be cached.
      *
-     * @param array $fields Query string fields (keys).
+     * @param string[] $fields Query string fields (keys).
      * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
      */
     private static function checkQueryString(array $fields): bool

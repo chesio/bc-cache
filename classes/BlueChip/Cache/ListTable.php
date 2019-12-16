@@ -56,7 +56,7 @@ class ListTable extends \WP_List_Table
     private $cache;
 
     /**
-     * @var array List of known request variants: id => label
+     * @var string[] List of known request variants: id => label
      */
     private $request_variants = [];
 
@@ -211,7 +211,7 @@ class ListTable extends \WP_List_Table
 
 
     /**
-     * @return array
+     * @return string[]
      */
     public function get_bulk_actions() // phpcs:ignore
     {
@@ -227,7 +227,7 @@ class ListTable extends \WP_List_Table
 
     /**
      * Declare table columns.
-     * @return array
+     * @return string[]
      */
     public function get_columns() // phpcs:ignore
     {
@@ -244,7 +244,7 @@ class ListTable extends \WP_List_Table
 
     /**
      * Declare sortable table columns.
-     * @return array
+     * @return string[]
      */
     public function get_sortable_columns() // phpcs:ignore
     {
@@ -310,7 +310,7 @@ class ListTable extends \WP_List_Table
      *
      * @return void
      */
-    public function processActions()
+    public function processActions(): void
     {
         // Delete single entry?
         if (($action = \filter_input(INPUT_GET, 'action'))) {
@@ -368,7 +368,7 @@ class ListTable extends \WP_List_Table
     /**
      * Display (dismissible) admin notice informing user about actions that have been performed.
      */
-    public function displayNotices()
+    public function displayNotices(): void
     {
         $this->displayNotice(
             self::NOTICE_ENTRY_DELETED,
@@ -394,7 +394,7 @@ class ListTable extends \WP_List_Table
      * @param string $plural The text to be used in notice if action affected (or not) multiple items.
      * @param string $type The type of the notice.
      */
-    private function displayNotice(string $action, string $single, string $plural, string $type)
+    private function displayNotice(string $action, string $single, string $plural, string $type): void
     {
         // Have any items been affected by given action?
         $result = \filter_input(INPUT_GET, $action, FILTER_VALIDATE_INT);
@@ -449,7 +449,7 @@ class ListTable extends \WP_List_Table
 
     /**
      * @param object $item
-     * @return array
+     * @return string[]
      */
     private function getRowActions($item): array
     {
