@@ -1,6 +1,6 @@
 # BC Cache
 
-Simple full page cache plugin for WordPress inspired by Cachify.
+Simple full page cache plugin for WordPress inspired by [Cachify](https://wordpress.org/plugins/cachify/).
 
 ## Requirements
 
@@ -144,7 +144,7 @@ You may encounter a warning in Cache Viewer about total size of cache files bein
 
 ## Request variants
 
-Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example in EU countries is the situation in which cookie policy notice is displayed to user until the user accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve both users that have and have not accepted the cookie policy.
+Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example is the situation in which privacy policy notice is displayed until site visitor accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve visitors regardless if they have or have not accepted the cookie policy.
 
 ### Example
 
