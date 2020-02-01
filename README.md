@@ -1,6 +1,8 @@
 # BC Cache
 
-Simple full page cache plugin for WordPress inspired by [Cachify](https://wordpress.org/plugins/cachify/).
+Modern and simple full page cache plugin for WordPress inspired by [Cachify](https://wordpress.org/plugins/cachify/).
+
+BC Cache has no settings page - it is intended for webmasters who are familiar with `.htaccess` files and WordPress actions and filters.
 
 ## Requirements
 
