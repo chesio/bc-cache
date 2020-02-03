@@ -507,7 +507,7 @@ class Core
      */
     private function getPath(string $url): string
     {
-        $url_parts = wp_parse_url($url);
+        $url_parts = wp_parse_url(trailingslashit($url));
 
         $path = \implode([
             $this->cache_dir,
