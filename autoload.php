@@ -1,8 +1,6 @@
 <?php
 /**
  * Register autoloader for classes shipped with the plugin.
- *
- * @package BC_Cache
  */
 
 // Register autoload function

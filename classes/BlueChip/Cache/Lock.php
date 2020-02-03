@@ -1,7 +1,4 @@
 <?php
-/**
- * @package BC_Cache
- */
 
 namespace BlueChip\Cache;
 

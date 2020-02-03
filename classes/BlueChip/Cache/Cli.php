@@ -1,13 +1,11 @@
 <?php
-/**
- * @link https://make.wordpress.org/cli/handbook/commands-cookbook/
- * @package BC_Cache
- */
 
 namespace BlueChip\Cache;
 
 /**
  * Delete items from, flush or get size of BC Cache cache
+ *
+ * @link https://make.wordpress.org/cli/handbook/commands-cookbook/
  */
 class Cli
 {
