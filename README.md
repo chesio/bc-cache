@@ -18,6 +18,56 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Installation
 
+BC Security is not available at WordPress Plugins Directory, but there are several other ways you can get it.
+
+### Using WP-CLI
+
+If you have [WP-CLI](https://wp-cli.org/) installed, you can install (and optionally activate) BC Cache with a single command:
+```
+wp plugin install [--activate] https://github.com/chesio/bc-cache/archive/master.zip
+```
+
+### Using Composer
+
+BC Cache is not available (yet) at [Packagist](https://packagist.org/), but you can install and update it via Composer if you add plugin repository to your project's `composer.json` file:
+
+```json
+{
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/chesio/bc-cache"
+    }
+  ]
+}
+```
+
+Then just run `composer require chesio/bc-cache` as usual.
+
+### Using Git
+
+Master branch always contains latest stable version, so you can install BC Cache by cloning it from within your plugins directory:
+```
+cd [your-project]/wp-content/plugins
+git clone --single-branch --branch master https://github.com/chesio/bc-cache.git
+```
+
+Updating is as easy as:
+```
+cd [your-project]/wp-content/plugins/bc-cache
+git pull
+```
+
+### Using GitHub Updater plugin
+
+BC Cache can be installed and updated via [GitHub Updater](https://github.com/afragen/github-updater) plugin.
+
+### Direct download
+
+This method is the least recommended, but it works without any other tool. You can download BC Cache directly from [GitHub](https://github.com/chesio/bc-cache/releases/latest). Make sure to unpack the plugin into correct directory and drop the version number from folder name.
+
+## Setup
+
 You have to configure your Apache webserver to serve cached files. Most common way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration).
 
 Note: the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rule: `RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]`. In general, you may need to make some tweaks to the configuration below to fit your server environment.
