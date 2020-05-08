@@ -114,7 +114,7 @@ AddDefaultCharset utf-8
   # Main rules: serve only GET requests with whitelisted query string fields coming from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
   RewriteCond %{QUERY_STRING} ^(?:(?:gclid|gclsrc|fbclid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
-  RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
+  RewriteCond %{HTTP_COOKIE} !^(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
 
