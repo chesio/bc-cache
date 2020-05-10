@@ -1,5 +1,8 @@
 # BC Cache
 
+[![GitHub Actions](https://github.com/chesio/bc-cache/workflows/CI%20test%20suite/badge.svg)](https://github.com/chesio/bc-cache/actions)
+[![Packagist](https://img.shields.io/packagist/v/chesio/bc-cache.svg?color=34D058&style=popout)](https://packagist.org/packages/chesio/bc-cache)
+
 Modern and simple full page cache plugin for WordPress inspired by [Cachify](https://wordpress.org/plugins/cachify/).
 
 BC Cache has no settings page - it is intended for webmasters who are familiar with `.htaccess` files and WordPress actions and filters.
