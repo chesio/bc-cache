@@ -29,20 +29,9 @@ wp plugin install [--activate] https://github.com/chesio/bc-cache/archive/master
 
 ### Using Composer
 
-BC Cache is not available (yet) at [Packagist](https://packagist.org/), but you can install and update it via Composer if you add plugin repository to your project's `composer.json` file:
+[Composer](https://getcomposer.org/) is a great tool for managing PHP project dependencies. Although WordPress itself does not make it easy to use Composer to manage WordPress installation as a whole, there are [multiple](https://composer.rarst.net/recipe/site-stack/) [ways](https://roots.io/bedrock/) how to do it.
 
-```json
-{
-  "repositories": [
-    {
-      "type": "git",
-      "url": "https://github.com/chesio/bc-cache"
-    }
-  ]
-}
-```
-
-Then just run `composer require chesio/bc-cache` as usual.
+BC Cache is available at [Packagist](https://packagist.org/packages/chesio/bc-cache), so just run `composer require chesio/bc-cache` as usual.
 
 ### Using Git
 
