@@ -68,9 +68,9 @@ This method is the least recommended, but it works without any other tool. You c
 
 ## Setup
 
-You have to configure your Apache webserver to serve cached files. Most common way to do it is to add the lines below to the root `.htaccess` file (ie. the same file to which WordPress automatically writes pretty permalinks configuration).
+You have to configure your Apache webserver to serve cached files. Most common way to do it is to add the lines below to the root `.htaccess` file. This is the same file to which WordPress automatically writes pretty permalinks configuration - you **must** put the lines below **before** the pretty permalinks configuration.
 
-Note: the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rule: `RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]`. In general, you may need to make some tweaks to the configuration below to fit your server environment.
+Note: the configuration below assumes that you have WordPress installed in `wordpress` subdirectory - if it is not your case, simply drop the `/wordpress` part from the following rule: `RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]`. In general, you may need to make some tweaks to the example configuration below to fit your server environment.
 
 ```.apacheconf
 # BEGIN BC Cache
