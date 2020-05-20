@@ -248,7 +248,7 @@ class Plugin
     public function alterRobotsTxt(string $data): string
     {
         // Get path component of cache directory URL.
-        $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
+        $path = \parse_url(self::CACHE_URL, PHP_URL_PATH);
         // Disallow direct access to cache directory.
         return $data . PHP_EOL . \sprintf('Disallow: %s/', $path) . PHP_EOL;
     }
