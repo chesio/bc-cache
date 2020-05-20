@@ -35,6 +35,26 @@ abstract class Hooks
     public const FILTER_HTML_SIGNATURE = 'bc-cache/filter:html-signature';
 
     /**
+     * @var string Name of hook to filter the only capabilities a front-end user can have.
+     */
+    public const FILTER_FRONTEND_USER_CAPS = 'bc-cache/filter:frontend-user-capabilities';
+
+    /**
+     * @var string Name of hook to filter whether given user is a front-end user.
+     */
+    public const FILTER_IS_FRONTEND_USER = 'bc-cache/filter:is-frontend-user';
+
+    /**
+     * @var string Name of hook to filter name of front-end user cookie.
+     */
+    public const FILTER_FRONTEND_USER_COOKIE_NAME = 'bc-cache/filter:frontend-user-cookie-name';
+
+    /**
+     * @var string Name of hook to filter contents of front-end user cookie.
+     */
+    public const FILTER_FRONTEND_USER_COOKIE_VALUE = 'bc-cache/filter:frontend-user-cookie-value';
+
+    /**
      * @var string Name of hook to filter whether post type is deemed as public or not.
      */
     public const FILTER_IS_PUBLIC_POST_TYPE = 'bc-cache/filter:is-public-post-type';

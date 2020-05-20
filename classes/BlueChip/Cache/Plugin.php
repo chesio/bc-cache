@@ -20,6 +20,16 @@ class Plugin
     private const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
 
     /**
+     * @var string Default name of cookie to denote front-end users.
+     */
+    private const FRONTEND_USER_COOKIE_NAME = 'bc_cache_is_fe_user';
+
+    /**
+     * @var string Default value of cookie to denote front-end users.
+     */
+    private const FRONTEND_USER_COOKIE_VALUE = 'true';
+
+    /**
      * @var string Name of nonce used for AJAX-ified flush cache requests.
      */
     private const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
@@ -172,6 +182,9 @@ class Plugin
             \WP_CLI::add_command('bc-cache', new Cli($this->cache));
         });
 
+        // Activate features that must be explicitly supported by active theme.
+        add_action('after_setup_theme', [$this, 'activateThemeFeatures'], 20, 0);
+
         // Listen for registration of (public) post types.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
         add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
@@ -235,6 +248,19 @@ class Plugin
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
             add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
             add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+        }
+    }
+
+
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/after_setup_theme/
+     */
+    public function activateThemeFeatures()
+    {
+        if (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
+            // Allow special cookie to be set for front-end users to enable serving of cached content to them.
+            add_action('set_logged_in_cookie', [$this, 'setFrontendUserCookie'], 10, 4);
+            add_action('clear_auth_cookie', [$this, 'clearFrontendUserCookie'], 10, 0);
         }
     }
 
@@ -464,6 +490,49 @@ class Plugin
 
 
     /**
+     * @action https://developer.wordpress.org/reference/hooks/set_logged_in_cookie/
+     *
+     * @param string $logged_in_cookie
+     * @param int $expire
+     * @param int $expiration
+     * @param int $user_id
+     */
+    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id)
+    {
+        if (($user = get_user_by('id', $user_id)) === false) {
+            return;
+        }
+
+        if (Utils::isFrontendUser($user)) {
+            \setcookie(
+                apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
+                apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_VALUE, self::FRONTEND_USER_COOKIE_VALUE),
+                $expire,
+                COOKIEPATH,
+                COOKIE_DOMAIN,
+                false,
+                true
+            );
+        }
+    }
+
+
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/clear_auth_cookie/
+     */
+    public function clearFrontendUserCookie()
+    {
+        \setcookie(
+            apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
+            ' ',
+            time() - YEAR_IN_SECONDS,
+            COOKIEPATH,
+            COOKIE_DOMAIN
+        );
+    }
+
+
+    /**
      * @return bool True if cache should be skipped, false otherwise.
      */
     private static function skipCache(): bool
@@ -478,8 +547,13 @@ class Plugin
             return true;
         }
 
-        // Only cache requests for anonymous users.
-        if (is_user_logged_in() || !Utils::isAnonymousUser()) {
+        // Only cache requests that return no personalized content.
+        if (Utils::hasUserPersonalizedContent()) {
+            return true;
+        }
+
+        // Only cache requests for anonymous or (if the theme supports it) front-end users.
+        if (!(Utils::isAnonymousUser() || (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
             return true;
         }
 
