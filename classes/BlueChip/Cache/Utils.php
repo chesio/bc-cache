@@ -79,7 +79,7 @@ abstract class Utils
 
 
     /**
-     * @param \WP_User|null User to check - if null, current user is checked.
+     * @param \WP_User|null $user User to check - if null, current user is checked.
      * @return bool True if user is front-end user and can see cached content, false otherwise.
      */
     public static function isFrontendUser(?\WP_User $user = null): bool

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
