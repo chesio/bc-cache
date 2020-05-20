@@ -230,9 +230,9 @@ BC Cache by default does not read from or write to cache when HTTP request comes
 
 When your theme declares support for [front-end user caching](#theme-features):
 
-The first check above is relaxed automatically with some reasonable defaults: any user that has `read` and `customer` capabilities **only** is considered to be front-end user and any pages he/she visits are written to cache normally. You may [filter](#filters-for-advanced-functions) the capabilities list or the output of the check if you wish so.
+The first check is relaxed automatically with some reasonable defaults: any user that has `read` and `customer` capabilities **only** is considered to be front-end user and any pages he/she visits are written to cache normally. You may [filter](#filters-for-advanced-functions) the capabilities list or the output of the check if you wish so.
 
-To make it possible to relax the second check above, BC Cache sets an **additional session cookie** whenever front-end user logs in. The rule in `.htaccess` file that deals with login cookie has to be extended as follows:
+To make it possible to relax the second check, BC Cache sets an **additional session cookie** whenever front-end user logs in. The rule in `.htaccess` file that deals with login cookie has to be extended as follows:
 
 ```.apacheconf
 # The legacy rule is replaced by 3 rules below:
