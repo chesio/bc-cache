@@ -1,25 +1,26 @@
 <?php
+
 /**
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: 1.7.1
+ * Version: 1.8.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
- * Requires PHP: 7.1
- * Requires WP: 4.7
- * Tested up to: 5.2
+ * Requires PHP: 7.2
+ * Requires WP: 5.1
+ * Tested up to: 5.4
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  */
 
-if (version_compare(PHP_VERSION, '7.1', '<')) {
+if (version_compare(PHP_VERSION, '7.2', '<')) {
     // Warn user that his/her PHP version is too low for this plugin to function.
     add_action('admin_notices', function () {
         echo '<div class="error"><p>';
         echo esc_html(
             sprintf(
-                __('BC Cache plugin requires PHP 7.1 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
+                __('BC Cache plugin requires PHP 7.2 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
                 PHP_VERSION
             )
         );

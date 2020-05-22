@@ -1,7 +1,4 @@
 <?php
-/**
- * @package BC_Cache
- */
 
 namespace BlueChip\Cache;
 
@@ -86,7 +83,7 @@ class Core
 
 
     /**
-     * @return array Filtered list of request variants.
+     * @return string[] Filtered list of request variants.
      */
     public static function getRequestVariants(): array
     {
@@ -301,8 +298,8 @@ class Core
     /**
      * Get cache state information.
      *
-     * @param array $request_variants List of all request variants to inspect.
-     * @return array List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
+     * @param string[] $request_variants List of all request variants to inspect.
+     * @return object[] List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
     public function inspect(array $request_variants): ?array
     {
@@ -333,7 +330,7 @@ class Core
                 $url = null;
             }
 
-            $state[] = [
+            $state[] = (object) [
                 'entry_id' => \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
                 'url' => $url,
                 'request_variant' => $item['request_variant'],
@@ -413,8 +410,8 @@ class Core
      * Return an array with cache size information for given directory and all its subdirectories.
      *
      * @param string $dirname
-     * @param array $request_variants
-     * @return array List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
+     * @param string[] $request_variants
+     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
      * @throws Exception
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
@@ -510,7 +507,7 @@ class Core
      */
     private function getPath(string $url): string
     {
-        $url_parts = wp_parse_url($url);
+        $url_parts = \parse_url(trailingslashit($url));
 
         $path = \implode([
             $this->cache_dir,
@@ -590,7 +587,7 @@ class Core
      * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
      * @throws Exception
      */
-    private static function removeDirectory(string $dirname, bool $contents_only = false)
+    private static function removeDirectory(string $dirname, bool $contents_only = false): void
     {
         if (!\is_dir($dirname)) {
             throw new Exception("{$dirname} is not a directory!");

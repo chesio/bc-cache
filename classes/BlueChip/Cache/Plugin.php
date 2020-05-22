@@ -1,7 +1,4 @@
 <?php
-/**
- * @package BC_Cache
- */
 
 namespace BlueChip\Cache;
 
@@ -21,6 +18,16 @@ class Plugin
      * @var string Path to cache lock file - must be outside of cache directory!
      */
     private const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+
+    /**
+     * @var string Default name of cookie to denote front-end users.
+     */
+    private const FRONTEND_USER_COOKIE_NAME = 'bc_cache_is_fe_user';
+
+    /**
+     * @var string Default value of cookie to denote front-end users.
+     */
+    private const FRONTEND_USER_COOKIE_VALUE = 'true';
 
     /**
      * @var string Name of nonce used for AJAX-ified flush cache requests.
@@ -98,7 +105,7 @@ class Plugin
      * @internal Method should be run on plugin activation.
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
-    public function activate()
+    public function activate(): void
     {
         // Attempt to create cache lock file, but do not abort on error.
         $this->cache_lock->setUp();
@@ -125,7 +132,7 @@ class Plugin
      * @internal Method should be run on plugin deactivation.
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
-    public function deactivate()
+    public function deactivate(): void
     {
         $this->cache->flush();
     }
@@ -137,7 +144,7 @@ class Plugin
      * @internal Method should be run on plugin uninstall.
      * @link https://developer.wordpress.org/plugins/the-basics/uninstall-methods/
      */
-    public function uninstall()
+    public function uninstall(): void
     {
         $this->cache->tearDown();
         $this->cache_info->tearDown();
@@ -162,7 +169,7 @@ class Plugin
      *
      * @internal Method should be invoked immediately on plugin load.
      */
-    public function load()
+    public function load(): void
     {
         // Register initialization method.
         add_action('init', [$this, 'init'], 10, 0);
@@ -175,6 +182,9 @@ class Plugin
             \WP_CLI::add_command('bc-cache', new Cli($this->cache));
         });
 
+        // Activate features that must be explicitly supported by active theme.
+        add_action('after_setup_theme', [$this, 'activateThemeFeatures'], 20, 0);
+
         // Listen for registration of (public) post types.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
         add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
@@ -186,7 +196,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/init/
      */
-    public function init()
+    public function init(): void
     {
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
@@ -231,13 +241,26 @@ class Plugin
      * @param string $post_type
      * @param \WP_Post_Type $post_type_object
      */
-    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object)
+    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
     {
         if (apply_filters(Hooks::FILTER_IS_PUBLIC_POST_TYPE, $post_type_object->public, $post_type)) {
             // Flush cache when a public post type is published (created or edited) or trashed.
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
             add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
             add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+        }
+    }
+
+
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/after_setup_theme/
+     */
+    public function activateThemeFeatures()
+    {
+        if (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
+            // Allow special cookie to be set for front-end users to enable serving of cached content to them.
+            add_action('set_logged_in_cookie', [$this, 'setFrontendUserCookie'], 10, 4);
+            add_action('clear_auth_cookie', [$this, 'clearFrontendUserCookie'], 10, 0);
         }
     }
 
@@ -251,7 +274,7 @@ class Plugin
     public function alterRobotsTxt(string $data): string
     {
         // Get path component of cache directory URL.
-        $path = wp_parse_url(self::CACHE_URL, PHP_URL_PATH);
+        $path = \parse_url(self::CACHE_URL, PHP_URL_PATH);
         // Disallow direct access to cache directory.
         return $data . PHP_EOL . \sprintf('Disallow: %s/', $path) . PHP_EOL;
     }
@@ -260,7 +283,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
      */
-    public function enqueueFlushIconAssets()
+    public function enqueueFlushIconAssets(): void
     {
         wp_enqueue_style(
             'bc-cache-toolbar',
@@ -295,7 +318,7 @@ class Plugin
      *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
-    public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar)
+    public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
     {
         $wp_admin_bar->add_node([
             'id'     => 'bc-cache',
@@ -313,8 +336,8 @@ class Plugin
      *
      * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
-     * @param array $items
-     * @return array
+     * @param string[] $items
+     * @return string[]
      */
     public function addDashboardInfo(array $items): array
     {
@@ -348,7 +371,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/admin_print_footer_scripts/
      */
-    public function printDashboardStyles()
+    public function printDashboardStyles(): void
     {
         echo '<style>#dashboard_right_now li .bc-cache-size:before { content: ""; display: none; }</style>';
     }
@@ -357,7 +380,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/rightnow_end/
      */
-    public function enqueueDashboardAssets()
+    public function enqueueDashboardAssets(): void
     {
         // Print the styles in the footer.
         add_action('admin_print_footer_scripts', [$this, 'printDashboardStyles'], 10, 0);
@@ -387,7 +410,7 @@ class Plugin
      *
      * @internal Should be executed in context of AJAX request only.
      */
-    public function processFlushRequest()
+    public function processFlushRequest(): void
     {
         // Check AJAX referer - die if invalid.
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
@@ -406,7 +429,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/template_redirect/
      */
-    public function startOutputBuffering()
+    public function startOutputBuffering(): void
     {
         if (!self::skipCache()) {
             \ob_start([$this, 'handleOutputBuffer']);
@@ -467,6 +490,49 @@ class Plugin
 
 
     /**
+     * @action https://developer.wordpress.org/reference/hooks/set_logged_in_cookie/
+     *
+     * @param string $logged_in_cookie
+     * @param int $expire
+     * @param int $expiration
+     * @param int $user_id
+     */
+    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id)
+    {
+        if (($user = get_user_by('id', $user_id)) === false) {
+            return;
+        }
+
+        if (Utils::isFrontendUser($user)) {
+            \setcookie(
+                apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
+                apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_VALUE, self::FRONTEND_USER_COOKIE_VALUE),
+                $expire,
+                COOKIEPATH,
+                COOKIE_DOMAIN,
+                false,
+                true
+            );
+        }
+    }
+
+
+    /**
+     * @action https://developer.wordpress.org/reference/hooks/clear_auth_cookie/
+     */
+    public function clearFrontendUserCookie()
+    {
+        \setcookie(
+            apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
+            ' ',
+            time() - YEAR_IN_SECONDS,
+            COOKIEPATH,
+            COOKIE_DOMAIN
+        );
+    }
+
+
+    /**
      * @return bool True if cache should be skipped, false otherwise.
      */
     private static function skipCache(): bool
@@ -477,12 +543,17 @@ class Plugin
         }
 
         // Only cache requests routed through main index.php and using themes.
-        if (!Utils::isWordPressUsingThemes()) {
+        if (!wp_using_themes()) {
             return true;
         }
 
-        // Only cache requests for anonymous users.
-        if (is_user_logged_in() || !Utils::isAnonymousUser()) {
+        // Only cache requests that return no personalized content.
+        if (Utils::hasUserPersonalizedContent()) {
+            return true;
+        }
+
+        // Only cache requests for anonymous or (if the theme supports it) front-end users.
+        if (!(Utils::isAnonymousUser() || (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
             return true;
         }
 
@@ -508,7 +579,7 @@ class Plugin
     /**
      * Check whether query string $fields allow page to be cached.
      *
-     * @param array $fields Query string fields (keys).
+     * @param string[] $fields Query string fields (keys).
      * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
      */
     private static function checkQueryString(array $fields): bool

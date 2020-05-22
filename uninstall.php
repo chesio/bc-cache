@@ -1,8 +1,7 @@
 <?php
+
 /**
  * Perform plugin uninstall.
- *
- * @package BC_Cache
  */
 
 // If file is not invoked by WordPress, exit.
