@@ -483,7 +483,7 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', \intval(current_time('timestamp')))
+                wp_date('d.m.Y H:i:s', \intval(\time()))
             )
         );
     }
