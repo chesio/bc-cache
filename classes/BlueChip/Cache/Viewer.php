@@ -123,7 +123,7 @@ class Viewer
         if (\is_int($cache_age = $this->cache->getAge())) {
             $cache_info[] = \sprintf(
                 esc_html__('Cache has been fully flushed %s ago.', 'bc-cache'),
-                '<strong><abbr title="' . Utils::formatWpDateTime('Y-m-d H:i:s', $cache_age) . '">' . human_time_diff($cache_age) . '</abbr></strong>'
+                '<strong><abbr title="' . \wp_date('Y-m-d H:i:s', $cache_age) . '">' . human_time_diff($cache_age) . '</abbr></strong>'
             );
         }
 
