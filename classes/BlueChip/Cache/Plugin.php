@@ -188,6 +188,10 @@ class Plugin
         // Listen for registration of (public) post types.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
         add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
+
+        // Listen for registration of (public) taxonomies.
+        // They may (in fact should) happen as late as in init hook, therefore special handling is required.
+        add_action('registered_taxonomy', [$this, 'registerTaxonomy'], 10, 3);
     }
 
 
@@ -248,6 +252,27 @@ class Plugin
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
             add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
             add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+        }
+    }
+
+
+    /**
+     * Register cache flush hooks for terms from public taxonomies.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/registered_taxonomy/
+     *
+     * @param string $taxonomy
+     * @param array|string $object_type Object type or array of object types.
+     * @param array $taxonomy_object Public properties of \WP_Taxonomy class as array.
+     */
+    public function registerTaxonomy(string $taxonomy, $object_type, array $taxonomy_object): void
+    {
+        if (apply_filters(Hooks::FILTER_IS_PUBLIC_TAXONOMY, $taxonomy_object['public'], $taxonomy)) {
+            // Flush cache when a term from public taxonomy is created, deleted or edited.
+            // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
+            add_action("create_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("delete_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("edited_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
         }
     }
 

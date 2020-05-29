@@ -135,7 +135,8 @@ If there was a settings page, following filters would be likely turned into sett
 Following filters can be used to tweak [automatic cache flushing](#automatic-cache-flushing):
 
 * `bc-cache/filter:flush-hooks` - filters list of actions that trigger cache flushing. Filter is executed in a hook registered to `init` action with priority 10, so make sure to register your hook earlier (for example within `plugins_loaded` or `after_setup_theme` actions).
-* `bc-cache/filter:is-public-post-type` - filters whether given post type should be deemed as public or not. Publishing or trashing of public post type items triggers [cache flush](#special-posts-handling), but related action hooks cannot be filtered with the `bc-cache/filter:flush-hooks` filter, you have to use this filter.
+* `bc-cache/filter:is-public-post-type` - filters whether given post type should be deemed as public or not. Publishing or trashing of public post type items triggers [automatic cache flushing](#special-handling-of-posts-and-terms), but related action hooks cannot be adjusted with the `bc-cache/filter:flush-hooks` filter, you have to use this filter.
+* `bc-cache/filter:is-public-taxonomy` - filters whether given taxonomy should be deemed as public or not. Creating, deleting or editing terms from public taxonomy triggers [automatic cache flushing](#special-handling-of-posts-and-terms), but related action hooks cannot be adjusted with the `bc-cache/filter:flush-hooks` filter, you have to use this filter.
 
 Following filters can be used to extend list of [cache exclusions](#cache-exclusions) or whitelist some query string parameters:
 
@@ -170,7 +171,7 @@ The cache is flushed automatically on core actions listed below. The list of act
   1. [`switch_theme`](https://developer.wordpress.org/reference/hooks/switch_theme/)
   2. [`wp_update_nav_menu`](https://developer.wordpress.org/reference/hooks/wp_update_nav_menu/)
 
-* Post state changes from publish to another one (except trash). Note: publish and trash related actions are handled separately and for public posts only - [see below](#special-posts-handling)):
+* Post state changes from publish to another one (except trash). Note: publish and trash related actions are handled separately and for public posts only - [see below](#special-handling-of-posts-and-terms)):
   1. [`publish_to_draft`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
   2. [`publish_to_future`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
   3. [`publish_to_pending`](https://developer.wordpress.org/reference/hooks/old_status_to_new_status/)
@@ -182,11 +183,13 @@ The cache is flushed automatically on core actions listed below. The list of act
   4. [`wp_set_comment_status`](https://developer.wordpress.org/reference/hooks/wp_set_comment_status/)
   5. [`wp_update_comment_count`](https://developer.wordpress.org/reference/hooks/wp_update_comment_count/)
 
-### Special posts handling
+### Special handling of posts and terms
 
-In WordPress, posts can be used to hold various types of data - including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#filters) to determine whether a particular post type is deemed as public for cache flushing purposes or not.
+In WordPress, posts can be used to hold various types of data - including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#filters) to override whether a particular post type is deemed as public for cache flushing purposes or not.
 
 Note: Changing post status to _draft_, _future_ or _pending_ always triggers cache flush (regardless of the post type).
+
+Terms (taxonomies) are handled in a similar manner - cache is automatically flushed when a term is created, deleted or edited, but only in case of terms from a public taxonomy. You may use `bc-cache/filter:is-public-taxonomy` [filter](#filters) to override whether a particular taxonomy should be deemed as public or not.
 
 ## Cache exclusions
 
