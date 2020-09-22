@@ -60,6 +60,11 @@ abstract class Hooks
     public const FILTER_IS_PUBLIC_POST_TYPE = 'bc-cache/filter:is-public-post-type';
 
     /**
+     * @var string Name of hook to filter whether post type is deemed as public or not.
+     */
+    public const FILTER_IS_PUBLIC_TAXONOMY = 'bc-cache/filter:is-public-taxonomy';
+
+    /**
      * @var string Name of hook to filter current HTTP request variant.
      */
     public const FILTER_REQUEST_VARIANT = 'bc-cache/filter:request-variant';

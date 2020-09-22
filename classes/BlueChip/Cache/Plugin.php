@@ -58,6 +58,8 @@ class Plugin
         'delete_comment' => 10,
         'wp_set_comment_status' => 10,
         'wp_update_comment_count' => 10,
+        // Widgets are manipulated
+        'update_option_sidebars_widgets' => 10,
     ];
 
     /**
@@ -188,6 +190,10 @@ class Plugin
         // Listen for registration of (public) post types.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
         add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
+
+        // Listen for registration of (public) taxonomies.
+        // They may (in fact should) happen as late as in init hook, therefore special handling is required.
+        add_action('registered_taxonomy', [$this, 'registerTaxonomy'], 10, 3);
     }
 
 
@@ -248,6 +254,27 @@ class Plugin
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
             add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
             add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+        }
+    }
+
+
+    /**
+     * Register cache flush hooks for terms from public taxonomies.
+     *
+     * @action https://developer.wordpress.org/reference/hooks/registered_taxonomy/
+     *
+     * @param string $taxonomy
+     * @param array|string $object_type Object type or array of object types.
+     * @param array $taxonomy_object Public properties of \WP_Taxonomy class as array.
+     */
+    public function registerTaxonomy(string $taxonomy, $object_type, array $taxonomy_object): void
+    {
+        if (apply_filters(Hooks::FILTER_IS_PUBLIC_TAXONOMY, $taxonomy_object['public'], $taxonomy)) {
+            // Flush cache when a term from public taxonomy is created, deleted or edited.
+            // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
+            add_action("create_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("delete_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("edited_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
         }
     }
 
@@ -483,7 +510,7 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                date_i18n('d.m.Y H:i:s', \intval(current_time('timestamp')))
+                wp_date('d.m.Y H:i:s', \intval(\time()))
             )
         );
     }
@@ -558,12 +585,13 @@ class Plugin
         }
 
         // Do not cache following types of requests.
-        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
+        // Note: There is no is_sitemap() function, so one has to use get_query_var('sitemap') for now.
+        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required() || get_query_var('sitemap')) {
             return true;
         }
 
-        // WordPress 5.2+: Do not cache page, if website is in recovery mode.
-        if (\function_exists('wp_is_recovery_mode') && wp_is_recovery_mode()) {
+        // Do not cache page if website is in recovery mode.
+        if (wp_is_recovery_mode()) {
             return true;
         }
 
