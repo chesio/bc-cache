@@ -183,6 +183,9 @@ The cache is flushed automatically on core actions listed below. The list of act
   3. [`delete_comment`](https://developer.wordpress.org/reference/hooks/delete_comment/)
   4. [`wp_set_comment_status`](https://developer.wordpress.org/reference/hooks/wp_set_comment_status/)
   5. [`wp_update_comment_count`](https://developer.wordpress.org/reference/hooks/wp_update_comment_count/)
+  
+* Site widgets configuration changes:
+  1. [`update_option_sidebars_widgets`](https://developer.wordpress.org/reference/hooks/update_option_option/) - the configuration is saved in `sidebars_widgets` option, so cache is flushed whenever this option is updated.
 
 ### Special handling of posts and terms
 
@@ -200,7 +203,7 @@ A response to HTTP(S) request is **not** cached by BC Cache if **any** of the co
 2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#filters).
 3. Request is not for a front-end page (ie. [`wp_using_themes`](https://developer.wordpress.org/reference/functions/wp_using_themes/) returns `false`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from a non-anonymous user (ie. user that is logged in, left a comment or accessed password protected page/post). The rule can be tweaked to ignore [front-end users](#front-end-users-and-caching) if your theme supports it.
-5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
+5. Request/response type is one of the following: XML sitemap, search, 404, feed, trackback, robots.txt, preview or password protected post.
 6. [Fatal error recovery mode](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) is active.
 7. `DONOTCACHEPAGE` constant is set and evaluates to true. This constant is for example [automatically set](https://docs.woocommerce.com/document/configuring-caching-plugins/#section-1) by WooCommerce on certain pages.
 8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
