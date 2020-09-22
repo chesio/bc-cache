@@ -58,6 +58,8 @@ class Plugin
         'delete_comment' => 10,
         'wp_set_comment_status' => 10,
         'wp_update_comment_count' => 10,
+        // Widgets are manipulated
+        'update_option_sidebars_widgets' => 10,
     ];
 
     /**
