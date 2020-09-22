@@ -15,6 +15,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Limitations
 
+* BC Cache has not been tested with [WordPress block editor](https://wordpress.org/support/article/wordpress-editor/).
 * BC Cache has not been tested on WordPress multisite installation.
 * BC Cache has not been tested on Windows servers.
 * BC Cache can only serve requests without filename in path, ie. `/some/path` or `some/other/path/`, but not `/some/path/to/filename.html`.
