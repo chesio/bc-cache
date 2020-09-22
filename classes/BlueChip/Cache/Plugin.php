@@ -583,7 +583,8 @@ class Plugin
         }
 
         // Do not cache following types of requests.
-        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required()) {
+        // Note: There is no is_sitemap() function, so one has to use get_query_var('sitemap') for now.
+        if (is_search() || is_404() || is_feed() || is_trackback() || is_robots() || is_preview() || post_password_required() || get_query_var('sitemap')) {
             return true;
         }
 
