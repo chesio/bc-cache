@@ -22,7 +22,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Installation
 
-BC Security is not available at WordPress Plugins Directory, but there are several other ways you can get it.
+BC Cache is not available at WordPress Plugins Directory, but there are several other ways you can get it.
 
 ### Using WP-CLI
 
@@ -183,7 +183,7 @@ The cache is flushed automatically on core actions listed below. The list of act
   3. [`delete_comment`](https://developer.wordpress.org/reference/hooks/delete_comment/)
   4. [`wp_set_comment_status`](https://developer.wordpress.org/reference/hooks/wp_set_comment_status/)
   5. [`wp_update_comment_count`](https://developer.wordpress.org/reference/hooks/wp_update_comment_count/)
-  
+
 * Site widgets configuration changes:
   1. [`update_option_sidebars_widgets`](https://developer.wordpress.org/reference/hooks/update_option_option/) - the configuration is saved in `sidebars_widgets` option, so cache is flushed whenever this option is updated.
 
