@@ -76,12 +76,10 @@ AddDefaultCharset utf-8
   RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]
 
   # Get request scheme (either http or https).
+  RewriteRule .* - [E=BC_CACHE_SCHEME:http]
   RewriteCond %{ENV:HTTPS} =on [OR]
   RewriteCond %{HTTP:X-Forwarded-Proto} https
   RewriteRule .* - [E=BC_CACHE_SCHEME:https]
-  RewriteCond %{ENV:HTTPS} !=on
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule .* - [E=BC_CACHE_SCHEME:http]
 
   # Clean up hostname (drop optional port number).
   RewriteCond %{HTTP_HOST} ^([^:]+)(:[0-9]+)?$
