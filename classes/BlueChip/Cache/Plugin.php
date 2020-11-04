@@ -284,7 +284,7 @@ class Plugin
      */
     public function activateThemeFeatures()
     {
-        if (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
+        if (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
             // Allow special cookie to be set for front-end users to enable serving of cached content to them.
             add_action('set_logged_in_cookie', [$this, 'setFrontendUserCookie'], 10, 4);
             add_action('clear_auth_cookie', [$this, 'clearFrontendUserCookie'], 10, 0);
@@ -580,7 +580,7 @@ class Plugin
         }
 
         // Only cache requests for anonymous or (if the theme supports it) front-end users.
-        if (!(Utils::isAnonymousUser() || (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
+        if (!(Utils::isAnonymousUser() || (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
             return true;
         }
 

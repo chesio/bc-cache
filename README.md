@@ -157,7 +157,7 @@ Following filters are only useful if your theme declares support for [caching fo
 ### Theme features
 
 Some advanced features must be supported by your theme and are active only if the theme explicitly declares its support for particular feature:
-* `add_theme_support('bc-cache/feature:frontend-users');` - activates [caching for front-end users](#front-end-users-and-caching).
+* `add_theme_support('bc-cache', 'caching-for-frontend-users');` - activates [caching for front-end users](#front-end-users-and-caching).
 
 ## Automatic cache flushing
 
