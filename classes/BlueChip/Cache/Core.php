@@ -9,6 +9,9 @@ class Core
      */
     public const DEFAULT_REQUEST_VARIANT = '';
 
+    /** @var string Separator between URL scheme, host and port parts in cache filename */
+    private const SCHEME_HOST_SEPARATOR = '_';
+
 
     /**
      * @var string Path to root cache directory
@@ -513,7 +516,7 @@ class Core
             $this->cache_dir,
             DIRECTORY_SEPARATOR,
             $url_parts['scheme'],
-            DIRECTORY_SEPARATOR,
+            self::SCHEME_HOST_SEPARATOR,
             $url_parts['host'],
             $url_parts['path'],
         ]);
@@ -549,7 +552,7 @@ class Core
         }
 
         // Strip the path to BC Cache directory from $path and break it into scheme and host + path parts.
-        $parts = \explode(DIRECTORY_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
+        $parts = \explode(self::SCHEME_HOST_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
 
         if (\count($parts) !== 2) {
             // At least scheme and host must be present.
