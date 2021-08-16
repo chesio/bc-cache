@@ -66,6 +66,8 @@ class Plugin
      * @var array List of whitelisted query string fields (these do not prevent cache write).
      */
     private const WHITELISTED_QUERY_STRING_FIELDS = [
+        // https://developers.google.com/gtagjs/devguide/linker
+        '_gl',
         // https://support.google.com/searchads/answer/7342044
         'gclid',
         'gclsrc',
