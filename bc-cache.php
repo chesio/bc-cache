@@ -12,6 +12,7 @@
  * Tested up to: 5.7
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
+ * Update URI: https://github.com/chesio/bc-cache
  */
 
 if (version_compare(PHP_VERSION, '7.2', '<')) {
