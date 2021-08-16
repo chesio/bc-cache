@@ -303,7 +303,10 @@ class Plugin
         // Get path component of cache directory URL.
         $path = \parse_url(self::CACHE_URL, PHP_URL_PATH);
         // Disallow direct access to cache directory.
-        return $data . PHP_EOL . \sprintf('Disallow: %s/', $path) . PHP_EOL;
+        return $data . PHP_EOL
+            . 'User-agent: *' . PHP_EOL
+            . \sprintf('Disallow: %s/', $path) . PHP_EOL
+        ;
     }
 
 
