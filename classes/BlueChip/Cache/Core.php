@@ -67,9 +67,6 @@ class Core
             return false;
         }
 
-        // With respect to cache information, setup equals cache flush.
-        $this->cache_info->reset()->write();
-
         return true;
     }
 
@@ -100,10 +97,10 @@ class Core
     /**
      * Flush entire cache.
      *
-     * @param bool $uninstall Not only flush cache entries, but remove cache directory as well.
+     * @param bool $tear_down Not only flush cache entries, but remove cache directory as well.
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function flush(bool $uninstall = false): bool
+    public function flush(bool $tear_down = false): bool
     {
         // Wait for exclusive lock.
         if (!$this->lockCache(true)) {
@@ -122,7 +119,7 @@ class Core
 
         try {
             // Remove cache directory - if not uninstalling, remove contents only.
-            self::removeDirectory($this->cache_dir, !$uninstall);
+            self::removeDirectory($this->cache_dir, !$tear_down);
             // Reset cache age and size.
             $this->cache_info->reset();
             // :)

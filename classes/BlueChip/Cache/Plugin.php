@@ -111,14 +111,8 @@ class Plugin
      */
     public function activate(): void
     {
-        // Attempt to create cache lock file, but do not abort on error.
-        $this->cache_lock->setUp();
-
         // Attempt to create cache root directory.
         if (!$this->cache->setUp()) {
-            // Do not leave stray lock file behind.
-            $this->cache_lock->tearDown();
-
             // https://pento.net/2014/02/18/dont-let-your-plugin-be-activated-on-incompatible-sites/
             deactivate_plugins(plugin_basename($this->plugin_filename));
             wp_die(
@@ -127,6 +121,9 @@ class Plugin
                 ['back_link' => true]
             );
         }
+
+        $this->cache_info->setUp();
+        $this->cache_lock->setUp();
     }
 
 
@@ -137,18 +134,6 @@ class Plugin
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
     public function deactivate(): void
-    {
-        $this->cache->flush();
-    }
-
-
-    /**
-     * Perform uninstallation tasks.
-     *
-     * @internal Method should be run on plugin uninstall.
-     * @link https://developer.wordpress.org/plugins/the-basics/uninstall-methods/
-     */
-    public function uninstall(): void
     {
         $this->cache->tearDown();
         $this->cache_info->tearDown();

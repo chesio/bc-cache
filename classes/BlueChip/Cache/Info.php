@@ -175,6 +175,17 @@ class Info
 
 
     /**
+     * Reset cache information on setup.
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function setUp(): bool
+    {
+        return $this->reset()->write();
+    }
+
+
+    /**
      * Remove cache information from database.
      *
      * @return bool True on success, false on failure.
