@@ -102,6 +102,16 @@ class Plugin
      */
     private $cache_lock;
 
+    /**
+     * @var \BlueChip\Cache\Crawler
+     */
+    private $cache_crawler;
+
+    /**
+     * @var \BlueChip\Cache\Feeder
+     */
+    private $cache_feeder;
+
 
     /**
      * Perform activation and installation tasks.
@@ -123,6 +133,7 @@ class Plugin
             );
         }
 
+        $this->cache_feeder->setUp();
         $this->cache_info->setUp();
         $this->cache_lock->setUp();
     }
@@ -137,7 +148,9 @@ class Plugin
      */
     public function deactivate(): void
     {
+        $this->cache_crawler->deactivate();
         $this->cache->tearDown();
+        $this->cache_feeder->tearDown();
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
@@ -151,7 +164,9 @@ class Plugin
         $this->plugin_filename = $plugin_filename;
         $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
+        $this->cache_feeder = new Feeder();
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
+        $this->cache_crawler = new Crawler($this->cache, $this->cache_feeder);
     }
 
 
@@ -215,7 +230,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache))->init();
+            (new Viewer($this->cache, $this->cache_feeder))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
@@ -224,6 +239,14 @@ class Plugin
         } else {
             // Add action to catch output buffer.
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
+        }
+
+        if (self::isCacheWarmUpEnabled()) {
+            // Initialize warm up crawler.
+            $this->cache_crawler->init();
+
+            // Cache has been flushed so (maybe) warm it up again?
+            add_action(Hooks::ACTION_CACHE_FLUSHED, [$this, 'warmUp'], 10, 1);
         }
     }
 
@@ -552,6 +575,30 @@ class Plugin
             COOKIEPATH,
             COOKIE_DOMAIN
         );
+    }
+
+
+    /**
+     * @param bool $tear_down
+     */
+    public function warmUp(bool $tear_down)
+    {
+        // If not deactivating plugin instance, reset feeder and (re)activate crawler.
+        if (!$tear_down) {
+            $this->cache_feeder->reset();
+            $this->cache_crawler->activate();
+        }
+    }
+
+
+    /**
+     * Determine whether cache warm up feature should be enabled.
+     *
+     * @return bool True if cache warm up is enabled, false otherwise.
+     */
+    public static function isCacheWarmUpEnabled(): bool
+    {
+        return apply_filters(Hooks::FILTER_CACHE_WARM_ENABLED, true);
     }
 
 

@@ -141,6 +141,8 @@ class Core
             \clearstatcache();
             // Unlock cache for other operations.
             $this->unlockCache();
+            // Signal that cache has been flushed.
+            do_action(Hooks::ACTION_CACHE_FLUSHED, $tear_down);
         }
     }
 
@@ -298,6 +300,22 @@ class Core
         $this->unlockCache();
         // ...and return the size:
         return $cache_size;
+    }
+
+
+    /**
+     * Check whether $url in $request_variant is in cache.
+     *
+     * @internal Check is based on presence of HTML file only (gzip is optional, so cannot be reliably used).
+     *
+     * @param string $url
+     * @param string $request_variant
+     *
+     * @return bool True if $url in $request_variant is in cache, false otherwise.
+     */
+    public function has(string $url, string $request_variant): bool
+    {
+        return \is_readable(self::getHtmlFilename($this->getPath($url), $request_variant));
     }
 
 
