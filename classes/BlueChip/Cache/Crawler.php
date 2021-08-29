@@ -121,8 +121,13 @@ class Crawler
                 // Get warm up HTTP request arguments.
                 $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);
 
-                // Get the URL, ignore any errors.
-                wp_remote_get($url, $args);
+                // Get the URL...
+                $response = wp_remote_get($url, $args);
+
+                if (wp_remote_retrieve_response_code($response) !== 200) {
+                    // ... if there is unexpected response, push the item back to feeder.
+                    $this->feeder->push($item);
+                }
             }
 
             if (\microtime(true) >= $stop_at) {

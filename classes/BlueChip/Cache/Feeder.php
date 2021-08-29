@@ -38,6 +38,25 @@ class Feeder
 
 
     /**
+     * @param array $item Item to crawl as pair of values ['url', 'request_variant'].
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function push(array $item): bool
+    {
+        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
+
+        if (\is_array($queue)) {
+            $queue[] = $item; // Push at the end of queue.
+        } else {
+            $queue = $this->requeue(); // Queue has to be rebuilt, so ignore the pushed item.
+        }
+
+        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
+    }
+
+
+    /**
      * @return int|null Count of items in the queue or null if queue has to be rebuilt yet.
      */
     public function getSize(): ?int
@@ -51,7 +70,7 @@ class Feeder
     /**
      * Reset the queue.
      *
-     * @return bool
+     * @return bool True on success, false on failure.
      */
     public function reset(): bool
     {
@@ -60,7 +79,9 @@ class Feeder
 
 
     /**
-     * Rebuild the queue and return it.
+     * Rebuild the queue.
+     *
+     * @internal The caller must ensure the queue is persisted if necessary.
      *
      * @return array
      */
@@ -75,21 +96,19 @@ class Feeder
         $queue = [];
 
         foreach ($urls as $url) {
-            foreach ($request_variants as $request_variant) {
+            foreach (\array_keys($request_variants) as $request_variant) {
                 $queue[] = ['url' => $url, 'request_variant' => $request_variant];
             }
         }
-
-        set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
 
         return $queue;
     }
 
 
     /**
-     * Get list of URLs to crawl using WordPress core sitemap providers.
+     * Get list of URLs to crawl from WordPress core sitemap providers.
      *
-     * @return array List of URLs to crawl
+     * @return string[] List of URLs to crawl
      */
     public function getUrls(): array
     {
@@ -130,7 +149,7 @@ class Feeder
     /**
      * Remove any persistent information.
      *
-     * @return bool
+     * @return bool True on success, false on failure.
      */
     public function tearDown(): bool
     {
