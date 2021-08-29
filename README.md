@@ -11,7 +11,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
 * [PHP](https://www.php.net/) 7.2 or newer
-* [WordPress](https://wordpress.org/) 5.3 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
+* [WordPress](https://wordpress.org/) 5.5 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
 
@@ -123,8 +123,9 @@ BC Cache has no settings. You can modify plugin behavior with filters and [theme
 
 ### Filters
 
-If there was a settings page, following filters would be likely turned into settings as they alter basic functionality:
+If there was a settings page, following filters would likely become plugin settings as they alter basic functionality:
 
+* `bc-cache/filter:cache-warm-up-enable` - filters whether [cache warm up](#cache-warm-up) feature is enabled.
 * `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
 * `bc-cache/filter:disable-cache-locking` - filters whether cache locking should be disabled. By default, cache locking is enabled, but if your webserver has issues with [flock()](https://secure.php.net/manual/en/function.flock.php) or you notice degraded performance due to cache locking, you may want to disable it.
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
@@ -146,6 +147,13 @@ Following filters are necessary to set up [request variants](#request-variants):
 
 * `bc-cache/filter:request-variant` - filters name of request variant of current HTTP request.
 * `bc-cache/filter:request-variants` - filters list of all available request variants. You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
+
+Following filters can be used to tweak [warming up of cache](#cache-warm-up):
+
+* `bc-cache/filter:cache-warm-url-list` - filters list of URLs to be included in warm up.
+* `bc-cache/filter:cache-warm-up-invocation-delay` - filters the time (in seconds) between cache flush and warm up invocation.
+* `bc-cache/filter:cache-warm-up-run-timeout` - sets the time (in seconds) warm up crawler is allowed to run within single WP-Cron invocation. The value cannot be larger than value of `WP_CRON_LOCK_TIMEOUT` constant. Note that crawler stops only after this limit is reached. This means for example that even if the timeout is set to `0`, there is one HTTP request sent.
+* `bc-cache/filter:cache-warm-up-request-arguments` - filters [list of arguments](https://developer.wordpress.org/reference/classes/WP_Http/request/#parameters) of HTTP request run during warm up.
 
 Following filters are only useful if your theme declares support for [caching for front-end users](#front-end-users-and-caching):
 
@@ -253,7 +261,7 @@ This way cached pages can be served to front-end users too. Cookie name and cont
 
 Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example is the situation in which privacy policy notice is displayed until site visitor accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve visitors regardless if they have or have not accepted the cookie policy.
 
-### Example
+### Request variant configuration example
 
 A website has two variants: one with cookie notice (_cookie_notice_accepted_ cookie is not set) and one without (_cookie_notice_accepted_ cookie is already set).
 
@@ -279,6 +287,45 @@ The [default configuration](#installation) needs to be extended as well and set 
 ```
 
 Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
+
+## Cache warm up
+
+Since version 2, the plugin performs _cache warm up_, ie. stores all pages in cache automatically without the need of front-end users to visit them. The obvious advantage is that even the first users of particular pages are served from cache (= fast).
+
+Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 15 minutes delay by default, but this can be configured).
+
+In order for the warm up to function properly:
+
+* List of URLs to crawl is composed from URLs returned by all registered WordPress core sitemap providers, therefore [WordPress core sitemap](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) feature has to be configured correctly even if it is not enabled on front-end.
+* In case [request variants](#request-variants) are used, the `bc-cache/filter:cache-warm-up-request-arguments` filter should be used to modify arguments of HTTP request to any non-default URL variant, so the website generates correct response to such request.
+* It is highly recommended to [hook WP-Cron into system task scheduler](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/) for increased performance.
+
+### Cache warm up configuration examples
+
+Invoke cache warm up just 5 minutes after last cache flush:
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-invocation-delay', function (): int { return 5 * MINUTE_IN_SECONDS; }, 10, 0);
+```
+
+Allow only single warm up HTTP request per WP-Cron invocation:
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-run-timeout', '__return_zero', 10, 0);
+```
+
+Modify arguments of HTTP request to get page variant with cookie notice accepted (see [request variant configuration example](#request-variant-configuration-example) for context):
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $args, string $url, string $request_variant): array {
+    if ($request_variant === '_cna') {
+        $args['cookies'] = [
+            'cookie_notice_accepted' => 'true',
+        ];
+    }
+    return $args;
+}, 10, 1);
+```
 
 ## Flushing the cache programmatically
 
