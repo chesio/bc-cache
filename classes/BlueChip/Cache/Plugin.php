@@ -294,7 +294,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/after_setup_theme/
      */
-    public function activateThemeFeatures()
+    public function activateThemeFeatures(): void
     {
         if (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
             // Allow special cookie to be set for front-end users to enable serving of cached content to them.
@@ -543,7 +543,7 @@ class Plugin
      * @param int $expiration
      * @param int $user_id
      */
-    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id)
+    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
     {
         if (($user = get_user_by('id', $user_id)) === false) {
             return;
@@ -566,7 +566,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/clear_auth_cookie/
      */
-    public function clearFrontendUserCookie()
+    public function clearFrontendUserCookie(): void
     {
         \setcookie(
             apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
@@ -581,7 +581,7 @@ class Plugin
     /**
      * @param bool $tear_down
      */
-    public function warmUp(bool $tear_down)
+    public function warmUp(bool $tear_down): void
     {
         // If not deactivating plugin instance, reset feeder and (re)activate crawler.
         if (!$tear_down) {

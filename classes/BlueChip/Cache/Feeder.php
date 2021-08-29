@@ -13,7 +13,7 @@ class Feeder
     /**
      * Fetch next item to crawl.
      *
-     * @return array|null Next item to crawl as pair ['url', 'request_variant'] or null if queue is empty.
+     * @return array{'url': string, 'request_variant': string}|null Next item to crawl as pair of [`url` and `request_variant`] values or null if queue is empty.
      */
     public function fetch(): ?array
     {
@@ -38,7 +38,7 @@ class Feeder
 
 
     /**
-     * @param array $item Item to crawl as pair of values ['url', 'request_variant'].
+     * @param array{'url': string, 'request_variant': string} $item Item to crawl as pair of ['url', 'request_variant'] values.
      *
      * @return bool True on success, false on failure.
      */

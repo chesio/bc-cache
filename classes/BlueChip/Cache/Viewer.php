@@ -134,7 +134,7 @@ class Viewer
     /**
      * Display information about cache directory path.
      */
-    private function renderCacheDirectoryInfo()
+    private function renderCacheDirectoryInfo(): void
     {
         echo '<p>';
         echo \sprintf(
@@ -148,7 +148,7 @@ class Viewer
     /**
      * Display information about overall cache size.
      */
-    private function renderCacheSizeInfo()
+    private function renderCacheSizeInfo(): void
     {
         // Gather cache statistics (age and size), if available.
         $cache_info = [];
@@ -176,7 +176,7 @@ class Viewer
     /**
      * Display optional cache warm up information.
      */
-    private function renderWarmUpQueueInfo()
+    private function renderWarmUpQueueInfo(): void
     {
         $warm_up_queue_info = '';
 

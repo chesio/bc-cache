@@ -91,7 +91,7 @@ class Crawler
     /**
      * Initialize crawler by hooking it to action registered to WP-Cron.
      */
-    public function init()
+    public function init(): void
     {
         add_action(self::CRON_JOB_HOOK, [$this, 'run'], 10, 0);
     }
@@ -102,7 +102,7 @@ class Crawler
      *
      * @internal This method is hooked to WP-Cron.
      */
-    public function run()
+    public function run(): void
     {
         // Make sure we don't run (much) longer that single WP-Cron run is allowed/expected to take.
         $wp_cron_start_time = get_transient('doing_cron') ?: \microtime(true);
