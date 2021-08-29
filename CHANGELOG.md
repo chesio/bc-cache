@@ -2,12 +2,19 @@
 
 ## Upcoming version 2.0.0 (????-??-??)
 
-This release contains some breaking changes (see **!**):
+WordPress 5.5 or newer is required.
 
-* `_gl` query string tracking parameter does not interfere with caching [#53]
-* make sure the plugin is not accidentally overriden from WordPress.org Plugins Directory [#51] - requires WordPress 5.8 or newer
-* (**!**) refactor use of `add_theme_support` [#48]
-* (**!**) flatten cache directory structure [#45]
+This release brings major new feature: __cache warm up__ [#15]. See [README](README.md#cache-warm-up) for more information.
+
+This release also contains some breaking changes:
+
+* Use of `add_theme_support` has been refactored [#48].
+* Cache directory structure has been flattened [#45]. As a nice side-effect of this change, the `.htaccess` rules are now compatible with [7G firewall](https://perishablepress.com/7g-firewall/).
+
+Other notable changes in this release:
+
+* The `_gl` query string tracking parameter does not interfere with caching [#53]. Note that `.htaccess` file should be updated accordingly to make full use of this feature.
+* On WordPress 5.8 and newer the plugin cannot be accidentally overriden from WordPress.org Plugins Directory [#51].
 
 ## Version 1.9.1 (2021-08-16)
 
