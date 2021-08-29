@@ -112,26 +112,20 @@ class Feeder
      */
     public function getUrls(): array
     {
-        // Put home URL at the top of the list.
-        $urls = [
-            home_url('/'),
-        ];
-
+        $urls = [];
         $sitemap_providers = wp_get_sitemap_providers();
 
         foreach ($sitemap_providers as $sitemap_provider) {
             foreach (\array_keys($sitemap_provider->get_object_subtypes()) as $object_subtype) {
                 $max_num_pages = $sitemap_provider->get_max_num_pages($object_subtype);
                 for ($page_num = 1; $page_num <= $max_num_pages; ++$page_num) {
-                    $urls = \array_merge(
-                        $urls,
-                        \array_column($sitemap_provider->get_url_list($page_num, $object_subtype), 'loc')
-                    );
+                    $urls[] = \array_column($sitemap_provider->get_url_list($page_num, $object_subtype), 'loc');
                 }
             }
         }
 
-        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_URL_LIST, $urls));
+        // Prepend home URL to the merged list of all URLs as it arguably represents the most important page on website.
+        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_URL_LIST, \array_merge([home_url('/'),], ...$urls)));
     }
 
 
