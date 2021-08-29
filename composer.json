@@ -26,7 +26,7 @@
   },
   "scripts": {
     "phpcs": "phpcs",
-    "phpstan": "phpstan analyse",
+    "phpstan": "phpstan analyse --memory-limit 256M",
     "ci": [
       "@phpcs",
       "@phpstan"
