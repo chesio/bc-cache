@@ -20,6 +20,10 @@ Some bugs have been fixed too:
 
 * Sortable columns in Cache Viewer can be used for sorting again [#54].
 
+## Version 1.9.2 (2021-08-29)
+
+This bugfix release properly excludes XML sitemap stylesheet from caching [#47].
+
 ## Version 1.9.1 (2021-08-16)
 
 * test with WordPress 5.7
