@@ -107,6 +107,7 @@ class Plugin
      * Perform activation and installation tasks.
      *
      * @internal Method should be run on plugin activation.
+     *
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
     public function activate(): void
@@ -131,6 +132,7 @@ class Plugin
      * Perform deactivation tasks.
      *
      * @internal Method should be run on plugin deactivation.
+     *
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
     public function deactivate(): void
@@ -283,6 +285,7 @@ class Plugin
      * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
      *
      * @param string $data
+     *
      * @return string
      */
     public function alterRobotsTxt(string $data): string
@@ -354,6 +357,7 @@ class Plugin
      * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
      * @param string[] $items
+     *
      * @return string[]
      */
     public function addDashboardInfo(array $items): array
@@ -408,6 +412,7 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
+     *
      * @return bool Cached result of call to Core::flush().
      */
     public function flushCacheOnce(): bool
@@ -458,6 +463,7 @@ class Plugin
      * Push $buffer to cache and return it on output.
      *
      * @param string $buffer
+     *
      * @return string
      */
     public function handleOutputBuffer(string $buffer): string
@@ -598,6 +604,7 @@ class Plugin
      * Check whether query string $fields allow page to be cached.
      *
      * @param string[] $fields Query string fields (keys).
+     *
      * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
      */
     private static function checkQueryString(array $fields): bool
