@@ -423,10 +423,10 @@ class ListTable extends \WP_List_Table
      */
     private static function getAscSortingMethod(string $order_by): callable
     {
-        return function (array $a, array $b) use ($order_by): int {
-            if ($a[$order_by] < $b[$order_by]) {
+        return function (object $a, object $b) use ($order_by): int {
+            if ($a->$order_by < $b->$order_by) {
                 return -1;
-            } elseif ($a[$order_by] > $b[$order_by]) {
+            } elseif ($a->$order_by > $b->$order_by) {
                 return 1;
             } else {
                 return 0;
@@ -442,10 +442,10 @@ class ListTable extends \WP_List_Table
      */
     private static function getDescSortingMethod(string $order_by): callable
     {
-        return function (array $a, array $b) use ($order_by): int {
-            if ($a[$order_by] < $b[$order_by]) {
+        return function (object $a, object $b) use ($order_by): int {
+            if ($a->$order_by < $b->$order_by) {
                 return 1;
-            } elseif ($a[$order_by] > $b[$order_by]) {
+            } elseif ($a->$order_by > $b->$order_by) {
                 return -1;
             } else {
                 return 0;
@@ -459,7 +459,7 @@ class ListTable extends \WP_List_Table
      *
      * @return string[]
      */
-    private function getRowActions($item): array
+    private function getRowActions(object $item): array
     {
         $actions = [];
 
