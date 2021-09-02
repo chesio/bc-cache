@@ -19,7 +19,7 @@ class Crawler
     /**
      * @var int Default warm up invocation delay (= time between last cache flush and warm up start).
      */
-    private const DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY = 15 * MINUTE_IN_SECONDS;
+    private const DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY = 10 * MINUTE_IN_SECONDS;
 
 
     /**
