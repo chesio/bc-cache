@@ -1,8 +1,8 @@
 # BC Cache Changelog
 
-## Upcoming version 2.0.0 (????-??-??)
+## Upcoming version 2.0.0 (2021-09-02)
 
-WordPress 5.5 or newer is required.
+__WordPress 5.5 or newer is required.__
 
 This release brings major new feature: __cache warm up__ [#15](https://github.com/chesio/bc-cache/issues/15). See [README](README.md#cache-warm-up) for more information.
 
