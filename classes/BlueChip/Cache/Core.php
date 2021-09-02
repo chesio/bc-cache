@@ -9,6 +9,11 @@ class Core
      */
     public const DEFAULT_REQUEST_VARIANT = '';
 
+    /**
+     * @var string Separator between URL scheme, host and port parts in cache filename
+     */
+    private const SCHEME_HOST_SEPARATOR = '_';
+
 
     /**
      * @var string Path to root cache directory
@@ -64,9 +69,6 @@ class Core
             return false;
         }
 
-        // With respect to cache information, setup equals cache flush.
-        $this->cache_info->reset()->write();
-
         return true;
     }
 
@@ -97,10 +99,11 @@ class Core
     /**
      * Flush entire cache.
      *
-     * @param bool $uninstall Not only flush cache entries, but remove cache directory as well.
+     * @param bool $tear_down Not only flush cache entries, but remove cache directory as well.
+     *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function flush(bool $uninstall = false): bool
+    public function flush(bool $tear_down = false): bool
     {
         // Wait for exclusive lock.
         if (!$this->lockCache(true)) {
@@ -119,7 +122,7 @@ class Core
 
         try {
             // Remove cache directory - if not uninstalling, remove contents only.
-            self::removeDirectory($this->cache_dir, !$uninstall);
+            self::removeDirectory($this->cache_dir, !$tear_down);
             // Reset cache age and size.
             $this->cache_info->reset();
             // :)
@@ -138,6 +141,8 @@ class Core
             \clearstatcache();
             // Unlock cache for other operations.
             $this->unlockCache();
+            // Signal that cache has been flushed.
+            do_action(Hooks::ACTION_CACHE_FLUSHED, $tear_down);
         }
     }
 
@@ -147,6 +152,7 @@ class Core
      *
      * @param string $url
      * @param string $request_variant [optional] Request variant to delete.
+     *
      * @return bool True on success (there has been no error), false otherwise.
      */
     public function delete(string $url, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
@@ -205,6 +211,7 @@ class Core
      * @param string $url
      * @param string $data
      * @param string $request_variant [optional] Request variant to store the data under.
+     *
      * @return bool True on success (there has been no error), false otherwise.
      */
     public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
@@ -270,6 +277,7 @@ class Core
      * Get size of cache data.
      *
      * @param bool $precise Calculate the size from disk (ignore any cached information).
+     *
      * @return int|null Size of cache data or null if size cannot be determined.
      */
     public function getSize(bool $precise = false): ?int
@@ -296,9 +304,26 @@ class Core
 
 
     /**
+     * Check whether $url in $request_variant is in cache.
+     *
+     * @internal Check is based on presence of HTML file only (gzip is optional, so cannot be reliably used).
+     *
+     * @param string $url
+     * @param string $request_variant
+     *
+     * @return bool True if $url in $request_variant is in cache, false otherwise.
+     */
+    public function has(string $url, string $request_variant): bool
+    {
+        return \is_readable(self::getHtmlFilename($this->getPath($url), $request_variant));
+    }
+
+
+    /**
      * Get cache state information.
      *
      * @param string[] $request_variants List of all request variants to inspect.
+     *
      * @return object[] List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
     public function inspect(array $request_variants): ?array
@@ -348,6 +373,7 @@ class Core
     /**
      * @param bool $exclusive If true, require exclusive lock. If false, require shared lock.
      * @param bool $non_blocking [optional] If true, do not wait for lock, but fail immediately.
+     *
      * @return bool True on success, false on failure.
      */
     private function lockCache(bool $exclusive, bool $non_blocking = false): bool
@@ -370,6 +396,7 @@ class Core
      *
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
+     *
      * @return int|null Time (as Unix timestamp) of creation of cache entry under given $path or null in case of I/O error.
      */
     private static function getCreationTimestamp(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): ?int
@@ -382,7 +409,9 @@ class Core
      * Return total size of all regular files in given directory and its subdirectories.
      *
      * @param string $dirname
+     *
      * @return int Total size of all regular files in given directory and its subdirectories.
+     *
      * @throws Exception If $dirname does not exists or is not a directory.
      */
     private static function getFilesSize(string $dirname): int
@@ -411,7 +440,9 @@ class Core
      *
      * @param string $dirname
      * @param string[] $request_variants
+     *
      * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
+     *
      * @throws Exception
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
@@ -466,6 +497,7 @@ class Core
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
+     *
      * @return string Path to cache basename file (cache entry ID) for given $path and $request variant.
      */
     private static function getBaseFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
@@ -477,6 +509,7 @@ class Core
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
+     *
      * @return string Path to gzipped cache file for given $path and $request variant.
      */
     private static function getGzipFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
@@ -488,6 +521,7 @@ class Core
     /**
      * @param string $path Path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
+     *
      * @return string Path to HTML cache file for given $path and $request variant.
      */
     private static function getHtmlFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
@@ -502,7 +536,9 @@ class Core
      * @see self::getUrl()
      *
      * @param string $url
+     *
      * @return string
+     *
      * @throws Exception
      */
     private function getPath(string $url): string
@@ -513,7 +549,7 @@ class Core
             $this->cache_dir,
             DIRECTORY_SEPARATOR,
             $url_parts['scheme'],
-            DIRECTORY_SEPARATOR,
+            self::SCHEME_HOST_SEPARATOR,
             $url_parts['host'],
             $url_parts['path'],
         ]);
@@ -535,7 +571,9 @@ class Core
      * @see self::getPath()
      *
      * @param string $path
+     *
      * @return string
+     *
      * @throws Exception
      */
     private function getUrl(string $path): string
@@ -549,7 +587,7 @@ class Core
         }
 
         // Strip the path to BC Cache directory from $path and break it into scheme and host + path parts.
-        $parts = \explode(DIRECTORY_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
+        $parts = \explode(self::SCHEME_HOST_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
 
         if (\count($parts) !== 2) {
             // At least scheme and host must be present.
@@ -564,7 +602,9 @@ class Core
      * Create directory for given URL and return its path.
      *
      * @param string $url
+     *
      * @return string
+     *
      * @throws Exception
      */
     private function makeDirectory(string $url): string
@@ -584,7 +624,9 @@ class Core
      * Remove given directory including all subdirectories.
      *
      * @param string $dirname
+     *
      * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
+     *
      * @throws Exception
      */
     private static function removeDirectory(string $dirname, bool $contents_only = false): void
@@ -626,6 +668,7 @@ class Core
      * @link https://secure.php.net/manual/en/function.realpath.php#84012
      *
      * @param string $path Absolute path to normalize.
+     *
      * @return string Normalized path without any trailing directory separator.
      */
     private static function normalizePath(string $path): string
@@ -659,7 +702,9 @@ class Core
 
     /**
      * @param string $filename
+     *
      * @return int Number of bytes deleted (file size).
+     *
      * @throws Exception
      */
     private static function deleteFile(string $filename): int
@@ -688,7 +733,9 @@ class Core
     /**
      * @param string $filename
      * @param string $data
+     *
      * @return int Number of bytes written to file.
+     *
      * @throws Exception
      */
     private static function writeFile(string $filename, string $data): int

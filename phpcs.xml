@@ -6,7 +6,6 @@
   <file>classes</file>
   <file>autoload.php</file>
   <file>bc-cache.php</file>
-  <file>uninstall.php</file>
 
   <!-- Use PSR-12 -->
   <rule ref="PSR12">

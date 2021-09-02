@@ -100,6 +100,7 @@ class Info
      * Decrement cache size by $bytes.
      *
      * @param int $bytes
+     *
      * @return \BlueChip\Cache\Info
      */
     public function decrementSize(int $bytes): self
@@ -122,6 +123,7 @@ class Info
      * Increment cache size by $bytes.
      *
      * @param int $bytes
+     *
      * @return \BlueChip\Cache\Info
      */
     public function incrementSize(int $bytes): self
@@ -149,6 +151,7 @@ class Info
      * Set cache size to $size.
      *
      * @param int $size New cache size (must be greater or equal to 0).
+     *
      * @return \BlueChip\Cache\Info
      */
     public function setSize(int $size): self
@@ -171,6 +174,17 @@ class Info
         $this->data[self::CACHE_SIZE_KEY] = null;
         $this->is_dirty = true;
         return $this;
+    }
+
+
+    /**
+     * Reset cache information on setup.
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function setUp(): bool
+    {
+        return $this->reset()->write();
     }
 
 

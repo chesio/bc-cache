@@ -11,7 +11,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
 * [PHP](https://www.php.net/) 7.2 or newer
-* [WordPress](https://wordpress.org/) 5.3 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
+* [WordPress](https://wordpress.org/) 5.5 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
 
@@ -22,7 +22,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Installation
 
-BC Security is not available at WordPress Plugins Directory, but there are several other ways you can get it.
+BC Cache is not available at WordPress Plugins Directory, but there are several other ways you can get it.
 
 ### Using WP-CLI
 
@@ -76,12 +76,10 @@ AddDefaultCharset utf-8
   RewriteRule .* - [E=BC_CACHE_ROOT:%{DOCUMENT_ROOT}/wordpress]
 
   # Get request scheme (either http or https).
+  RewriteRule .* - [E=BC_CACHE_SCHEME:http]
   RewriteCond %{ENV:HTTPS} =on [OR]
   RewriteCond %{HTTP:X-Forwarded-Proto} https
   RewriteRule .* - [E=BC_CACHE_SCHEME:https]
-  RewriteCond %{ENV:HTTPS} !=on
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule .* - [E=BC_CACHE_SCHEME:http]
 
   # Clean up hostname (drop optional port number).
   RewriteCond %{HTTP_HOST} ^([^:]+)(:[0-9]+)?$
@@ -106,10 +104,10 @@ AddDefaultCharset utf-8
 
   # Main rules: serve only GET requests with whitelisted query string fields coming from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
-  RewriteCond %{QUERY_STRING} ^(?:(?:gclid|gclsrc|fbclid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
+  RewriteCond %{QUERY_STRING} ^(?:(?:_gl|gclid|gclsrc|fbclid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
-  RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
-  RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}/%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
+  RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
+  RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
 
   # Do not allow direct access to cache entries.
   RewriteCond %{REQUEST_URI} /wp-content/cache/bc-cache/
@@ -125,8 +123,9 @@ BC Cache has no settings. You can modify plugin behavior with filters and [theme
 
 ### Filters
 
-If there was a settings page, following filters would be likely turned into settings as they alter basic functionality:
+If there was a settings page, following filters would likely become plugin settings as they alter basic functionality:
 
+* `bc-cache/filter:cache-warm-up-enable` - filters whether [cache warm up](#cache-warm-up) feature is enabled.
 * `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
 * `bc-cache/filter:disable-cache-locking` - filters whether cache locking should be disabled. By default, cache locking is enabled, but if your webserver has issues with [flock()](https://secure.php.net/manual/en/function.flock.php) or you notice degraded performance due to cache locking, you may want to disable it.
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
@@ -149,6 +148,13 @@ Following filters are necessary to set up [request variants](#request-variants):
 * `bc-cache/filter:request-variant` - filters name of request variant of current HTTP request.
 * `bc-cache/filter:request-variants` - filters list of all available request variants. You should use this filter, if you use variants and want to have complete and proper information about cache entries listed in [Cache Viewer](#cache-viewer).
 
+Following filters can be used to tweak [warming up of cache](#cache-warm-up):
+
+* `bc-cache/filter:cache-warm-url-list` - filters list of URLs to be included in warm up.
+* `bc-cache/filter:cache-warm-up-invocation-delay` - filters the time (in seconds) between cache flush and warm up invocation.
+* `bc-cache/filter:cache-warm-up-run-timeout` - sets the time (in seconds) warm up crawler is allowed to run within single WP-Cron invocation. The value cannot be larger than value of `WP_CRON_LOCK_TIMEOUT` constant. Note that crawler stops only after this limit is reached. This means for example that even if the timeout is set to `0`, there is one HTTP request sent.
+* `bc-cache/filter:cache-warm-up-request-arguments` - filters [list of arguments](https://developer.wordpress.org/reference/classes/WP_Http/request/#parameters) of HTTP request run during warm up.
+
 Following filters are only useful if your theme declares support for [caching for front-end users](#front-end-users-and-caching):
 
 * `bc-cache/filter:frontend-user-capabilities` - filters list of capabilities of front-end users.
@@ -159,7 +165,7 @@ Following filters are only useful if your theme declares support for [caching fo
 ### Theme features
 
 Some advanced features must be supported by your theme and are active only if the theme explicitly declares its support for particular feature:
-* `add_theme_support('bc-cache/feature:frontend-users');` - activates [caching for front-end users](#front-end-users-and-caching).
+* `add_theme_support('bc-cache', 'caching-for-frontend-users');` - activates [caching for front-end users](#front-end-users-and-caching).
 
 ## Automatic cache flushing
 
@@ -184,6 +190,9 @@ The cache is flushed automatically on core actions listed below. The list of act
   4. [`wp_set_comment_status`](https://developer.wordpress.org/reference/hooks/wp_set_comment_status/)
   5. [`wp_update_comment_count`](https://developer.wordpress.org/reference/hooks/wp_update_comment_count/)
 
+* Site widgets configuration changes:
+  1. [`update_option_sidebars_widgets`](https://developer.wordpress.org/reference/hooks/update_option_option/) - the configuration is saved in `sidebars_widgets` option, so cache is flushed whenever this option is updated.
+
 ### Special handling of posts and terms
 
 In WordPress, posts can be used to hold various types of data - including data that is not presented on frontend in any way. To make cache flushing as sensible as possible, when a post is published or trashed the cache is flushed only when post type is **public**. You may use `bc-cache/filter:is-public-post-type` [filter](#filters) to override whether a particular post type is deemed as public for cache flushing purposes or not.
@@ -200,7 +209,7 @@ A response to HTTP(S) request is **not** cached by BC Cache if **any** of the co
 2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#filters).
 3. Request is not for a front-end page (ie. [`wp_using_themes`](https://developer.wordpress.org/reference/functions/wp_using_themes/) returns `false`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from a non-anonymous user (ie. user that is logged in, left a comment or accessed password protected page/post). The rule can be tweaked to ignore [front-end users](#front-end-users-and-caching) if your theme supports it.
-5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
+5. Request/response type is one of the following: XML sitemap, search, 404, feed, trackback, robots.txt, preview or password protected post.
 6. [Fatal error recovery mode](https://make.wordpress.org/core/2019/04/16/fatal-error-recovery-mode-in-5-2/) is active.
 7. `DONOTCACHEPAGE` constant is set and evaluates to true. This constant is for example [automatically set](https://docs.woocommerce.com/document/configuring-caching-plugins/#section-1) by WooCommerce on certain pages.
 8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
@@ -252,7 +261,7 @@ This way cached pages can be served to front-end users too. Cookie name and cont
 
 Sometimes a different HTML is served as response to request to the same URL, typically when particular cookie is set or request is made by particular browser/bot. In such cases, BC Cache allows to define request variants and cache/serve different HTML responses based on configured conditions. A typical example is the situation in which privacy policy notice is displayed until site visitor accepts it. The state (cookie policy accepted or not) is often determined based on presence of particular cookie. Using request variants, BC Cache can serve visitors regardless if they have or have not accepted the cookie policy.
 
-### Example
+### Request variant configuration example
 
 A website has two variants: one with cookie notice (_cookie_notice_accepted_ cookie is not set) and one without (_cookie_notice_accepted_ cookie is already set).
 
@@ -278,6 +287,45 @@ The [default configuration](#installation) needs to be extended as well and set 
 ```
 
 Important: Variant names are appended to basename part of cache file names, so `index.html` becomes `index_cna.html` and `index.html.gz` becomes `index_cna.html.gz` in the example above. To make sure your setup will work, use only letters from `[a-z0-9_-]` range as variant names.
+
+## Cache warm up
+
+Since version 2, the plugin performs _cache warm up_, ie. stores all pages in cache automatically without the need of front-end users to visit them. The obvious advantage is that even the first visitors of particular pages are served from cache (= fast).
+
+Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 15 minutes delay by default, but this can be configured).
+
+In order for the warm up to function properly:
+
+* List of URLs to crawl is composed from URLs returned by all registered WordPress core sitemap providers, therefore [WordPress core sitemap](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) feature has to be configured correctly even if it is not enabled on front-end.
+* In case [request variants](#request-variants) are used, the `bc-cache/filter:cache-warm-up-request-arguments` filter should be used to modify arguments of HTTP request to any non-default URL variant, so the website generates correct response to such request.
+* It is highly recommended to [hook WP-Cron into system task scheduler](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/) for increased performance.
+
+### Cache warm up configuration examples
+
+Invoke cache warm up just 5 minutes after last cache flush:
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-invocation-delay', function (): int { return 5 * MINUTE_IN_SECONDS; }, 10, 0);
+```
+
+Allow only single warm up HTTP request per WP-Cron invocation:
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-run-timeout', '__return_zero', 10, 0);
+```
+
+Modify arguments of HTTP request to get page variant with cookie notice accepted (see [request variant configuration example](#request-variant-configuration-example) for context):
+
+```php
+add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $args, string $url, string $request_variant): array {
+    if ($request_variant === '_cna') {
+        $args['cookies'] = [
+            'cookie_notice_accepted' => 'true',
+        ];
+    }
+    return $args;
+}, 10, 1);
+```
 
 ## Flushing the cache programmatically
 

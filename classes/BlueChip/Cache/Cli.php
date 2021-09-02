@@ -36,7 +36,7 @@ class Cli
      *
      *  wp bc-cache delete 123
      */
-    public function delete(array $args, array $assoc_args)
+    public function delete(array $args, array $assoc_args): void
     {
         if (empty($post_id = \intval($args[0]))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
@@ -67,7 +67,7 @@ class Cli
     /**
      * Flush entire cache.
      */
-    public function flush(array $args, array $assoc_args)
+    public function flush(array $args, array $assoc_args): void
     {
         \WP_CLI::line('Flushing BC Cache cache ...');
 
@@ -89,7 +89,7 @@ class Cli
      *
      * @subcommand size
      */
-    public function getSize(array $args, array $assoc_args)
+    public function getSize(array $args, array $assoc_args): void
     {
         // Process arguments.
         $human_readable = $assoc_args['human-readable'] ?? false;
@@ -114,7 +114,7 @@ class Cli
      *
      *  wp bc-cache remove http://www.example.com/some/thing/
      */
-    public function remove(array $args, array $assoc_args)
+    public function remove(array $args, array $assoc_args): void
     {
         if (empty($url = \filter_var($args[0], FILTER_VALIDATE_URL))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));

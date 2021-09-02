@@ -66,6 +66,8 @@ class Plugin
      * @var array List of whitelisted query string fields (these do not prevent cache write).
      */
     private const WHITELISTED_QUERY_STRING_FIELDS = [
+        // https://developers.google.com/gtagjs/devguide/linker
+        '_gl',
         // https://support.google.com/searchads/answer/7342044
         'gclid',
         'gclsrc',
@@ -100,23 +102,28 @@ class Plugin
      */
     private $cache_lock;
 
+    /**
+     * @var \BlueChip\Cache\Crawler
+     */
+    private $cache_crawler;
+
+    /**
+     * @var \BlueChip\Cache\Feeder
+     */
+    private $cache_feeder;
+
 
     /**
      * Perform activation and installation tasks.
      *
      * @internal Method should be run on plugin activation.
+     *
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
     public function activate(): void
     {
-        // Attempt to create cache lock file, but do not abort on error.
-        $this->cache_lock->setUp();
-
         // Attempt to create cache root directory.
         if (!$this->cache->setUp()) {
-            // Do not leave stray lock file behind.
-            $this->cache_lock->tearDown();
-
             // https://pento.net/2014/02/18/dont-let-your-plugin-be-activated-on-incompatible-sites/
             deactivate_plugins(plugin_basename($this->plugin_filename));
             wp_die(
@@ -125,6 +132,10 @@ class Plugin
                 ['back_link' => true]
             );
         }
+
+        $this->cache_feeder->setUp();
+        $this->cache_info->setUp();
+        $this->cache_lock->setUp();
     }
 
 
@@ -132,23 +143,14 @@ class Plugin
      * Perform deactivation tasks.
      *
      * @internal Method should be run on plugin deactivation.
+     *
      * @link https://developer.wordpress.org/plugins/the-basics/activation-deactivation-hooks/
      */
     public function deactivate(): void
     {
-        $this->cache->flush();
-    }
-
-
-    /**
-     * Perform uninstallation tasks.
-     *
-     * @internal Method should be run on plugin uninstall.
-     * @link https://developer.wordpress.org/plugins/the-basics/uninstall-methods/
-     */
-    public function uninstall(): void
-    {
+        $this->cache_crawler->deactivate();
         $this->cache->tearDown();
+        $this->cache_feeder->tearDown();
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
@@ -162,7 +164,9 @@ class Plugin
         $this->plugin_filename = $plugin_filename;
         $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
         $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
+        $this->cache_feeder = new Feeder();
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
+        $this->cache_crawler = new Crawler($this->cache, $this->cache_feeder);
     }
 
 
@@ -226,7 +230,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache))->init();
+            (new Viewer($this->cache, $this->cache_feeder))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
@@ -235,6 +239,14 @@ class Plugin
         } else {
             // Add action to catch output buffer.
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
+        }
+
+        if (self::isCacheWarmUpEnabled()) {
+            // Initialize warm up crawler.
+            $this->cache_crawler->init();
+
+            // Cache has been flushed so (maybe) warm it up again?
+            add_action(Hooks::ACTION_CACHE_FLUSHED, [$this, 'warmUp'], 10, 1);
         }
     }
 
@@ -282,9 +294,9 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/after_setup_theme/
      */
-    public function activateThemeFeatures()
+    public function activateThemeFeatures(): void
     {
-        if (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
+        if (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
             // Allow special cookie to be set for front-end users to enable serving of cached content to them.
             add_action('set_logged_in_cookie', [$this, 'setFrontendUserCookie'], 10, 4);
             add_action('clear_auth_cookie', [$this, 'clearFrontendUserCookie'], 10, 0);
@@ -296,6 +308,7 @@ class Plugin
      * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
      *
      * @param string $data
+     *
      * @return string
      */
     public function alterRobotsTxt(string $data): string
@@ -367,6 +380,7 @@ class Plugin
      * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
      *
      * @param string[] $items
+     *
      * @return string[]
      */
     public function addDashboardInfo(array $items): array
@@ -421,6 +435,7 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
+     *
      * @return bool Cached result of call to Core::flush().
      */
     public function flushCacheOnce(): bool
@@ -471,6 +486,7 @@ class Plugin
      * Push $buffer to cache and return it on output.
      *
      * @param string $buffer
+     *
      * @return string
      */
     public function handleOutputBuffer(string $buffer): string
@@ -527,7 +543,7 @@ class Plugin
      * @param int $expiration
      * @param int $user_id
      */
-    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id)
+    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
     {
         if (($user = get_user_by('id', $user_id)) === false) {
             return;
@@ -550,7 +566,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/clear_auth_cookie/
      */
-    public function clearFrontendUserCookie()
+    public function clearFrontendUserCookie(): void
     {
         \setcookie(
             apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
@@ -559,6 +575,30 @@ class Plugin
             COOKIEPATH,
             COOKIE_DOMAIN
         );
+    }
+
+
+    /**
+     * @param bool $tear_down
+     */
+    public function warmUp(bool $tear_down): void
+    {
+        // If not deactivating plugin instance, reset feeder and (re)activate crawler.
+        if (!$tear_down) {
+            $this->cache_feeder->reset();
+            $this->cache_crawler->activate();
+        }
+    }
+
+
+    /**
+     * Determine whether cache warm up feature should be enabled.
+     *
+     * @return bool True if cache warm up is enabled, false otherwise.
+     */
+    public static function isCacheWarmUpEnabled(): bool
+    {
+        return apply_filters(Hooks::FILTER_CACHE_WARM_ENABLED, true);
     }
 
 
@@ -583,7 +623,7 @@ class Plugin
         }
 
         // Only cache requests for anonymous or (if the theme supports it) front-end users.
-        if (!(Utils::isAnonymousUser() || (current_theme_supports(ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
+        if (!(Utils::isAnonymousUser() || (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS) && Utils::isFrontendUser()))) {
             return true;
         }
 
@@ -611,6 +651,7 @@ class Plugin
      * Check whether query string $fields allow page to be cached.
      *
      * @param string[] $fields Query string fields (keys).
+     *
      * @return bool True, if query string $fields contain only whitelisted values, false otherwise.
      */
     private static function checkQueryString(array $fields): bool

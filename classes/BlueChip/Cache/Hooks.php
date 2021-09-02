@@ -5,6 +5,11 @@ namespace BlueChip\Cache;
 abstract class Hooks
 {
     /**
+     * @var string Name of action that is triggered after cache has been flushed.
+     */
+    public const ACTION_CACHE_FLUSHED = 'bc-cache/action:cache-flushed';
+
+    /**
      * @var string Name of action that triggers cache flush.
      */
     public const ACTION_FLUSH_CACHE = 'bc-cache/action:flush-cache';
@@ -73,6 +78,31 @@ abstract class Hooks
      * @var string Name of hook to filter all configured HTTP request variants.
      */
     public const FILTER_REQUEST_VARIANTS = 'bc-cache/filter:request-variants';
+
+    /**
+     * @var string Name of hook to filter state (enabled or disabled) of cache warm up.
+     */
+    public const FILTER_CACHE_WARM_ENABLED = 'bc-cache/filter:cache-warm-up-enable';
+
+    /**
+     * @var string Name of hook to filter arguments of HTTP request run during cache warm up.
+     */
+    public const FILTER_CACHE_WARM_UP_REQUEST_ARGS = 'bc-cache/filter:cache-warm-up-request-arguments';
+
+    /**
+     * @var string Name of hook to filter the amount of time between cache flush and cache warm up invocation.
+     */
+    public const FILTER_CACHE_WARM_UP_INVOCATION_DELAY = 'bc-cache/filter:cache-warm-up-invocation-delay';
+
+    /**
+     * @var string Name of hook to filter time a single warm up run can take.
+     */
+    public const FILTER_CACHE_WARM_UP_RUN_TIMEOUT = 'bc-cache/filter:cache-warm-up-run-timeout';
+
+    /**
+     * @var string Name of hook to filter list of URLs to be fetched to cache warm up.
+     */
+    public const FILTER_CACHE_WARM_UP_URL_LIST = 'bc-cache/filter:cache-warm-url-list';
 
     /**
      * @var string Name of hook to filter list of whitelisted query string arguments.

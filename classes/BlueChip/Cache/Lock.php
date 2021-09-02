@@ -81,6 +81,7 @@ class Lock
      *
      * @param bool $exclusive If true, require exclusive lock. If false, require shared lock.
      * @param bool $non_blocking [optional] If true, do not wait for lock, but fail immediately.
+     *
      * @return bool True on success, false on failure.
      */
     public function acquire(bool $exclusive, bool $non_blocking = false): bool

@@ -20,6 +20,11 @@ class Viewer
     private $cache;
 
     /**
+     * @var \BlueChip\Cache\Feeder
+     */
+    private $cache_feeder;
+
+    /**
      * @var \BlueChip\Cache\ListTable
      */
     private $list_table;
@@ -27,10 +32,12 @@ class Viewer
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Feeder $cache_feeder
      */
-    public function __construct(Core $cache)
+    public function __construct(Core $cache, Feeder $cache_feeder)
     {
         $this->cache = $cache;
+        $this->cache_feeder = $cache_feeder;
     }
 
 
@@ -109,14 +116,40 @@ class Viewer
         // Page heading
         echo '<h1>' . esc_html__('BC Cache Viewer', 'bc-cache') . '</h1>';
 
-        // Cache directory path.
+        $this->renderCacheDirectoryInfo();
+
+        $this->renderCacheSizeInfo();
+
+        $this->renderWarmUpQueueInfo();
+
+        // View table
+        $this->list_table->views();
+        echo '<form method="post">';
+        $this->list_table->display();
+        echo '</form>';
+
+        echo '</div>';
+    }
+
+    /**
+     * Display information about cache directory path.
+     */
+    private function renderCacheDirectoryInfo(): void
+    {
         echo '<p>';
         echo \sprintf(
             esc_html__('Cache data are stored in %s directory.', 'bc-cache'),
             '<code>' . Plugin::CACHE_DIR . '</code>'
         );
         echo '</p>';
+    }
 
+
+    /**
+     * Display information about overall cache size.
+     */
+    private function renderCacheSizeInfo(): void
+    {
         // Gather cache statistics (age and size), if available.
         $cache_info = [];
 
@@ -137,14 +170,36 @@ class Viewer
         if ($cache_info !== []) {
             echo '<p>' . \implode(' ', $cache_info) . '</p>';
         }
+    }
 
-        // View table
-        $this->list_table->views();
-        echo '<form method="post">';
-        $this->list_table->display();
-        echo '</form>';
 
-        echo '</div>';
+    /**
+     * Display optional cache warm up information.
+     */
+    private function renderWarmUpQueueInfo(): void
+    {
+        $warm_up_queue_info = '';
+
+        if (Plugin::isCacheWarmUpEnabled()) {
+            $warm_up_queue_size = $this->cache_feeder->getSize();
+
+            if ($warm_up_queue_size === null) {
+                $warm_up_queue_info = esc_html__('Warm up queue has not been rebuilt yet.', 'bc-cache');
+            } elseif ($warm_up_queue_size === 0) {
+                $warm_up_queue_info = esc_html__('Warm up queue is empty. Website should be fully cached.', 'bc-cache');
+            } else {
+                $warm_up_queue_info = esc_html(
+                    \sprintf(
+                        _n('There is %d item in warm up queue.', 'There are %d items in warm up queue.', $warm_up_queue_size, 'bc-cache'),
+                        $warm_up_queue_size
+                    )
+                );
+            }
+        } else {
+            $warm_up_queue_info = esc_html__('Cache warm up is not enabled.', 'bc-cache');
+        }
+
+        echo '<p>' . $warm_up_queue_info . '</p>';
     }
 
 
