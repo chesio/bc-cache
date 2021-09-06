@@ -1,5 +1,9 @@
 # BC Cache Changelog
 
+## Upcoming version 2.1.0 (????-??-??)
+
+* Cache warm up works also on websites with XML sitemaps provided by Yoast SEO [#57](https://github.com/chesio/bc-cache/issues/57).
+
 ## Version 2.0.0 (2021-09-02)
 
 __WordPress 5.5 or newer is required.__
