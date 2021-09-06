@@ -123,7 +123,7 @@ class Feeder
         if (isset($GLOBALS['wpseo_sitemaps'])) {
             // XML sitemaps feature in Yoast SEO is active.
 
-            /** @var WPSEO_Sitemap_Provider[] */
+            /** @var \WPSEO_Sitemap_Provider[] */
             $sitemap_providers = $GLOBALS['wpseo_sitemaps']->providers;
 
             $entries_per_page = 1000; // This is default value used in Yoast SEO.
@@ -151,7 +151,7 @@ class Feeder
         } else {
             // Use XML sitemaps providers from WordPress core.
 
-            /** @var WP_Sitemaps_Provider[] */
+            /** @var \WP_Sitemaps_Provider[] */
             $sitemap_providers = wp_get_sitemap_providers();
 
             foreach ($sitemap_providers as $sitemap_provider) {
