@@ -1,6 +1,6 @@
 # BC Cache Changelog
 
-## Upcoming version 2.0.0 (2021-09-02)
+## Version 2.0.0 (2021-09-02)
 
 __WordPress 5.5 or newer is required.__
 
