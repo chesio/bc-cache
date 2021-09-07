@@ -30,17 +30,17 @@ class Crawler
     /**
      * @var Feeder
      */
-    private $feeder;
+    private $cache_feeder;
 
 
     /**
      * @param \BlueChip\Cache\Core $cache
-     * @param \BlueChip\Cache\Feeder $feeder
+     * @param \BlueChip\Cache\Feeder $cache_feeder
      */
-    public function __construct(Core $cache, Feeder $feeder)
+    public function __construct(Core $cache, Feeder $cache_feeder)
     {
         $this->cache = $cache;
-        $this->feeder = $feeder;
+        $this->cache_feeder = $cache_feeder;
     }
 
 
@@ -112,7 +112,7 @@ class Crawler
         $stop_at = (float) ($wp_cron_start_time + \min($timeout, WP_CRON_LOCK_TIMEOUT));
 
         // Get URLs to crawl (including request variants).
-        while (($item = $this->feeder->fetch()) !== null) {
+        while (($item = $this->cache_feeder->fetch()) !== null) {
             // Get URL and request variant to crawl.
             ['url' => $url, 'request_variant' => $request_variant] = $item;
 
@@ -126,7 +126,7 @@ class Crawler
 
                 if (wp_remote_retrieve_response_code($response) !== 200) {
                     // ... if there is unexpected response, push the item back to feeder.
-                    $this->feeder->push($item);
+                    $this->cache_feeder->push($item);
                 }
             }
 
