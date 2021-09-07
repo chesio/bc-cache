@@ -11,5 +11,3 @@ parameters:
     ignoreErrors:
         - '#^Function apply_filters invoked with [\d+] parameters, 2 required\.$#'
         - '#^Call to static method \S+\(\) on an unknown class WP_CLI\.$#'
-        - '#^Parameter \#1 \$separator of function explode expects non-empty-string, string given\.$#'
-    reportUnmatchedIgnoredErrors: false
