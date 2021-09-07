@@ -14,6 +14,15 @@ abstract class Integrations
             add_filter(Hooks::FILTER_FLUSH_HOOKS, [self::class, 'flushOnAutoptimizePurge'], 10, 1);
         }
 
+        // Integration with The SEO Framework
+        if (\defined('THE_SEO_FRAMEWORK_VERSION') && \version_compare(THE_SEO_FRAMEWORK_VERSION, '4.1.2', '>=')) {
+            // Supported version of The SEO Framework is installed and active.
+            if (!\the_seo_framework()->use_core_sitemaps()) {
+                // Core XML sitemaps are disabled.
+                add_filter(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, [self::class, 'getUrlsFromTheSeoFramework'], 10, 0);
+            }
+        }
+
         // Integration with Yoast SEO
         if (\defined('WPSEO_VERSION') && \version_compare(WPSEO_VERSION, '17.0', '>=')) {
             // Supported version of Yoast SEO is installed and active.
@@ -37,6 +46,35 @@ abstract class Integrations
         $hooks['autoptimize_action_cachepurged'] = 100;
 
         return $hooks;
+    }
+
+
+    /**
+     * @internal This method uses private API from The SEO Framework, so it may be prone to BC breaks.
+     *
+     * @return string[]|null List of URLs from The SEO Framework sitemap or null if the sitemap could not be processed.
+     */
+    public static function getUrlsFromTheSeoFramework(): ?array
+    {
+        $sitemap_base = new \The_SEO_Framework\Builders\Sitemap_Base();
+
+        $sitemap_xml = \implode(
+            PHP_EOL,
+            ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset>', $sitemap_base->generate_sitemap(), '</urlset>']
+        );
+
+        try {
+            $urlset_node = \simplexml_load_string($sitemap_xml);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        $urls = [];
+        foreach ($urlset_node->url as $url_node) {
+            $urls[] = (string) $url_node->loc;
+        }
+
+        return $urls;
     }
 
 
