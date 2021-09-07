@@ -10,14 +10,17 @@ abstract class Integrations
     public static function initialize()
     {
         // Integration with Autoptimize
-        if (defined('AUTOPTIMIZE_PLUGIN_VERSION')) {
+        if (\defined('AUTOPTIMIZE_PLUGIN_VERSION')) {
             add_filter(Hooks::FILTER_FLUSH_HOOKS, [self::class, 'flushOnAutoptimizePurge'], 10, 1);
         }
 
         // Integration with Yoast SEO
-        if (isset($GLOBALS['wpseo_sitemaps'])) {
-            // XML sitemaps feature in Yoast SEO is active.
-            add_filter(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, [self::class, 'getUrlsFromYoastSeoSitemap'], 10, 0);
+        if (\defined('WPSEO_VERSION') && \version_compare(WPSEO_VERSION, '17.0', '>=')) {
+            // Supported version of Yoast SEO is installed and active.
+            if (isset($GLOBALS['wpseo_sitemaps'])) {
+                // XML sitemaps feature in Yoast SEO is active.
+                add_filter(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, [self::class, 'getUrlsFromYoastSeoSitemap'], 10, 0);
+            }
         }
     }
 
