@@ -3,7 +3,7 @@
 namespace BlueChip\Cache;
 
 /**
- * Container for integrations with 3rt party plugins.
+ * Container for integrations with 3rd party plugins.
  */
 abstract class Integrations
 {
@@ -11,7 +11,7 @@ abstract class Integrations
     {
         // Integration with Autoptimize
         if (defined('AUTOPTIMIZE_PLUGIN_VERSION')) {
-            add_filter(Hooks::FILTER_FLUSH_HOOKS, [self::class, 'flushOnAutoptimizePurge'], 10, 0);
+            add_filter(Hooks::FILTER_FLUSH_HOOKS, [self::class, 'flushOnAutoptimizePurge'], 10, 1);
         }
 
         // Integration with Yoast SEO
