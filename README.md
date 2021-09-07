@@ -51,9 +51,9 @@ cd [your-project]/wp-content/plugins/bc-cache
 git pull
 ```
 
-### Using GitHub Updater plugin
+### Using Git Updater plugin
 
-BC Cache can be installed and updated via [GitHub Updater](https://github.com/afragen/github-updater) plugin.
+Once installed, BC Cache can be kept up to date via [Git Updater](https://github.com/afragen/git-updater) plugin. To install it either use the [direct download](#direct-download) method described below or use [Git Updater Pro](https://git-updater.com/).
 
 ### Direct download
 
