@@ -297,7 +297,7 @@ Internally, the warm up process is hooked to WP-Cron and the website is crawling
 
 In order for the warm up to function properly:
 
-* XML sitemaps feature in [Yoast SEO](https://yoast.com/help/xml-sitemaps-in-the-wordpress-seo-plugin/) or in [WordPress core](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) has to be active and configured properly.
+* XML sitemaps feature in [The SEO Framework](https://wordpress.org/plugins/autodescription/), [Yoast SEO](https://yoast.com/help/xml-sitemaps-in-the-wordpress-seo-plugin/) or in [WordPress core](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) has to be active and configured properly.
 * In case [request variants](#request-variants) are used, the `bc-cache/filter:cache-warm-up-request-arguments` filter should be used to modify arguments of HTTP request to any non-default URL variant, so the website generates correct response to such request.
 * It is highly recommended to [hook WP-Cron into system task scheduler](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/) for increased performance.
 
