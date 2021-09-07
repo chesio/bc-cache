@@ -20,7 +20,7 @@ class Viewer
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Feeder
+     * @var \BlueChip\Cache\Feeder|null
      */
     private $cache_feeder;
 
@@ -32,9 +32,9 @@ class Viewer
 
     /**
      * @param \BlueChip\Cache\Core $cache
-     * @param \BlueChip\Cache\Feeder $cache_feeder
+     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache, Feeder $cache_feeder)
+    public function __construct(Core $cache, ?Feeder $cache_feeder)
     {
         $this->cache = $cache;
         $this->cache_feeder = $cache_feeder;
@@ -100,7 +100,7 @@ class Viewer
      */
     public function loadPage(): void
     {
-        $this->list_table = new ListTable($this->cache, self::getUrl());
+        $this->list_table = new ListTable($this->cache, $this->cache_feeder, self::getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
@@ -180,7 +180,7 @@ class Viewer
     {
         $warm_up_queue_info = '';
 
-        if (Plugin::isCacheWarmUpEnabled()) {
+        if ($this->cache_feeder !== null) {
             $warm_up_queue_size = $this->cache_feeder->getSize();
 
             if ($warm_up_queue_size === null) {

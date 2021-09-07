@@ -53,6 +53,11 @@ class ListTable extends \WP_List_Table
     private $cache;
 
     /**
+     * @var \BlueChip\Cache\Feeder|null
+     */
+    private $cache_feeder;
+
+    /**
      * @var string[] List of known request variants: id => label
      */
     private $request_variants = [];
@@ -80,8 +85,10 @@ class ListTable extends \WP_List_Table
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
+     * @param string $url
      */
-    public function __construct(Core $cache, string $url)
+    public function __construct(Core $cache, ?Feeder $cache_feeder, string $url)
     {
         parent::__construct([
             'singular' => __('Entry', 'bc-cache'),
@@ -90,6 +97,7 @@ class ListTable extends \WP_List_Table
         ]);
 
         $this->cache = $cache;
+        $this->cache_feeder = $cache_feeder;
         $this->url = $url;
 
         // Get list of request variants.
@@ -338,7 +346,17 @@ class ListTable extends \WP_List_Table
 
             if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
-                $query_arg = $this->cache->delete($url, $request_variant) ? self::NOTICE_ENTRY_DELETED : self::NOTICE_ENTRY_FAILED;
+                if ($this->cache->delete($url, $request_variant)) {
+                    if ($this->cache_feeder !== null) {
+                        // Push item to feeder, but ignore any return value.
+                        $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
+                    }
+
+                    $query_arg = self::NOTICE_ENTRY_DELETED;
+                } else {
+                    $query_arg = self::NOTICE_ENTRY_FAILED;
+                }
+
                 wp_redirect(add_query_arg($query_arg, 1, $this->url));
             }
         }

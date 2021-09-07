@@ -185,7 +185,10 @@ class Plugin
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
-            \WP_CLI::add_command('bc-cache', new Cli($this->cache));
+            \WP_CLI::add_command(
+                'bc-cache',
+                new Cli($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null)
+            );
         });
 
         // Activate features that must be explicitly supported by active theme.
@@ -230,7 +233,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache, $this->cache_feeder))->init();
+            (new Viewer($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
@@ -596,7 +599,7 @@ class Plugin
      *
      * @return bool True if cache warm up is enabled, false otherwise.
      */
-    public static function isCacheWarmUpEnabled(): bool
+    private static function isCacheWarmUpEnabled(): bool
     {
         return apply_filters(Hooks::FILTER_CACHE_WARM_ENABLED, true);
     }
