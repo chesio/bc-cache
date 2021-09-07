@@ -208,6 +208,9 @@ class Plugin
      */
     public function init(): void
     {
+        // Activate integrations with 3rd party plugins - must be done early in this method!
+        Integrations::initialize();
+
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
@@ -215,9 +218,6 @@ class Plugin
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
         }
-
-        // Add action to flush entire cache whenever Autoptimize's cache is purged.
-        add_action('autoptimize_action_cachepurged', [$this, 'flushCacheOnce'], 10, 0);
 
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);

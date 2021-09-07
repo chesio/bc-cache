@@ -108,66 +108,43 @@ class Feeder
     /**
      * Get list of URLs to crawl.
      *
-     * Internally, this method fetches URLs from XML sitemap providers - the following providers are supported:
-     *
-     * 1. Yoast SEO - XML sitemaps have to be turned on in plugin settings.
-     *
-     * If no provider in the list above is available, WordPress core XML sitemap providers are used as fallback method.
+     * Internally, this method fetches URLs from core XML sitemap providers, but this handling can be shortcut
+     * via `bc-cache/filter:cache-warm-up-initial-url-list` filter.
      *
      * @return string[] List of URLs to crawl
      */
     private function getUrls(): array
     {
-        $urls = [];
+        $urls = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, null);
 
-        if (isset($GLOBALS['wpseo_sitemaps'])) {
-            // XML sitemaps feature in Yoast SEO is active.
+        if ($urls === null) {
+            // If no URLs are provided by other means, sse XML sitemaps providers from WordPress core.
 
-            $sitemap_providers = $GLOBALS['wpseo_sitemaps']->providers;
-
-            $entries_per_page = 1000; // This is default value used in Yoast SEO.
-
-            foreach ($sitemap_providers as $sitemap_provider) {
-                // Types of sitemaps cannot be retrieved in any simpler way, we have to parse them from index links.
-                $index_links = $sitemap_provider->get_index_links($entries_per_page);
-
-                foreach ($index_links as ['loc' => $index_link]) {
-                    $matches = [];
-
-                    if (preg_match('/(\w+)\-sitemap(\d*)\.xml$/', $index_link, $matches) !== false) {
-                        $type = $matches[1];
-                        $page_num = $matches[2] ? (int) $matches[2] : 1;
-
-                        if ($sitemap_provider->handles_type($type)) {
-                            $urls[] = \array_column(
-                                $sitemap_provider->get_sitemap_links($type, $entries_per_page, $page_num),
-                                'loc'
-                            );
-                        }
-                    }
-                }
-            }
-        } else {
-            // Use XML sitemaps providers from WordPress core.
-
-            /** @var \WP_Sitemaps_Provider[] */
+            /** @var \WP_Sitemaps_Provider[] $sitemap_providers */
             $sitemap_providers = wp_get_sitemap_providers();
+
+            $url_sets = [];
 
             foreach ($sitemap_providers as $sitemap_provider) {
                 foreach (\array_keys($sitemap_provider->get_object_subtypes()) as $object_subtype) {
                     $max_num_pages = $sitemap_provider->get_max_num_pages($object_subtype);
                     for ($page_num = 1; $page_num <= $max_num_pages; ++$page_num) {
-                        $urls[] = \array_column(
+                        $url_sets[] = \array_column(
                             $sitemap_provider->get_url_list($page_num, $object_subtype),
                             'loc'
                         );
                     }
                 }
             }
+
+            $urls = \array_merge(...$url_sets);
         }
 
         // Prepend home URL to the merged list of all URLs as it arguably represents the most important page on website.
-        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_URL_LIST, \array_merge([home_url('/'),], ...$urls)));
+        \array_unshift($urls, home_url('/'));
+
+        // Make sure only unique URLs are returned.
+        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_FINAL_URL_LIST, $urls));
     }
 
 
