@@ -123,7 +123,6 @@ class Feeder
         if (isset($GLOBALS['wpseo_sitemaps'])) {
             // XML sitemaps feature in Yoast SEO is active.
 
-            /** @var \WPSEO_Sitemap_Provider[] */
             $sitemap_providers = $GLOBALS['wpseo_sitemaps']->providers;
 
             $entries_per_page = 1000; // This is default value used in Yoast SEO.
