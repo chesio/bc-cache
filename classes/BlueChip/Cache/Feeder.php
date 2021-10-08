@@ -38,25 +38,6 @@ class Feeder
 
 
     /**
-     * @param array{'url': string, 'request_variant': string} $item Item to crawl as pair of ['url', 'request_variant'] values.
-     *
-     * @return bool True on success, false on failure.
-     */
-    public function push(array $item): bool
-    {
-        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
-
-        if (\is_array($queue)) {
-            $queue[] = $item; // Push at the end of queue.
-        } else {
-            $queue = $this->requeue(); // Queue has to be rebuilt, so ignore the pushed item.
-        }
-
-        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
-    }
-
-
-    /**
      * @return int|null Count of items in the queue or null if queue has to be rebuilt yet.
      */
     public function getSize(): ?int

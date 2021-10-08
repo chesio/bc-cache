@@ -125,16 +125,20 @@ class Crawler
                 $response = wp_remote_get($url, $args);
 
                 if (wp_remote_retrieve_response_code($response) !== 200) {
-                    // ... if there is unexpected response, push the item back to feeder.
-                    $this->cache_feeder->push($item);
+                    // ... if there is unexpected response, bail current WP-Cron invocation.
+                    break;
                 }
             }
 
             if (\microtime(true) >= $stop_at) {
-                // Stop if we run out of time, but make sure to continue on next WP-Cron invocation.
-                $this->schedule();
+                // Stop if we run out of time in current WP-Cron invocation.
                 break;
             }
+        }
+
+        // If there are any items to crawl left, schedule next crawl.
+        if (($this->feeder->getSize() ?: 0) > 0) {
+            $this->schedule();
         }
     }
 }
