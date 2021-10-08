@@ -137,7 +137,7 @@ class Crawler
         }
 
         // If there are any items to crawl left, schedule next crawl.
-        if (($this->feeder->getSize() ?: 0) > 0) {
+        if (($this->cache_feeder->getSize() ?: 0) > 0) {
             $this->schedule();
         }
     }
