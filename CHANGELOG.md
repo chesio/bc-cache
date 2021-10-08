@@ -2,10 +2,20 @@
 
 ## Upcoming version 2.1.0 (????-??-??)
 
+### Added
+
 * Cache warm up works also on websites with XML sitemaps provided by [The SEO Framework](https://wordpress.org/plugins/autodescription/) plugin [#58](https://github.com/chesio/bc-cache/issues/58) - version `4.1.2` or newer of The SEO Framework is required for the integration to work.
 * Cache warm up works also on websites with XML sitemaps provided by [Yoast SEO](https://wordpress.org/plugins/wordpress-seo/) plugin [#57](https://github.com/chesio/bc-cache/issues/57) - version `17.0` or newer of Yoast SEO is required for the integration to work.
+* When single URL is deleted via WP-CLI or Cache Viewer, all its variants are added to cache warm up queue automatically [#60](https://github.com/chesio/bc-cache/issues/60).
 * Introduce `bc-cache/filter:cache-warm-up-initial-url-list` filter.
+
+### Changed
+
 * Change name of following cache warm up related filter: `bc-cache/filter:cache-warm-url-list` is now `bc-cache/filter:cache-warm-up-final-url-list`.
+
+### Fixed
+
+* WP-CLI delete and remove commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
 
 ## Version 2.0.1 (2021-10-08)
 
