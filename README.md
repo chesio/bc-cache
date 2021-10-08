@@ -292,7 +292,7 @@ Important: Variant names are appended to basename part of cache file names, so `
 
 Since version 2, the plugin performs _cache warm up_, ie. stores all pages in cache automatically without the need of front-end users to visit them. The obvious advantage is that even the first visitors of particular pages are served from cache (= fast).
 
-Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 15 minutes delay by default, but this can be configured).
+Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 10 minutes delay by default, but this can be configured).
 
 In order for the warm up to function properly:
 

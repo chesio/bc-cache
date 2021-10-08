@@ -1,6 +1,12 @@
 # BC Cache Changelog
 
-## Upcoming version 2.0.0 (????-??-??)
+## Version 2.0.1 (2021-10-08)
+
+This is a hotfix release:
+
+* Avoid falling into infinite loop when server starts having problems with loopback requests [#62](https://github.com/chesio/bc-cache/issues/62)
+
+## Version 2.0.0 (2021-09-02)
 
 WordPress 5.5 or newer is required.
 
