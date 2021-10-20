@@ -486,12 +486,14 @@ class Plugin
      * Push $buffer to cache and return it on output.
      *
      * @param string $buffer
+     * @param int $phase
      *
      * @return string
      */
-    public function handleOutputBuffer(string $buffer): string
+    public function handleOutputBuffer(string $buffer, int $phase): string
     {
-        if (!empty($buffer)) {
+        // If this is the final output buffering operation and buffer is not empty, write buffer contents to cache.
+        if (($phase & PHP_OUTPUT_HANDLER_FINAL) && ($buffer !== '')) {
             $this->cache->push(
                 Utils::getRequestUrl(),
                 $buffer . $this->getSignature(),
@@ -529,7 +531,7 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                wp_date('d.m.Y H:i:s', \intval(\time()))
+                wp_date('d.m.Y H:i:s', \time())
             )
         );
     }
