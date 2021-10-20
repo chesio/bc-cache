@@ -17,6 +17,12 @@
 
 * WP-CLI delete and remove commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
 
+## Version 2.0.2 (2021-10-20)
+
+This is a hotfix release:
+
+* Output buffer handling has been optimized to improve integration with other plugins [#63](https://github.com/chesio/bc-cache/issues/63)
+
 ## Version 2.0.1 (2021-10-08)
 
 This is a hotfix release:
