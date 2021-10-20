@@ -336,6 +336,15 @@ If you want to flush BC Cache cache from within your code, just call `do_action(
 
 [Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
 
+## 7G firewall integration
+
+If you happen to have [7G firewall](https://perishablepress.com/7g-firewall/) by Jeff Starr installed on your website, you may have to alter the rule in `7G:[REQUEST URI]` section that prevents access to `.gz` files (note that the code snippet below has been shortened with `...` for better readability):
+```.apacheconf
+RewriteCond %{REQUEST_URI} (\.)(7z|...|git|gz|hg|...|zlib)$ [NC,OR]
+```
+
+If you see 403 errors instead of cached pages, you have to either remove the `|gz` part from the `RewriteCond` line above or remove the line completely.
+
 ## WP-CLI integration
 
 You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache or get size information. BC Cache registers `bc-cache` command with following subcommands:
