@@ -531,7 +531,7 @@ class Plugin
                 PHP_EOL . PHP_EOL,
                 'BC Cache',
                 __('Generated', 'bc-cache'),
-                wp_date('d.m.Y H:i:s', \intval(\time()))
+                wp_date('d.m.Y H:i:s', \time())
             )
         );
     }
