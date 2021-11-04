@@ -202,6 +202,17 @@ Note: Changing post status to _draft_, _future_ or _pending_ always triggers cac
 
 Terms (taxonomies) are handled in a similar manner - cache is automatically flushed when a term is created, deleted or edited, but only in case of terms from a public taxonomy. You may use `bc-cache/filter:is-public-taxonomy` [filter](#filters) to override whether a particular taxonomy should be deemed as public or not.
 
+## Flushing the cache programmatically
+
+If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
+
+### Scheduled cache flushing
+
+Flushing of BC Cache cache on given schedule can be easily achieved with [WP-Cron](https://developer.wordpress.org/plugins/cron/) - you only have to hook the `bc-cache/action:flush-cache` to a scheduled event. Following WP-CLI command sets WP-Cron event that triggers cache flush every midnight:
+```bash
+wp cron event schedule 'bc-cache/action:flush-cache' midnight daily
+```
+
 ## Cache exclusions
 
 A response to HTTP(S) request is **not** cached by BC Cache if **any** of the conditions below evaluates as true:
@@ -327,10 +338,6 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
     return $args;
 }, 10, 1);
 ```
-
-## Flushing the cache programmatically
-
-If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
 
 ## Autoptimize integration
 
