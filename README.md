@@ -208,7 +208,7 @@ If you want to flush BC Cache cache from within your code, just call `do_action(
 
 ### Scheduled cache flushing
 
-Flushing of BC Cache cache on given schedule can be easily achieved with [WP-Cron](https://developer.wordpress.org/plugins/cron/) - you only have to hook the `bc-cache/action:flush-cache` to a scheduled event. Following WP-CLI command sets WP-Cron event that triggers cache flush every midnight:
+Flushing of BC Cache cache on given schedule can be easily achieved with [WP-Cron](https://developer.wordpress.org/plugins/cron/) - you only have to hook the `bc-cache/action:flush-cache` action to a scheduled event. Following WP-CLI command sets WP-Cron event that triggers cache flush every midnight:
 ```bash
 wp cron event schedule 'bc-cache/action:flush-cache' midnight daily
 ```
