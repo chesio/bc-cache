@@ -673,19 +673,22 @@ class Core
      */
     private static function normalizePath(string $path): string
     {
+        if ($path === '') {
+            // Return empty path as is.
+            return $path;
+        }
+
         // Sanitize directory separators.
         $sanitized = \str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
 
         // Break path into directory parts.
-        if (empty($parts = \explode(DIRECTORY_SEPARATOR, $sanitized))) {
-            return '';
-        }
+        $parts = \explode(DIRECTORY_SEPARATOR, $sanitized);
 
         // Always keep the first part (even if empty) - assume absolute path.
         $absolutes = [\array_shift($parts)];
 
         foreach ($parts as $part) {
-            if (empty($part) || $part === '.') {
+            if (($part === '') || ($part === '.')) {
                 continue;
             }
 
