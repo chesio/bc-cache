@@ -403,16 +403,16 @@
         },
         {
             "name": "szepeviktor/phpstan-wordpress",
-            "version": "v1.0.0",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/szepeviktor/phpstan-wordpress.git",
-                "reference": "ae7f2676776000b7627f2644ab05e0f233061509"
+                "reference": "a90b660b346096bd097a8b797db10428511ef64a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/szepeviktor/phpstan-wordpress/zipball/ae7f2676776000b7627f2644ab05e0f233061509",
-                "reference": "ae7f2676776000b7627f2644ab05e0f233061509",
+                "url": "https://api.github.com/repos/szepeviktor/phpstan-wordpress/zipball/a90b660b346096bd097a8b797db10428511ef64a",
+                "reference": "a90b660b346096bd097a8b797db10428511ef64a",
                 "shasum": ""
             },
             "require": {
@@ -457,7 +457,7 @@
             ],
             "support": {
                 "issues": "https://github.com/szepeviktor/phpstan-wordpress/issues",
-                "source": "https://github.com/szepeviktor/phpstan-wordpress/tree/v1.0.0"
+                "source": "https://github.com/szepeviktor/phpstan-wordpress/tree/v1.0.1"
             },
             "funding": [
                 {
@@ -465,7 +465,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2021-11-01T11:33:01+00:00"
+            "time": "2021-11-17T21:25:03+00:00"
         }
     ],
     "aliases": [],
