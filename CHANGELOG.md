@@ -16,7 +16,7 @@
 
 ### Fixed
 
-* WP-CLI delete and remove commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
+* WP-CLI `delete` and `remove` commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
 
 ## Version 2.0.2 (2021-10-20)
 
