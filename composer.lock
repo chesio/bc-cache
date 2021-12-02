@@ -160,16 +160,16 @@
     "packages-dev": [
         {
             "name": "php-stubs/wordpress-stubs",
-            "version": "v5.8.1",
+            "version": "v5.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wordpress-stubs.git",
-                "reference": "8b333464d3183bccde2fdbb814e3cae592434943"
+                "reference": "67fd773742b7be5b4463f40318b0b4890a07033b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/8b333464d3183bccde2fdbb814e3cae592434943",
-                "reference": "8b333464d3183bccde2fdbb814e3cae592434943",
+                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/67fd773742b7be5b4463f40318b0b4890a07033b",
+                "reference": "67fd773742b7be5b4463f40318b0b4890a07033b",
                 "shasum": ""
             },
             "replace": {
@@ -198,22 +198,22 @@
             ],
             "support": {
                 "issues": "https://github.com/php-stubs/wordpress-stubs/issues",
-                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v5.8.1"
+                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v5.8.2"
             },
-            "time": "2021-09-09T22:10:19+00:00"
+            "time": "2021-11-11T13:57:00+00:00"
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.1.2",
+            "version": "1.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "bcea0ae85868a89d5789c75f012c93129f842934"
+                "reference": "cbe085f9fdead5b6d62e4c022ca52dc9427a10ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/bcea0ae85868a89d5789c75f012c93129f842934",
-                "reference": "bcea0ae85868a89d5789c75f012c93129f842934",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/cbe085f9fdead5b6d62e4c022ca52dc9427a10ee",
+                "reference": "cbe085f9fdead5b6d62e4c022ca52dc9427a10ee",
                 "shasum": ""
             },
             "require": {
@@ -229,7 +229,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.0-dev"
+                    "dev-master": "1.2-dev"
                 }
             },
             "autoload": {
@@ -244,7 +244,7 @@
             "description": "PHPStan - PHP Static Analysis Tool",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/1.1.2"
+                "source": "https://github.com/phpstan/phpstan/tree/1.2.0"
             },
             "funding": [
                 {
@@ -264,7 +264,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-11-09T12:41:09+00:00"
+            "time": "2021-11-18T14:09:01+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",
@@ -403,16 +403,16 @@
         },
         {
             "name": "szepeviktor/phpstan-wordpress",
-            "version": "v1.0.1",
+            "version": "v1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/szepeviktor/phpstan-wordpress.git",
-                "reference": "a90b660b346096bd097a8b797db10428511ef64a"
+                "reference": "d44b5abcaa529698e138b2d21bc2a7cf9834039c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/szepeviktor/phpstan-wordpress/zipball/a90b660b346096bd097a8b797db10428511ef64a",
-                "reference": "a90b660b346096bd097a8b797db10428511ef64a",
+                "url": "https://api.github.com/repos/szepeviktor/phpstan-wordpress/zipball/d44b5abcaa529698e138b2d21bc2a7cf9834039c",
+                "reference": "d44b5abcaa529698e138b2d21bc2a7cf9834039c",
                 "shasum": ""
             },
             "require": {
@@ -424,7 +424,6 @@
             "require-dev": {
                 "composer/composer": "^1.10.23",
                 "dealerdirect/phpcodesniffer-composer-installer": "^0.7",
-                "nikic/php-parser": "< 4.13.0",
                 "php-parallel-lint/php-parallel-lint": "^1.1",
                 "phpstan/phpstan-strict-rules": "^1.0",
                 "phpunit/phpunit": "^7 || ^9",
@@ -457,7 +456,7 @@
             ],
             "support": {
                 "issues": "https://github.com/szepeviktor/phpstan-wordpress/issues",
-                "source": "https://github.com/szepeviktor/phpstan-wordpress/tree/v1.0.1"
+                "source": "https://github.com/szepeviktor/phpstan-wordpress/tree/v1.0.2"
             },
             "funding": [
                 {
@@ -465,7 +464,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2021-11-17T21:25:03+00:00"
+            "time": "2021-11-19T12:47:11+00:00"
         }
     ],
     "aliases": [],
