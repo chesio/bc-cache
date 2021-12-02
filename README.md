@@ -10,7 +10,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 ## Requirements
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://www.php.net/) 7.2 or newer
+* [PHP](https://www.php.net/) 7.3 or newer
 * [WordPress](https://wordpress.org/) 5.5 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations

@@ -18,6 +18,10 @@
 
 * WP-CLI `delete` and `remove` commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
 
+### Removed
+
+* Plugin no longer officially supports PHP 7.2, PHP 7.3 or newer is required.
+
 ## Version 2.0.2 (2021-10-20)
 
 This is a hotfix release:
