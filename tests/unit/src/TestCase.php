@@ -40,4 +40,15 @@ class TestCase extends \PHPUnit\Framework\TestCase
         Monkey\tearDown();
         parent::tearDown();
     }
+
+
+    /**
+     * Run private or protected static $method from $class with given $args and pass its return value.
+     */
+    protected function runUnaccessibleStaticMethod(string $class, string $method, array $args)
+    {
+        $method = (new \ReflectionClass($class))->getMethod($method);
+        $method->setAccessible(true);
+        return $method->invokeArgs(null, $args);
+    }
 }
