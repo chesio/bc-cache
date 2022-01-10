@@ -4,8 +4,8 @@ namespace {
     function the_seo_framework() {}
 }
 
-namespace The_SEO_Framework\Builders {
-    class Sitemap_Base {
+namespace The_SEO_Framework\Builders\Sitemap {
+    class Base {
         /**
          * @param string $sitemap_id
          *
