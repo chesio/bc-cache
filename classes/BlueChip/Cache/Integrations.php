@@ -18,7 +18,7 @@ abstract class Integrations
         }
 
         // Integration with The SEO Framework
-        if (\defined('THE_SEO_FRAMEWORK_VERSION') && \version_compare(THE_SEO_FRAMEWORK_VERSION, '4.1.2', '>=')) {
+        if (\defined('THE_SEO_FRAMEWORK_VERSION') && \version_compare(THE_SEO_FRAMEWORK_VERSION, '4.2.0', '>=')) {
             // Supported version of The SEO Framework is installed and active.
             if (!\the_seo_framework()->use_core_sitemaps()) {
                 // Core XML sitemaps are disabled.
@@ -59,7 +59,7 @@ abstract class Integrations
      */
     public static function getUrlsFromTheSeoFramework(): ?array
     {
-        $sitemap_base = new \The_SEO_Framework\Builders\Sitemap_Base();
+        $sitemap_base = new \The_SEO_Framework\Builders\Sitemap\Base();
 
         $sitemap_xml = \implode(
             PHP_EOL,
