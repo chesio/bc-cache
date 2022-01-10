@@ -167,7 +167,7 @@ class Core
             return false;
         }
 
-        if (!\file_exists($path)) {
+        if (!\is_dir($path)) {
             // No cache entries for given URL not exist, so we're done.
             return true;
         }

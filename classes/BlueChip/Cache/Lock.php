@@ -12,7 +12,7 @@ namespace BlueChip\Cache;
 class Lock
 {
     /**
-     * @var string
+     * @var string Absolute path to lock file.
      */
     private $file_name;
 
@@ -23,7 +23,7 @@ class Lock
 
 
     /**
-     * @param string $file_name Lock file name.
+     * @param string $file_name Lock file name (must be absolute path).
      */
     public function __construct(string $file_name)
     {
@@ -94,7 +94,7 @@ class Lock
         if (!\is_resource($this->file_handle)) {
             // Lock file not opened yet or closed already.
 
-            if (!\file_exists($this->file_name) && !$this->setUp()) {
+            if (!\is_file($this->file_name) && !$this->setUp()) {
                 // Lock file not available => silently pass.
                 return true;
             }
