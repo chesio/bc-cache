@@ -7,7 +7,7 @@ namespace BlueChip\Cache;
  *
  * @internal In case of I/O errors, locking fails silently - acquiring and releasing of lock always succeeds immediately.
  *
- * @link https://secure.php.net/manual/en/function.flock.php
+ * @link https://www.php.net/manual/en/function.flock.php
  */
 class Lock
 {
