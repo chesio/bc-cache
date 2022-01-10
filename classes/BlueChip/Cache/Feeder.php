@@ -108,7 +108,7 @@ class Feeder
     /**
      * Get list of URLs to crawl.
      *
-     * Internally, this method fetches URLs from core XML sitemap providers, but this handling can be shortcut
+     * This method fetches URLs from core XML sitemap providers, but this handling can be shortcut
      * via `bc-cache/filter:cache-warm-up-initial-url-list` filter.
      *
      * @return string[] List of URLs to crawl
@@ -118,7 +118,7 @@ class Feeder
         $urls = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, null);
 
         if ($urls === null) {
-            // If no URLs are provided by other means, sse XML sitemaps providers from WordPress core.
+            // If no URLs are provided by other means, use XML sitemaps providers from WordPress core.
 
             /** @var \WP_Sitemaps_Provider[] $sitemap_providers */
             $sitemap_providers = wp_get_sitemap_providers();
