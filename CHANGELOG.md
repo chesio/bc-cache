@@ -5,8 +5,9 @@
 ### Added
 
 * Plugin should be compatible with PHP 8.1 [#67](https://github.com/chesio/bc-cache/issues/67).
-* Cache warm up works also on websites with XML sitemaps provided by [The SEO Framework](https://wordpress.org/plugins/autodescription/) plugin [#58](https://github.com/chesio/bc-cache/issues/58) - version `4.2.0` or newer of The SEO Framework is required for the integration to work.
-* Cache warm up works also on websites with XML sitemaps provided by [Yoast SEO](https://wordpress.org/plugins/wordpress-seo/) plugin [#57](https://github.com/chesio/bc-cache/issues/57) - version `17.0` or newer of Yoast SEO is required for the integration to work.
+* Cache warm up works also on websites with XML sitemaps output by [The SEO Framework](https://wordpress.org/plugins/autodescription/) plugin [#58](https://github.com/chesio/bc-cache/issues/58) - version `4.2.0` or newer of The SEO Framework is required for the integration to work.
+* Cache warm up works also on websites with XML sitemaps output by [Yoast SEO](https://wordpress.org/plugins/wordpress-seo/) plugin [#57](https://github.com/chesio/bc-cache/issues/57) - version `17.0` or newer of Yoast SEO is required for the integration to work.
+* Cache warm up works on [Polylang](https://wordpress.org/plugins/polylang/)-powered multilanguage websites [#59](https://github.com/chesio/bc-cache/issues/59).
 * When single URL is deleted via WP-CLI or Cache Viewer, all its variants are added to cache warm up queue automatically [#60](https://github.com/chesio/bc-cache/issues/60).
 * Introduce `bc-cache/filter:cache-warm-up-initial-url-list` filter.
 
