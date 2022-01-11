@@ -1,6 +1,10 @@
 # BC Cache Changelog
 
-## Upcoming version 2.1.0 (2022-01-11)
+## Upcoming version 2.2.0 (????-??-??)
+
+...
+
+## Version 2.1.0 (2022-01-11)
 
 Improve cache warm up feature and include some further improvements and tweaks.
 
