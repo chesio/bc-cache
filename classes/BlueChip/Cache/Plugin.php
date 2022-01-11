@@ -185,9 +185,14 @@ class Plugin
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
+            $cache_warm_up_enabled = self::isCacheWarmUpEnabled();
             \WP_CLI::add_command(
                 'bc-cache',
-                new Cli($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null)
+                new Cli(
+                    $this->cache,
+                    $cache_warm_up_enabled ? $this->cache_crawler : null,
+                    $cache_warm_up_enabled ? $this->cache_feeder : null
+                )
             );
         });
 
