@@ -2,7 +2,7 @@
 
 ## Upcoming version 2.2.0 (????-??-??)
 
-...
+This release has been tested with WordPress 5.9.
 
 ## Version 2.1.0 (2022-01-11)
 
