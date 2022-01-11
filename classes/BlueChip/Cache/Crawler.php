@@ -93,7 +93,7 @@ class Crawler
      */
     public function init(): void
     {
-        add_action(self::CRON_JOB_HOOK, [$this, 'run'], 10, 0);
+        add_action(self::CRON_JOB_HOOK, [$this, 'runCronJob'], 10, 0);
     }
 
 
@@ -102,14 +102,38 @@ class Crawler
      *
      * @internal This method is hooked to WP-Cron.
      */
-    public function run(): void
+    public function runCronJob(): void
     {
-        // Make sure we don't run (much) longer that single WP-Cron run is allowed/expected to take.
-        $wp_cron_start_time = get_transient('doing_cron') ?: \microtime(true);
-        // Warm up time to run value can be filtered...
-        $timeout = apply_filters(Hooks::FILTER_CACHE_WARM_UP_RUN_TIMEOUT, WP_CRON_LOCK_TIMEOUT);
-        // ...but it can only be set to value equal or lower than (default) WP_CRON_LOCK_TIMEOUT.
-        $stop_at = (float) ($wp_cron_start_time + \min($timeout, WP_CRON_LOCK_TIMEOUT));
+        // A single warm up run must not run (much) longer than single WP-Cron run is allowed/expected to take, therefore:
+        $now = \microtime(true);
+        // 1) Get the time current WP-Cron invocation started. If unknown, assume it just started now.
+        $wp_cron_start_time = get_transient('doing_cron') ?: $now;
+        // 2) Get the time-out value: it is equal to WP-Cron time-out by default, but can be set to a *smaller* value.
+        $timeout = \min(apply_filters(Hooks::FILTER_CACHE_WARM_UP_RUN_TIMEOUT, WP_CRON_LOCK_TIMEOUT), WP_CRON_LOCK_TIMEOUT);
+        // 3) Compute time-out value adjusted to time left in current WP-Cron invocation.
+        $adjusted_timeout = (int) max($wp_cron_start_time + $timeout - $now, 0);
+
+        // Run the warm up with computed timeout...
+        if ($this->run($adjusted_timeout) !== 0) {
+            // ...if there are any items to crawl left, schedule next WP-Cron invocation.
+            $this->schedule();
+        }
+    }
+
+
+    /**
+     * Run cache warm up.
+     *
+     * Note: warm up run stops immediately if any HTTP request fails or gets a server error response (HTTP status code 5xx).
+     *
+     * @param int|null $timeout [optional] Run at maximum given number of seconds (0 secs = stop after single HTTP request).
+     *
+     * @return int Number of items left in warm up queue after run.
+     */
+    public function run(?int $timeout = null): int
+    {
+        // If timeout is given, set stop time mark.
+        $stop_at = ($timeout === null) ? null : (\microtime(true) + $timeout);
 
         // Get URLs to crawl (including request variants).
         while (($item = $this->cache_feeder->fetch()) !== null) {
@@ -124,28 +148,20 @@ class Crawler
                 // Get the URL...
                 $response = wp_remote_get($url, $args);
 
-                if (is_wp_error($response)) {
-                    // Bail current WP-Cron invocation if there has been an error.
-                    break;
-                }
-
                 $response_code = wp_remote_retrieve_response_code($response);
 
-                if (!\is_int($response_code) || !($response_code < 500)) {
-                    // Bail current WP-Cron invocation in case of invalid response or if server is experiencing issues.
+                if (($response_code === '') || !($response_code < 500)) {
+                    // Bail warm up invocation in case of invalid response or if server is experiencing issues.
                     break;
                 }
             }
 
-            if (\microtime(true) >= $stop_at) {
-                // Stop if we run out of time in current WP-Cron invocation.
+            if (($stop_at !== null) && (\microtime(true) > $stop_at)) {
+                // Stop if we run out of time.
                 break;
             }
         }
 
-        // If there are any items to crawl left, schedule next crawl.
-        if (($this->cache_feeder->getSize() ?: 0) > 0) {
-            $this->schedule();
-        }
+        return $this->cache_feeder->getSize();
     }
 }

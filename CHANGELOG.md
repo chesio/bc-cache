@@ -6,6 +6,7 @@ This release has been tested with WordPress 5.9.
 
 ### Added
 
+* WP-CLI command `bc-cache warm-up` to run cache warm up from command line [#71](https://github.com/chesio/bc-cache/issues/71).
 * Cache warm up now works on any website with XML sitemap(s) [#73](https://github.com/chesio/bc-cache/issues/73).
 
 ## Version 2.1.1 (2022-01-12)

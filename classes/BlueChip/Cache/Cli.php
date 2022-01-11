@@ -167,4 +167,46 @@ class Cli
             $this->cache_crawler->activate();
         }
     }
+
+
+    /**
+     * Warm up cache.
+     *
+     * ## OPTIONS
+     *
+     * [--timeout=<number-of-seconds>]
+     * : Run the warm up for at maximum given number of seconds.
+     *
+     * ## EXAMPLES
+     *
+     *  wp bc-cache warm-up --timeout=300
+     *
+     * @subcommand warm-up
+     */
+    public function warmUp(array $args, array $assoc_args): void
+    {
+        if ($this->cache_crawler === null) {
+            \WP_CLI::error('Cache warm up is disabled. Exiting ...');
+            return;
+        }
+
+        \WP_CLI::line('Warming up BC Cache cache ...');
+
+        // Process arguments.
+        $timeout = isset($assoc_args['timeout']) ? (int) $assoc_args['timeout'] : null;
+
+        // Run warm up.
+        $items_left = $this->cache_crawler->run($timeout);
+
+        // Report number of items left in warm up queue.
+        if ($items_left === 0) {
+            \WP_CLI::success('Warm up run finished successfully.');
+        } else {
+            \WP_CLI::warning(
+                ($items_left === 1)
+                ? 'Warm up run finished, but 1 item is still waiting in warm up queue.'
+                : "Warm up run finished, but {$items_left} items are still waiting in warm up queue."
+            );
+        }
+    }
 }

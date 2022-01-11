@@ -306,6 +306,8 @@ Since version 2, the plugin performs _cache warm up_, ie. stores all pages in ca
 
 Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 10 minutes delay by default, but this can be configured).
 
+Since version 2.2, cache can be warmed up also from command line via following WP-CLI command: `wp bc-cache warm-up`
+
 In order for the warm up to function properly:
 
 * Website has to have XML sitemap(s) available. URL of the XML sitemap has to be either advertised in `robots.txt` file or has to be (default) `<home-url>/sitemap.xml`. XML sitemap index is supported, but not recursively.
@@ -354,12 +356,13 @@ If you see 403 errors instead of cached pages, you have to either remove the `|g
 
 ## WP-CLI integration
 
-You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache or get size information. BC Cache registers `bc-cache` command with following subcommands:
+You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up or get size information. BC Cache registers `bc-cache` command with following subcommands:
 
 * `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
 * `remove <url>` - deletes cache data (all request variants) of given URL
 * `flush` - flushes entire cache
 * `size [--human-readable]` -- retrieves cache directory apparent size, optionally in human readable format
+* `warm-up [--timeout=<number-of-seconds>]` -- runs cache warm up, optionally for at maximum given number of seconds
 
 ## Credits
 
