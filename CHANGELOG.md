@@ -1,5 +1,31 @@
 # BC Cache Changelog
 
+## Upcoming version 2.1.0 (2022-01-11)
+
+Improve cache warm up feature and include some further improvements and tweaks.
+
+### Added
+
+* Plugin should be compatible with PHP 8.1 [#67](https://github.com/chesio/bc-cache/issues/67).
+* Plugin deactivates itself automatically if pretty permalink structure is not activated [#69](https://github.com/chesio/bc-cache/issues/69).
+* Cache warm up works on websites with XML sitemaps output by [The SEO Framework](https://wordpress.org/plugins/autodescription/) plugin [#58](https://github.com/chesio/bc-cache/issues/58). Note: version `4.2.0` or newer of The SEO Framework is required for the integration to work.
+* Cache warm up works on websites with XML sitemaps output by [Yoast SEO](https://wordpress.org/plugins/wordpress-seo/) plugin [#57](https://github.com/chesio/bc-cache/issues/57). Note: version `17.0` or newer of Yoast SEO is required for the integration to work.
+* Cache warm up works on [Polylang](https://wordpress.org/plugins/polylang/)-powered multilanguage websites [#59](https://github.com/chesio/bc-cache/issues/59).
+* When a cache entry is deleted via WP-CLI or Cache Viewer, all variants of related URL are added to cache warm up queue automatically [#60](https://github.com/chesio/bc-cache/issues/60).
+* Introduce `bc-cache/filter:cache-warm-up-initial-url-list` filter.
+
+### Changed
+
+* Change name of following cache warm up related filter: `bc-cache/filter:cache-warm-url-list` is now `bc-cache/filter:cache-warm-up-final-url-list`.
+
+### Fixed
+
+* WP-CLI `delete` and `remove` commands do actually work now [#61](https://github.com/chesio/bc-cache/issues/61).
+
+### Removed
+
+* Plugin no longer officially supports PHP 7.2, PHP 7.3 or newer is required.
+
 ## Version 2.0.2 (2021-10-20)
 
 This is a hotfix release:
@@ -14,7 +40,7 @@ This is a hotfix release:
 
 ## Version 2.0.0 (2021-09-02)
 
-WordPress 5.5 or newer is required.
+__WordPress 5.5 or newer is required.__
 
 This release brings major new feature: __cache warm up__ [#15](https://github.com/chesio/bc-cache/issues/15). See [README](README.md#cache-warm-up) for more information.
 

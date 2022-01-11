@@ -16,7 +16,7 @@ class Core
 
 
     /**
-     * @var string Path to root cache directory
+     * @var string Absolute path to root cache directory
      */
     private $cache_dir;
 
@@ -32,7 +32,7 @@ class Core
 
 
     /**
-     * @param string $cache_dir Path to root cache directory
+     * @param string $cache_dir Absolute path to root cache directory
      * @param \BlueChip\Cache\Info $cache_info Cache information (age, size) handler
      * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
@@ -167,7 +167,7 @@ class Core
             return false;
         }
 
-        if (!\file_exists($path)) {
+        if (!\is_dir($path)) {
             // No cache entries for given URL not exist, so we're done.
             return true;
         }
@@ -507,7 +507,7 @@ class Core
 
 
     /**
-     * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $path Absolute path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
      *
      * @return string Path to gzipped cache file for given $path and $request variant.
@@ -519,7 +519,7 @@ class Core
 
 
     /**
-     * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $path Absolute path to directory of cache entry without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
      *
      * @return string Path to HTML cache file for given $path and $request variant.
@@ -663,29 +663,40 @@ class Core
 
 
     /**
-     * Normalize given absolute path: sanitize directory separators, resolve all empty parts as well as ".." and ".".
+     * Normalize given non-empty absolute path:
+     * - sanitize directory separators
+     * - drop empty segments
+     * - resolve relative segments (".." and ".").
      *
-     * @link https://secure.php.net/manual/en/function.realpath.php#84012
+     * @link https://www.php.net/manual/en/function.realpath.php#84012
      *
-     * @param string $path Absolute path to normalize.
+     * @param string $path Non-empty *absolute* path to normalize.
      *
-     * @return string Normalized path without any trailing directory separator.
+     * @return string Normalized absolute path without any trailing directory separator.
+     *
+     * @throws Exception In case of attempt to normalize empty or relative path.
      */
     private static function normalizePath(string $path): string
     {
+        if ($path === '') {
+            throw new Exception('Cannot normalize an empty path.');
+        }
+
         // Sanitize directory separators.
         $sanitized = \str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
 
         // Break path into directory parts.
-        if (empty($parts = \explode(DIRECTORY_SEPARATOR, $sanitized))) {
-            return '';
+        $parts = \explode(DIRECTORY_SEPARATOR, $sanitized);
+
+        // Retrieve first segment - if path is absolute, then it must be an empty string.
+        if (\array_shift($parts) !== '') {
+            throw new Exception('Cannot normalize a relative path.');
         }
 
-        // Always keep the first part (even if empty) - assume absolute path.
-        $absolutes = [\array_shift($parts)];
+        $absolutes = [];
 
         foreach ($parts as $part) {
-            if (empty($part) || $part === '.') {
+            if (($part === '') || ($part === '.')) {
                 continue;
             }
 
@@ -696,7 +707,7 @@ class Core
             }
         }
 
-        return \implode(DIRECTORY_SEPARATOR, $absolutes);
+        return DIRECTORY_SEPARATOR . \implode(DIRECTORY_SEPARATOR, $absolutes);
     }
 
 

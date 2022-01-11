@@ -10,7 +10,7 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 ## Requirements
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://www.php.net/) 7.2 or newer
+* [PHP](https://www.php.net/) 7.3 or newer
 * [WordPress](https://wordpress.org/) 5.5 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
@@ -51,9 +51,9 @@ cd [your-project]/wp-content/plugins/bc-cache
 git pull
 ```
 
-### Using GitHub Updater plugin
+### Using Git Updater plugin
 
-BC Cache can be installed and updated via [GitHub Updater](https://github.com/afragen/github-updater) plugin.
+Once installed, BC Cache can be kept up to date via [Git Updater](https://github.com/afragen/git-updater) plugin. To install it either use the [direct download](#direct-download) method described below or use [Git Updater Pro](https://git-updater.com/).
 
 ### Direct download
 
@@ -150,7 +150,8 @@ Following filters are necessary to set up [request variants](#request-variants):
 
 Following filters can be used to tweak [warming up of cache](#cache-warm-up):
 
-* `bc-cache/filter:cache-warm-url-list` - filters list of URLs to be included in warm up.
+* `bc-cache/filter:cache-warm-up-initial-url-list` - filters list of initial URLs to be included in warm up. This filter is used to shortcut default processing: if it returns an array (even empty), no URLs are read from core XML sitemap providers.
+* `bc-cache/filter:cache-warm-up-final-url-list` - filters the final list of URLs to be included in warm up.
 * `bc-cache/filter:cache-warm-up-invocation-delay` - filters the time (in seconds) between cache flush and warm up invocation.
 * `bc-cache/filter:cache-warm-up-run-timeout` - sets the time (in seconds) warm up crawler is allowed to run within single WP-Cron invocation. The value cannot be larger than value of `WP_CRON_LOCK_TIMEOUT` constant. Note that crawler stops only after this limit is reached. This means for example that even if the timeout is set to `0`, there is one HTTP request sent.
 * `bc-cache/filter:cache-warm-up-request-arguments` - filters [list of arguments](https://developer.wordpress.org/reference/classes/WP_Http/request/#parameters) of HTTP request run during warm up.
@@ -200,6 +201,17 @@ In WordPress, posts can be used to hold various types of data - including data t
 Note: Changing post status to _draft_, _future_ or _pending_ always triggers cache flush (regardless of the post type).
 
 Terms (taxonomies) are handled in a similar manner - cache is automatically flushed when a term is created, deleted or edited, but only in case of terms from a public taxonomy. You may use `bc-cache/filter:is-public-taxonomy` [filter](#filters) to override whether a particular taxonomy should be deemed as public or not.
+
+## Flushing the cache programmatically
+
+If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
+
+### Scheduled cache flushing
+
+Flushing of BC Cache cache on given schedule can be easily achieved with [WP-Cron](https://developer.wordpress.org/plugins/cron/) - you only have to hook the `bc-cache/action:flush-cache` action to a scheduled event. Following WP-CLI command sets WP-Cron event that triggers cache flush every midnight:
+```bash
+wp cron event schedule 'bc-cache/action:flush-cache' midnight daily
+```
 
 ## Cache exclusions
 
@@ -296,7 +308,7 @@ Internally, the warm up process is hooked to WP-Cron and the website is crawling
 
 In order for the warm up to function properly:
 
-* List of URLs to crawl is composed from URLs returned by all registered WordPress core sitemap providers, therefore [WordPress core sitemap](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) feature has to be configured correctly even if it is not enabled on front-end.
+* XML sitemaps feature in [The SEO Framework](https://wordpress.org/plugins/autodescription/), [Yoast SEO](https://yoast.com/help/xml-sitemaps-in-the-wordpress-seo-plugin/) or in [WordPress core](https://make.wordpress.org/core/2020/07/22/new-xml-sitemaps-functionality-in-wordpress-5-5/) has to be active and configured properly.
 * In case [request variants](#request-variants) are used, the `bc-cache/filter:cache-warm-up-request-arguments` filter should be used to modify arguments of HTTP request to any non-default URL variant, so the website generates correct response to such request.
 * It is highly recommended to [hook WP-Cron into system task scheduler](https://developer.wordpress.org/plugins/cron/hooking-wp-cron-into-the-system-task-scheduler/) for increased performance.
 
@@ -327,13 +339,18 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
 }, 10, 1);
 ```
 
-## Flushing the cache programmatically
-
-If you want to flush BC Cache cache from within your code, just call `do_action('bc-cache/action:flush-cache')`. Note that the action is available after the `init` hook with priority `10` is executed.
-
 ## Autoptimize integration
 
 [Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
+
+## 7G firewall integration
+
+If you happen to have [7G firewall](https://perishablepress.com/7g-firewall/) by Jeff Starr installed on your website, you may have to alter the rule in `7G:[REQUEST URI]` section that prevents access to `.gz` files (note that the code snippet below has been shortened with `...` for better readability):
+```.apacheconf
+RewriteCond %{REQUEST_URI} (\.)(7z|...|git|gz|hg|...|zlib)$ [NC,OR]
+```
+
+If you see 403 errors instead of cached pages, you have to either remove the `|gz` part from the `RewriteCond` line above or remove the line completely.
 
 ## WP-CLI integration
 

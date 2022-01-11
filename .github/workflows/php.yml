@@ -16,11 +16,17 @@ on:
       - phpstan.neon
       - '**.php'
 
+# Cancels all previous workflow runs for the same branch that have not yet completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  ci:
     strategy:
       matrix:
-        php-versions: ['8.0', '7.4', '7.3', '7.2']
+        php-versions: ['8.1', '8.0', '7.4', '7.3']
 
     runs-on: ubuntu-latest
 
@@ -37,7 +43,7 @@ jobs:
       run: composer validate
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-suggest --classmap-authoritative
+      uses: ramsey/composer-install@v1
 
     - name: Run CI test suite
       run: composer run-script ci

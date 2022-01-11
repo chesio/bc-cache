@@ -38,6 +38,25 @@ class Feeder
 
 
     /**
+     * @param array{'url': string, 'request_variant': string} $item Item to crawl as pair of ['url', 'request_variant'] values.
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function push(array $item): bool
+    {
+        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
+
+        if (\is_array($queue)) {
+            $queue[] = $item; // Push at the end of queue.
+        } else {
+            $queue = $this->requeue(); // Queue has to be rebuilt, so ignore the pushed item.
+        }
+
+        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
+    }
+
+
+    /**
      * @return int|null Count of items in the queue or null if queue has to be rebuilt yet.
      */
     public function getSize(): ?int
@@ -87,26 +106,45 @@ class Feeder
 
 
     /**
-     * Get list of URLs to crawl from WordPress core sitemap providers.
+     * Get list of URLs to crawl.
+     *
+     * This method fetches URLs from core XML sitemap providers, but this handling can be shortcut
+     * via `bc-cache/filter:cache-warm-up-initial-url-list` filter.
      *
      * @return string[] List of URLs to crawl
      */
-    public function getUrls(): array
+    private function getUrls(): array
     {
-        $urls = [];
-        $sitemap_providers = wp_get_sitemap_providers();
+        $urls = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, null);
 
-        foreach ($sitemap_providers as $sitemap_provider) {
-            foreach (\array_keys($sitemap_provider->get_object_subtypes()) as $object_subtype) {
-                $max_num_pages = $sitemap_provider->get_max_num_pages($object_subtype);
-                for ($page_num = 1; $page_num <= $max_num_pages; ++$page_num) {
-                    $urls[] = \array_column($sitemap_provider->get_url_list($page_num, $object_subtype), 'loc');
+        if ($urls === null) {
+            // If no URLs are provided by other means, use XML sitemaps providers from WordPress core.
+
+            /** @var \WP_Sitemaps_Provider[] $sitemap_providers */
+            $sitemap_providers = wp_get_sitemap_providers();
+
+            $url_sets = [];
+
+            foreach ($sitemap_providers as $sitemap_provider) {
+                foreach (\array_keys($sitemap_provider->get_object_subtypes()) as $object_subtype) {
+                    $max_num_pages = $sitemap_provider->get_max_num_pages($object_subtype);
+                    for ($page_num = 1; $page_num <= $max_num_pages; ++$page_num) {
+                        $url_sets[] = \array_column(
+                            $sitemap_provider->get_url_list($page_num, $object_subtype),
+                            'loc'
+                        );
+                    }
                 }
             }
+
+            $urls = \array_merge(...$url_sets);
         }
 
         // Prepend home URL to the merged list of all URLs as it arguably represents the most important page on website.
-        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_URL_LIST, \array_merge([home_url('/'),], ...$urls)));
+        \array_unshift($urls, home_url('/'));
+
+        // Make sure only unique URLs are returned.
+        return \array_unique(apply_filters(Hooks::FILTER_CACHE_WARM_UP_FINAL_URL_LIST, $urls));
     }
 
 

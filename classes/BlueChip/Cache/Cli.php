@@ -14,13 +14,20 @@ class Cli
      */
     private $cache;
 
+    /**
+     * @var \BlueChip\Cache\Feeder|null
+     */
+    private $cache_feeder;
+
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache)
+    public function __construct(Core $cache, ?Feeder $cache_feeder)
     {
         $this->cache = $cache;
+        $this->cache_feeder = $cache_feeder;
     }
 
 
@@ -50,14 +57,19 @@ class Cli
 
         $request_variants = Core::getRequestVariants();
 
-        foreach ($request_variants as $request_variant) {
+        foreach ($request_variants as $request_variant => $request_variant_name) {
             if ($this->cache->delete($url, $request_variant)) {
+                if ($this->cache_feeder !== null) {
+                    // Push item to feeder, but ignore any return value.
+                    $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
+                }
+
                 \WP_CLI::success(
-                    \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant)
+                    \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant_name)
                 );
             } else {
                 \WP_CLI::error(
-                    \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant)
+                    \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant_name)
                 );
             }
         }
@@ -123,14 +135,19 @@ class Cli
 
         $request_variants = Core::getRequestVariants();
 
-        foreach ($request_variants as $request_variant) {
+        foreach ($request_variants as $request_variant => $request_variant_name) {
             if ($this->cache->delete($url, $request_variant)) {
+                if ($this->cache_feeder !== null) {
+                    // Push item to feeder, but ignore any return value.
+                    $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
+                }
+
                 \WP_CLI::success(
-                    \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant)
+                    \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant_name)
                 );
             } else {
                 \WP_CLI::error(
-                    \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant)
+                    \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant_name)
                 );
             }
         }

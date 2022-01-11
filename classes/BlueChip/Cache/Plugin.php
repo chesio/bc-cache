@@ -185,7 +185,10 @@ class Plugin
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
-            \WP_CLI::add_command('bc-cache', new Cli($this->cache));
+            \WP_CLI::add_command(
+                'bc-cache',
+                new Cli($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null)
+            );
         });
 
         // Activate features that must be explicitly supported by active theme.
@@ -208,6 +211,9 @@ class Plugin
      */
     public function init(): void
     {
+        // Activate integrations with 3rd party plugins - must be done early in this method!
+        Integrations::initialize();
+
         // Add Disallow section to robots.txt.
         add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
 
@@ -215,9 +221,6 @@ class Plugin
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
             add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
         }
-
-        // Add action to flush entire cache whenever Autoptimize's cache is purged.
-        add_action('autoptimize_action_cachepurged', [$this, 'flushCacheOnce'], 10, 0);
 
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
@@ -230,7 +233,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache, $this->cache_feeder))->init();
+            (new Viewer($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
@@ -598,7 +601,7 @@ class Plugin
      *
      * @return bool True if cache warm up is enabled, false otherwise.
      */
-    public static function isCacheWarmUpEnabled(): bool
+    private static function isCacheWarmUpEnabled(): bool
     {
         return apply_filters(Hooks::FILTER_CACHE_WARM_ENABLED, true);
     }

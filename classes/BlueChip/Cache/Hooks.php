@@ -100,9 +100,14 @@ abstract class Hooks
     public const FILTER_CACHE_WARM_UP_RUN_TIMEOUT = 'bc-cache/filter:cache-warm-up-run-timeout';
 
     /**
-     * @var string Name of hook to filter list of URLs to be fetched to cache warm up.
+     * @var string Name of hook to filter initial list of URLs to be processed to cache warm up.
      */
-    public const FILTER_CACHE_WARM_UP_URL_LIST = 'bc-cache/filter:cache-warm-url-list';
+    public const FILTER_CACHE_WARM_UP_INITIAL_URL_LIST = 'bc-cache/filter:cache-warm-up-initial-url-list';
+
+    /**
+     * @var string Name of hook to filter final list of URLs to be processed in cache warm up.
+     */
+    public const FILTER_CACHE_WARM_UP_FINAL_URL_LIST = 'bc-cache/filter:cache-warm-up-final-url-list';
 
     /**
      * @var string Name of hook to filter list of whitelisted query string arguments.

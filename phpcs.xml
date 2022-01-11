@@ -4,6 +4,7 @@
 
   <!-- Scan these files -->
   <file>classes</file>
+  <file>tests/unit/src</file>
   <file>autoload.php</file>
   <file>bc-cache.php</file>
 
