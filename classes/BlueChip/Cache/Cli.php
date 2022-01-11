@@ -15,6 +15,11 @@ class Cli
     private $cache;
 
     /**
+     * @var \BlueChip\Cache\Crawler|null
+     */
+    private $cache_crawler;
+
+    /**
      * @var \BlueChip\Cache\Feeder|null
      */
     private $cache_feeder;
@@ -22,11 +27,13 @@ class Cli
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
      * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache, ?Feeder $cache_feeder)
+    public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
     {
         $this->cache = $cache;
+        $this->cache_crawler = $cache_crawler;
         $this->cache_feeder = $cache_feeder;
     }
 
@@ -55,24 +62,8 @@ class Cli
             return;
         }
 
-        $request_variants = Core::getRequestVariants();
-
-        foreach ($request_variants as $request_variant => $request_variant_name) {
-            if ($this->cache->delete($url, $request_variant)) {
-                if ($this->cache_feeder !== null) {
-                    // Push item to feeder, but ignore any return value.
-                    $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
-                }
-
-                \WP_CLI::success(
-                    \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant_name)
-                );
-            } else {
-                \WP_CLI::error(
-                    \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant_name)
-                );
-            }
-        }
+        // Use helper method to actually delete related cache entries.
+        $this->erase($url, $post_id);
     }
 
 
@@ -133,23 +124,47 @@ class Cli
             return;
         }
 
-        $request_variants = Core::getRequestVariants();
+        // Use helper method to actually remove related cache entries.
+        $this->erase($url);
+    }
 
-        foreach ($request_variants as $request_variant => $request_variant_name) {
+
+    /**
+     * Erase cache entry data for given $url and re-queue it in case cache warm up is active.
+     *
+     * @param string $url
+     * @param int|null $post_id [optional] If given, mention post ID in error/success message instead of URL.
+     */
+    private function erase(string $url, ?int $post_id = null): void
+    {
+        $items_pushed_to_warm_up_queue = 0;
+
+        foreach (Core::getRequestVariants() as $request_variant => $request_variant_name) {
             if ($this->cache->delete($url, $request_variant)) {
                 if ($this->cache_feeder !== null) {
-                    // Push item to feeder, but ignore any return value.
-                    $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
+                    // Push item to feeder, update counter on success.
+                    if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                        $items_pushed_to_warm_up_queue += 1;
+                    }
                 }
 
                 \WP_CLI::success(
-                    \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant_name)
+                    $post_id === null
+                    ? \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant_name)
+                    : \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant_name)
                 );
             } else {
                 \WP_CLI::error(
-                    \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant_name)
+                    $post_id === null
+                    ? \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant_name)
+                    : \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant_name)
                 );
             }
+        }
+
+        // Activate cache crawler if any items has been pushed to the warm up queue.
+        if (($items_pushed_to_warm_up_queue > 0) && ($this->cache_crawler !== null)) {
+            $this->cache_crawler->activate();
         }
     }
 }
