@@ -4,6 +4,10 @@
 
 This release has been tested with WordPress 5.9.
 
+### Added
+
+* Cache warm up now works on any website with XML sitemap(s) [#73](https://github.com/chesio/bc-cache/issues/73).
+
 ## Version 2.1.0 (2022-01-11)
 
 Improve cache warm up feature and include some further improvements and tweaks.
