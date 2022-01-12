@@ -338,7 +338,7 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
         ];
     }
     return $args;
-}, 10, 1);
+}, 10, 3);
 ```
 
 ## Autoptimize integration
