@@ -361,8 +361,8 @@ You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form 
 * `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
 * `remove <url>` - deletes cache data (all request variants) of given URL
 * `flush` - flushes entire cache
-* `size [--human-readable]` -- retrieves cache directory apparent size, optionally in human readable format
-* `warm-up [--timeout=<number-of-seconds>]` -- runs cache warm up, optionally for at maximum given number of seconds
+* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
+* `warm-up` - runs cache warm up
 
 ## Credits
 

@@ -132,36 +132,51 @@ class Crawler
      */
     public function run(?int $timeout = null): int
     {
-        // If timeout is given, set stop time mark.
-        $stop_at = ($timeout === null) ? null : (\microtime(true) + $timeout);
-
-        // Get URLs to crawl (including request variants).
-        while (($item = $this->cache_feeder->fetch()) !== null) {
-            // Get URL and request variant to crawl.
-            ['url' => $url, 'request_variant' => $request_variant] = $item;
-
-            // If item is not cached yet...
-            if (!$this->cache->has($url, $request_variant)) {
-                // Get warm up HTTP request arguments.
-                $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);
-
-                // Get the URL...
-                $response = wp_remote_get($url, $args);
-
-                $response_code = wp_remote_retrieve_response_code($response);
-
-                if (($response_code === '') || !($response_code < 500)) {
-                    // Bail warm up invocation in case of invalid response or if server is experiencing issues.
-                    break;
-                }
-            }
-
-            if (($stop_at !== null) && (\microtime(true) > $stop_at)) {
-                // Stop if we run out of time.
-                break;
-            }
+        if ($timeout === null) {
+            // Run as long as HTTP requests do not fail.
+            while ($this->step());
+        } else {
+            // If timeout is given, set stop time mark.
+            $stop_at = (\microtime(true) + $timeout);
+            // Run as long as HTTP requests do not fail and allowed time do not run out.
+            while ($this->step() && (\microtime(true) < $stop_at));
         }
 
         return $this->cache_feeder->getSize();
+    }
+
+
+    /**
+     * Fetch next item from warm up queue and crawl it.
+     *
+     * @return bool|null True if remote HTTP request succeeded, false if it failed, null when there are no more items to crawl.
+     */
+    public function step(): ?bool
+    {
+        // Get next item to crawl.
+        if (($item = $this->cache_feeder->fetch()) !== null) {
+            // Get URL and request variant to crawl.
+            ['url' => $url, 'request_variant' => $request_variant] = $item;
+
+            // If item has been cached yet...
+            if ($this->cache->has($url, $request_variant)) {
+                return true;
+            }
+
+            // Get warm up HTTP request arguments.
+            $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);
+
+            // Get the URL...
+            $response = wp_remote_get($url, $args);
+
+            // ...fetch response code...
+            $response_code = wp_remote_retrieve_response_code($response);
+
+            // ...and signal success if there was no server error.
+            return ($response_code !== '') && ($response_code < 500);
+        }
+
+        // There are no more items in warm up queue.
+        return null;
     }
 }

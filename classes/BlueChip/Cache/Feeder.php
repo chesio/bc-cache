@@ -57,13 +57,27 @@ class Feeder
 
 
     /**
+     * @param bool $strict [optional] If true, queue will be rebuilt on demand.
+     *
      * @return int|null Count of items in the queue or null if queue has to be rebuilt yet.
      */
-    public function getSize(): ?int
+    public function getSize(bool $strict = false): ?int
     {
         $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
 
-        return \is_array($queue) ? \count($queue) : null;
+        if (!\is_array($queue)) {
+            // Queue has not been rebuilt yet...
+            if (!$strict) {
+                // ...nevermind.
+                return null;
+            }
+
+            $queue = $this->requeue();
+            // Persist the queue:
+            set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
+        }
+
+        return \count($queue);
     }
 
 
