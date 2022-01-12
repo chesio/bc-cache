@@ -53,6 +53,11 @@ class ListTable extends \WP_List_Table
     private $cache;
 
     /**
+     * @var \BlueChip\Cache\Crawler|null
+     */
+    private $cache_crawler;
+
+    /**
      * @var \BlueChip\Cache\Feeder|null
      */
     private $cache_feeder;
@@ -348,8 +353,13 @@ class ListTable extends \WP_List_Table
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
                 if ($this->cache->delete($url, $request_variant)) {
                     if ($this->cache_feeder !== null) {
-                        // Push item to feeder, but ignore any return value.
-                        $this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant]);
+                        // Push item to feeder...
+                        if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                            // ...and activate crawler if pushed successfully.
+                            if ($this->cache_crawler !== null) {
+                                $this->cache_crawler->activate();
+                            }
+                        }
                     }
 
                     $query_arg = self::NOTICE_ENTRY_DELETED;
@@ -372,17 +382,32 @@ class ListTable extends \WP_List_Table
             $urls = $sanitized['urls'];
 
             // Number of entries really deleted.
-            $deleted = 0;
+            $items_deleted = 0;
+            $items_pushed_to_warm_up_queue = 0;
 
-            foreach ($urls as $url) {
-                list($_url, $request_variant) = \explode(self::ENTRY_ID_SEPARATOR, $url);
-                $deleted += $this->cache->delete($_url, $request_variant) ? 1 : 0;
+            foreach ($urls as $url_with_request_variant) {
+                [$url, $request_variant] = \explode(self::ENTRY_ID_SEPARATOR, $url_with_request_variant);
+                if ($this->cache->delete($url, $request_variant)) {
+                    $items_deleted += 1;
+                    // If cache warm up is enabled...
+                    if ($this->cache_feeder !== null) {
+                        // ...push item to feeder.
+                        if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                            $items_pushed_to_warm_up_queue += 1;
+                        }
+                    }
+                }
             }
 
-            if ($deleted < \count($urls)) {
+            // Activate cache crawler if any items has been pushed to the warm up queue.
+            if (($items_pushed_to_warm_up_queue > 0) && ($this->cache_crawler !== null)) {
+                $this->cache_crawler->activate();
+            }
+
+            if ($items_deleted < \count($urls)) {
                 wp_redirect(add_query_arg(self::NOTICE_ENTRY_FAILED, \count($urls), $this->url));
             } else {
-                wp_redirect(add_query_arg(self::NOTICE_ENTRY_DELETED, $deleted, $this->url));
+                wp_redirect(add_query_arg(self::NOTICE_ENTRY_DELETED, $items_deleted, $this->url));
             }
         }
     }
