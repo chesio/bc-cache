@@ -124,8 +124,15 @@ class Crawler
                 // Get the URL...
                 $response = wp_remote_get($url, $args);
 
-                if (wp_remote_retrieve_response_code($response) !== 200) {
-                    // ... if there is unexpected response, bail current WP-Cron invocation.
+                if (is_wp_error($response)) {
+                    // Bail current WP-Cron invocation if there has been an error.
+                    break;
+                }
+
+                $response_code = wp_remote_retrieve_response_code($response);
+
+                if (!\is_int($response_code) || !($response_code < 500)) {
+                    // Bail current WP-Cron invocation in case of invalid response or if server is experiencing issues.
                     break;
                 }
             }
