@@ -8,6 +8,12 @@ This release has been tested with WordPress 5.9.
 
 * Cache warm up now works on any website with XML sitemap(s) [#73](https://github.com/chesio/bc-cache/issues/73).
 
+## Version 2.1.1 (2022-01-12)
+
+### Fixed
+
+* Re-activate warm up crawler after single cache entries are deleted either via WP-CLI command or Cache Viewer [#72](https://github.com/chesio/bc-cache/issues/72).
+
 ## Version 2.1.0 (2022-01-11)
 
 Improve cache warm up feature and include some further improvements and tweaks.
