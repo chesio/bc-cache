@@ -4,27 +4,49 @@ namespace BlueChip\Cache;
 
 /**
  * Simple XML sitemaps reader - can read XML sitemap as well as XML sitemap index.
+ *
+ * @internal Depends on WordPress HTTP API methods: wp_remote_get, wp_remote_retrieve_response_code, wp_remote_retrieve_body.
  */
 class XmlSitemapReader
 {
     /**
-     * Get URLs from XML sitemap(s).
+     * @var string
+     */
+    private $robots_txt_url;
+
+    /**
+     * @var string
+     */
+    private $default_sitemap_url;
+
+
+    /**
+     * @internal $robots_txt_url is parsed in order to determine URLs of available XML sitemaps.
+     * If none are found, $default_sitemap_url is used as fallback.
      *
-     * Note: robots.txt file is parsed in order to determine URLs of available XML sitemaps.
-     * If none are found, <home-url>/sitemap.xml is used as fallback.
+     * @param string $robots_txt_url
+     * @param string $default_sitemap_url
+     */
+    public function __construct(string $robots_txt_url, string $default_sitemap_url)
+    {
+        $this->robots_txt_url = $robots_txt_url;
+        $this->default_sitemap_url = $default_sitemap_url;
+    }
+
+
+    /**
+     * Get URLs from XML sitemap(s).
      *
      * @return string[] List of URLs parsed from all available XML sitemaps.
      *
      * @throws Exception
      */
-    public static function getUrls(): array
+    public function getUrls(): array
     {
-        $robots_txt_url = home_url('robots.txt');
-
-        $response = wp_remote_get($robots_txt_url);
+        $response = wp_remote_get($this->robots_txt_url);
 
         if (wp_remote_retrieve_response_code($response) !== 200) {
-            throw new Exception("The robots.txt file could not be fetched from {$robots_txt_url}!");
+            throw new Exception("The robots.txt file could not be fetched from {$this->robots_txt_url}!");
         }
 
         $body = wp_remote_retrieve_body($response);
@@ -40,7 +62,7 @@ class XmlSitemapReader
             );
         } else {
             // When no sitemap URL is present in robots.txt, assume sitemap.xml:
-            return self::fetch(home_url('sitemap.xml'));
+            return self::fetch($this->default_sitemap_url);
         }
     }
 

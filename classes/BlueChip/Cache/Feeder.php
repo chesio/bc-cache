@@ -130,8 +130,11 @@ class Feeder
         $urls = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INITIAL_URL_LIST, null);
 
         if ($urls === null) {
+            // Initialize XML sitemap reader.
+            $xml_sitemap_reader = new XmlSitemapReader(home_url('robots.txt'), home_url('sitemap.xml'));
+
             try {
-                $urls = XmlSitemapReader::getUrls();
+                $urls = $xml_sitemap_reader->getUrls();
             } catch (Exception $e) {
                 // Trigger a warning and let WordPress handle it.
                 \trigger_error($e, E_USER_WARNING);
