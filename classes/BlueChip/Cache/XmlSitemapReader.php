@@ -110,7 +110,8 @@ class XmlSitemapReader
         $urls = [];
 
         foreach ($xml->sitemap as $sitemap) {
-            $urls = \array_merge($urls, self::fetch((string) $sitemap->loc));
+            // We are parsing sitemap index here, therefore all found URLs have to point to *true* sitemap.
+            $urls = \array_merge($urls, self::fetch((string) $sitemap->loc, true));
         }
 
         return $urls;
