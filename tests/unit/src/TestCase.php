@@ -51,4 +51,13 @@ class TestCase extends \PHPUnit\Framework\TestCase
         $method->setAccessible(true);
         return $method->invokeArgs(null, $args);
     }
+
+
+    /**
+     * Return absolute path to a $file in /data folder.
+     */
+    protected function getDataFilePath(string $file): string
+    {
+        return sprintf('%s/%s/%s', dirname(__DIR__), 'data', $file);
+    }
 }
