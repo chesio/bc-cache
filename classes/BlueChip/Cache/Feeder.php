@@ -13,9 +13,9 @@ class Feeder
     /**
      * Fetch next item to crawl.
      *
-     * @return array{'url': string, 'request_variant': string}|null Next item to crawl as pair of [`url` and `request_variant`] values or null if queue is empty.
+     * @return Item|null Next item to crawl or null if queue is empty.
      */
-    public function fetch(): ?array
+    public function fetch(): ?Item
     {
         $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
 
@@ -38,11 +38,11 @@ class Feeder
 
 
     /**
-     * @param array{'url': string, 'request_variant': string} $item Item to crawl as pair of ['url', 'request_variant'] values.
+     * @param Item $item Item to crawl.
      *
      * @return bool True on success, false on failure.
      */
-    public function push(array $item): bool
+    public function push(Item $item): bool
     {
         $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
 
@@ -97,7 +97,7 @@ class Feeder
      *
      * @internal The caller must ensure the queue is persisted if necessary.
      *
-     * @return array
+     * @return Item[]
      */
     private function requeue(): array
     {
@@ -111,7 +111,7 @@ class Feeder
 
         foreach ($urls as $url) {
             foreach (\array_keys($request_variants) as $request_variant) {
-                $queue[] = ['url' => $url, 'request_variant' => $request_variant];
+                $queue[] = new Item($url, $request_variant);
             }
         }
 

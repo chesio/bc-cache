@@ -155,13 +155,14 @@ class Crawler
     {
         // Get next item to crawl.
         if (($item = $this->cache_feeder->fetch()) !== null) {
-            // Get URL and request variant to crawl.
-            ['url' => $url, 'request_variant' => $request_variant] = $item;
-
             // If item has been cached yet...
-            if ($this->cache->has($url, $request_variant)) {
+            if ($this->cache->has($item)) {
                 return true;
             }
+
+            // Get URL and request variant to crawl.
+            $url = $item->getUrl();
+            $request_variant = $item->getRequestVariant();
 
             // Get warm up HTTP request arguments.
             $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);

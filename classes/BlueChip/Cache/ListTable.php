@@ -350,11 +350,13 @@ class ListTable extends \WP_List_Table
             }
 
             if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
+                $cache_item = new Item($url, $request_variant);
+
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
-                if ($this->cache->delete($url, $request_variant)) {
+                if ($this->cache->delete($cache_item)) {
                     if ($this->cache_feeder !== null) {
                         // Push item to feeder...
-                        if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                        if ($this->cache_feeder->push($cache_item)) {
                             // ...and activate crawler if pushed successfully.
                             if ($this->cache_crawler !== null) {
                                 $this->cache_crawler->activate();
@@ -387,12 +389,15 @@ class ListTable extends \WP_List_Table
 
             foreach ($urls as $url_with_request_variant) {
                 [$url, $request_variant] = \explode(self::ENTRY_ID_SEPARATOR, $url_with_request_variant);
-                if ($this->cache->delete($url, $request_variant)) {
+
+                $cache_item = new Item($url, $request_variant);
+
+                if ($this->cache->delete($cache_item)) {
                     $items_deleted += 1;
                     // If cache warm up is enabled...
                     if ($this->cache_feeder !== null) {
                         // ...push item to feeder.
-                        if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                        if ($this->cache_feeder->push($cache_item)) {
                             $items_pushed_to_warm_up_queue += 1;
                         }
                     }

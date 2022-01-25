@@ -148,18 +148,17 @@ class Core
 
 
     /**
-     * Delete data for given URL from cache.
+     * Delete given $item from cache.
      *
-     * @param string $url
-     * @param string $request_variant [optional] Request variant to delete.
+     * @param Item $item
      *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function delete(string $url, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
+    public function delete(Item $item): bool
     {
         try {
             // Get directory for given URL.
-            $path = $this->getPath($url);
+            $path = $this->getPath($item->getUrl());
         } catch (Exception $e) {
             // Trigger a warning and let WordPress handle it.
             \trigger_error($e, E_USER_WARNING);
@@ -180,8 +179,8 @@ class Core
 
         try {
             $bytes_deleted
-                = self::deleteFile(self::getHtmlFilename($path, $request_variant))
-                + self::deleteFile(self::getGzipFilename($path, $request_variant))
+                = self::deleteFile(self::getHtmlFilename($path, $item->getRequestVariant()))
+                + self::deleteFile(self::getGzipFilename($path, $item->getRequestVariant()))
             ;
             // Update cache size.
             $this->cache_info->decrementSize($bytes_deleted);
@@ -206,15 +205,14 @@ class Core
 
 
     /**
-     * Store data for given URL in cache.
+     * Create new cache entry: store $data for given cache $item.
      *
-     * @param string $url
+     * @param Item $item
      * @param string $data
-     * @param string $request_variant [optional] Request variant to store the data under.
      *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
+    public function push(Item $item, string $data): bool
     {
         // Try to acquire exclusive lock, but do not wait for it.
         if (!$this->lockCache(true, true)) {
@@ -224,7 +222,7 @@ class Core
 
         try {
             // Make directory for given URL.
-            $path = $this->makeDirectory($url);
+            $path = $this->makeDirectory($item->getUrl());
         } catch (Exception $e) {
             // Unlock cache for other operations.
             $this->unlockCache();
@@ -236,9 +234,9 @@ class Core
 
         try {
             // Write cache date to disk, get number of bytes written.
-            $bytes_written = self::writeFile(self::getHtmlFilename($path, $request_variant), $data);
+            $bytes_written = self::writeFile(self::getHtmlFilename($path, $item->getRequestVariant()), $data);
             if (($gzip = \gzencode($data, 9)) !== false) {
-                $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
+                $bytes_written += self::writeFile(self::getGzipFilename($path, $item->getRequestVariant()), $gzip);
             }
             // Increment cache size.
             $this->cache_info->incrementSize($bytes_written);
@@ -304,18 +302,17 @@ class Core
 
 
     /**
-     * Check whether $url in $request_variant is in cache.
+     * Check whether $item is in cache.
      *
      * @internal Check is based on presence of HTML file only (gzip is optional, so cannot be reliably used).
      *
-     * @param string $url
-     * @param string $request_variant
+     * @param Item $item
      *
-     * @return bool True if $url in $request_variant is in cache, false otherwise.
+     * @return bool True if $item is in cache, false otherwise.
      */
-    public function has(string $url, string $request_variant): bool
+    public function has(Item $item): bool
     {
-        return \is_readable(self::getHtmlFilename($this->getPath($url), $request_variant));
+        return \is_readable(self::getHtmlFilename($this->getPath($item->getUrl()), $item->getRequestVariant()));
     }
 
 
