@@ -142,7 +142,7 @@ class Crawler
             while ($this->step() && (\microtime(true) < $stop_at));
         }
 
-        return $this->cache_feeder->getSize();
+        return $this->cache_feeder->getSize(true);
     }
 
 
