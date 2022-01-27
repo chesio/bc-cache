@@ -19,7 +19,7 @@ class WarmUpQueue
      */
     public function __construct(array $items)
     {
-        $this->items = \array_unique($items);
+        $this->items = $items;
     }
 
     /**
@@ -86,20 +86,18 @@ class WarmUpQueue
     {
         $index = \array_search($item, $this->items, false);
 
+        if ($index !== false) {
+            // Item is in a queue already, remove it from original position.
+            \array_splice($this->items, $index, 1);
+        }
+
         // Push item to the beginning of the array.
         \array_unshift($this->items, $item);
 
-        if ($index !== false) {
-            // Item was in a queue already, remove it from original position.
-            \array_splice($this->items, $index, 1);
-
-            if ($index < $this->current) {
-                // Item has been processed already, so no need to correct the pointer.
-                return;
-            }
+        if (($index === false) || ($index >= $this->current)) {
+            // Item either wasn't in queue yet or has not been processed yet, so correct the pointer.
+            $this->current += 1;
         }
-
-        $this->current += 1;
     }
 
     /**
