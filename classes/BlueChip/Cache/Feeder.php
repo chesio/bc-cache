@@ -2,6 +2,11 @@
 
 namespace BlueChip\Cache;
 
+/**
+ * Feeder acts as proxy to actual warm up queue object, but provides two additional functions as well:
+ * - it automatically populates the warm up queue when necessary
+ * - it takes care of persistence and stores warm up queue as transient
+ */
 class Feeder
 {
     /**
@@ -17,23 +22,34 @@ class Feeder
      */
     public function fetch(): ?Item
     {
-        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
+        /** @var WarmUpQueue $queue */
+        $queue = $this->getQueue(true);
 
-        if ($queue === []) {
+        if ($queue->isEmpty()) {
             // No more URLs to crawl.
             return null;
         }
 
-        if (!$queue) {
-            // Rebuild queue.
-            $queue = $this->requeue();
-        }
+        $item = $queue->fetch();
 
-        $item = \array_shift($queue);
+        $this->setQueue($queue);
 
-        set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
+        return $item;
+    }
 
-        return $item ?: null;
+
+    /**
+     * @param Item $item Item to uncrawl.
+     *
+     * @return bool True on success, false on failure.
+     */
+    public function pull(Item $item): bool
+    {
+        $queue = $this->getQueue(true);
+
+        $queue->pull($item);
+
+        return $this->setQueue($queue);
     }
 
 
@@ -44,40 +60,33 @@ class Feeder
      */
     public function push(Item $item): bool
     {
-        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
+        $queue = $this->getQueue(true);
 
-        if (\is_array($queue)) {
-            $queue[] = $item; // Push at the end of queue.
-        } else {
-            $queue = $this->requeue(); // Queue has to be rebuilt, so ignore the pushed item.
-        }
+        $queue->push($item);
 
-        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
+        return $this->setQueue($queue);
     }
 
 
     /**
      * @param bool $strict [optional] If true, queue will be rebuilt on demand.
      *
-     * @return int|null Count of items in the queue or null if queue has to be rebuilt yet.
+     * @return int|null Count of items remaining in the queue or null if queue has to be rebuilt yet and $strict was false.
      */
     public function getSize(bool $strict = false): ?int
     {
-        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE);
+        $queue = $this->getQueue($strict);
 
-        if (!\is_array($queue)) {
-            // Queue has not been rebuilt yet...
-            if (!$strict) {
-                // ...nevermind.
-                return null;
-            }
+        return $queue ? $queue->getRemainingCount() : null;
+    }
 
-            $queue = $this->requeue();
-            // Persist the queue:
-            set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
-        }
 
-        return \count($queue);
+    /**
+     * @return array
+     */
+    public function getStats(): array
+    {
+        return $this->getQueue(true)->getStats();
     }
 
 
@@ -88,7 +97,29 @@ class Feeder
      */
     public function reset(): bool
     {
-        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, null);
+        return $this->setQueue(null);
+    }
+
+
+    private function getQueue(bool $rebuild = false): ?WarmUpQueue
+    {
+        /** @var WarmUpQueue|null $queue */
+        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE) ?: null;
+
+        if (!($queue instanceof WarmUpQueue) && $rebuild) {
+            // Rebuild queue.
+            $queue = new WarmUpQueue($this->requeue());
+            // And save.
+            $this->setQueue($queue);
+        }
+
+        return $queue;
+    }
+
+
+    private function setQueue(?WarmUpQueue $queue): bool
+    {
+        return set_transient(self::TRANSIENT_CRAWLER_QUEUE, $queue);
     }
 
 

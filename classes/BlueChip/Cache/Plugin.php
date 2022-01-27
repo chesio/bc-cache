@@ -509,7 +509,9 @@ class Plugin
 
             $data = $buffer . $this->getSignature();
 
-            $this->cache->push($item, $data);
+            if ($this->cache->push($item, $data) && self::isCacheWarmUpEnabled()) {
+                $this->cache_feeder->pull($item);
+            }
         }
 
         return $buffer;

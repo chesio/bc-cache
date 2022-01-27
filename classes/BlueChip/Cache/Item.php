@@ -10,6 +10,11 @@ class Item
     /**
      * @var string
      */
+    private const SEPARATOR = '#';
+
+    /**
+     * @var string
+     */
     private $url;
 
     /**
@@ -34,5 +39,11 @@ class Item
     public function getRequestVariant(): string
     {
         return $this->request_variant;
+    }
+
+
+    public function __toString(): string
+    {
+        return $this->url . self::SEPARATOR . $this->request_variant;
     }
 }
