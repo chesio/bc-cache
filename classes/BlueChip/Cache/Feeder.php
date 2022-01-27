@@ -22,7 +22,6 @@ class Feeder
      */
     public function fetch(): ?Item
     {
-        /** @var WarmUpQueue $queue */
         $queue = $this->getQueue(true);
 
         if ($queue->isEmpty()) {
@@ -108,7 +107,7 @@ class Feeder
 
         if (!($queue instanceof WarmUpQueue) && $rebuild) {
             // Rebuild queue.
-            $queue = new WarmUpQueue($this->requeue());
+            $queue = new WarmUpQueue($this->getItems());
             // And save.
             $this->setQueue($queue);
         }
@@ -124,13 +123,13 @@ class Feeder
 
 
     /**
-     * Rebuild the queue.
+     * Rebuild the list of warm up queue items.
      *
      * @internal The caller must ensure the queue is persisted if necessary.
      *
      * @return Item[]
      */
-    private function requeue(): array
+    private function getItems(): array
     {
         // Get list of URLs to crawl.
         $urls = $this->getUrls();
@@ -138,15 +137,15 @@ class Feeder
         // Get request variants to include.
         $request_variants = Core::getRequestVariants();
 
-        $queue = [];
+        $items = [];
 
         foreach ($urls as $url) {
             foreach (\array_keys($request_variants) as $request_variant) {
-                $queue[] = new Item($url, $request_variant);
+                $items[] = new Item($url, $request_variant);
             }
         }
 
-        return $queue;
+        return $items;
     }
 
 
