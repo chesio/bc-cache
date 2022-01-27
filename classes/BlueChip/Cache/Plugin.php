@@ -502,11 +502,16 @@ class Plugin
     {
         // If this is the final output buffering operation and buffer is not empty, write buffer contents to cache.
         if (($phase & PHP_OUTPUT_HANDLER_FINAL) && ($buffer !== '')) {
-            $this->cache->push(
+            $item = new Item(
                 Utils::getRequestUrl(),
-                $buffer . $this->getSignature(),
                 apply_filters(Hooks::FILTER_REQUEST_VARIANT, Core::DEFAULT_REQUEST_VARIANT)
             );
+
+            $data = $buffer . $this->getSignature();
+
+            if ($this->cache->push($item, $data) && self::isCacheWarmUpEnabled()) {
+                $this->cache_feeder->pull($item);
+            }
         }
 
         return $buffer;

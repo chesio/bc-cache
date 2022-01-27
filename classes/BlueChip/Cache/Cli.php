@@ -140,10 +140,12 @@ class Cli
         $items_pushed_to_warm_up_queue = 0;
 
         foreach (Core::getRequestVariants() as $request_variant => $request_variant_name) {
-            if ($this->cache->delete($url, $request_variant)) {
+            $cache_item = new Item($url, $request_variant);
+
+            if ($this->cache->delete($cache_item)) {
                 if ($this->cache_feeder !== null) {
                     // Push item to feeder, update counter on success.
-                    if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                    if ($this->cache_feeder->push($cache_item)) {
                         $items_pushed_to_warm_up_queue += 1;
                     }
                 }
