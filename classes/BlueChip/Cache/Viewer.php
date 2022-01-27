@@ -150,6 +150,9 @@ class Viewer
      */
     private function renderCacheSizeInfo(): void
     {
+        // Print section header
+        echo '<h2>' . esc_html__('Cache status', 'bc-cache') . '</h2>';
+
         // Gather cache statistics (age and size), if available.
         $cache_info = [];
 
@@ -178,23 +181,28 @@ class Viewer
      */
     private function renderWarmUpQueueInfo(): void
     {
+        // Print section header
+        echo '<h2>' . esc_html__('Warm up queue', 'bc-cache') . '</h2>';
+
         $warm_up_queue_info = '';
 
         if ($this->cache_feeder !== null) {
-            $warm_up_queue_size = $this->cache_feeder->getSize();
+            // Note: calling getStats() implicitly rebuilds the queue if it has not been rebuild yet.
+            ['processed' => $processed, 'remaining' => $remaining, 'total' => $total] = $this->cache_feeder->getStats();
 
-            if ($warm_up_queue_size === null) {
-                $warm_up_queue_info = esc_html__('Warm up queue has not been rebuilt yet.', 'bc-cache');
-            } elseif ($warm_up_queue_size === 0) {
-                $warm_up_queue_info = esc_html__('Warm up queue is empty. Website should be fully cached.', 'bc-cache');
-            } else {
-                $warm_up_queue_info = esc_html(
-                    \sprintf(
-                        _n('There is %d item in warm up queue.', 'There are %d items in warm up queue.', $warm_up_queue_size, 'bc-cache'),
-                        $warm_up_queue_size
-                    )
-                );
-            }
+            $stats = sprintf(
+                esc_html__('%d remaining / %d processed / %d total', 'bc-cache'),
+                $remaining,
+                $processed,
+                $total
+            );
+
+            $progress = (int) (\round($processed / $total, 2) * 100);
+
+            $warm_up_queue_info = ($remaining === 0)
+                ? sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats)
+                : sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats)
+            ;
         } else {
             $warm_up_queue_info = esc_html__('Cache warm up is not enabled.', 'bc-cache');
         }
