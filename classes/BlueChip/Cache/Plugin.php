@@ -266,7 +266,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache, $this->cache_feeder))->init();
+            (new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);

@@ -20,6 +20,11 @@ class Viewer
     private $cache;
 
     /**
+     * @var \BlueChip\Cache\Crawler|null
+     */
+    private $cache_crawler;
+
+    /**
      * @var \BlueChip\Cache\Feeder|null
      */
     private $cache_feeder;
@@ -32,11 +37,13 @@ class Viewer
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
      * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache, ?Feeder $cache_feeder)
+    public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
     {
         $this->cache = $cache;
+        $this->cache_crawler = $cache_crawler;
         $this->cache_feeder = $cache_feeder;
     }
 
@@ -193,7 +200,7 @@ class Viewer
      */
     private function getWarmUpStatus(): string
     {
-        if ($this->cache_feeder === null) {
+        if (($this->cache_crawler === null) || ($this->cache_feeder === null)) {
             return esc_html__('Cache warm up is not enabled.', 'bc-cache');
         }
 
@@ -204,21 +211,38 @@ class Viewer
             return esc_html__('Warm up queue statistics are not available.', 'bc-cache');
         }
 
+        // Calculate progress in %:
+        $progress = (int) (\round($processed / $total, 2) * 100);
+
         // Prepare stats information.
         $stats = sprintf(
-            esc_html__('%d in queue / %d processed / %d total', 'bc-cache'),
+            esc_html__('%s (%d in queue / %d processed / %d total)', 'bc-cache'),
+            sprintf('<strong>%d%%</strong>', $progress), // render progress in bold
             $waiting,
             $processed,
             $total
         );
 
-        if ($waiting === 0) {
-            return sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
+        if ($processed === $total) {
+            return sprintf(esc_html__('Website should be fully cached. Current progress is: %s', 'bc-cache'), $stats);
         }
 
-        $progress = (int) (\round($processed / $total, 2) * 100);
+        $next_run_timestamp = $this->cache_crawler->getNextScheduled();
 
-        return sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats);
+        if ($next_run_timestamp === null) {
+            // Somehow there is no cron job scheduled...
+            return sprintf(esc_html__('Warm up stalled at: %s', 'bc-cache'), $stats);
+        }
+
+        if ($next_run_timestamp <= time()) {
+            return sprintf(esc_html__('Warm up runs in background. Current progress is: %s', 'bc-cache'), $stats);
+        }
+
+        return sprintf(
+            esc_html__('Warm up starts in %s. Current progress is: %s', 'bc-cache'),
+            human_time_diff($next_run_timestamp),
+            $stats
+        );
     }
 
 

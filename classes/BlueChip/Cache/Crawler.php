@@ -89,6 +89,15 @@ class Crawler
 
 
     /**
+     * @return int|null Timestamp of next cron job invocation or null if none is scheduled.
+     */
+    public function getNextScheduled(): ?int
+    {
+        return wp_next_scheduled(self::CRON_JOB_HOOK) ?: null;
+    }
+
+
+    /**
      * Initialize crawler by hooking it to action registered to WP-Cron.
      */
     public function init(): void
