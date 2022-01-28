@@ -119,15 +119,29 @@ AddDefaultCharset utf-8
 
 ## Configuration
 
-BC Cache has no settings. You can modify plugin behavior with filters and [theme features](https://developer.wordpress.org/reference/functions/add_theme_support/):
+BC Cache has no settings. You can modify plugin behavior with PHP constants, [WordPress filters](https://developer.wordpress.org/plugins/hooks/filters/) and [theme features](https://developer.wordpress.org/reference/functions/add_theme_support/).
+
+### Constants
+
+Two advanced features of the plugin can be optionally disabled with a constant.
+
+The [cache warm up](#cache-warm-up) feature can be disabled by setting `BC_CACHE_WARM_UP_ENABLED` constant with a `false` value:
+```php
+define('BC_CACHE_WARM_UP_ENABLED', false);
+```
+
+File locking is used to ensure atomicity of operations that manipulate the cache. If your webserver has issues with [flock()](https://www.php.net/manual/en/function.flock.php) you may want to disable use of file locking by setting `BC_CACHE_FILE_LOCKING_ENABLED` constant with a `false` value:
+```php
+define('BC_CACHE_FILE_LOCKING_ENABLED', false);
+```
+
+Both constant must be defined at the time the plugin boots - typically the best place to define them is `wp-config.php` file. It is recommended to deactivate the plugin **before** setting the constant and then reactivate.
 
 ### Filters
 
 If there was a settings page, following filters would likely become plugin settings as they alter basic functionality:
 
-* `bc-cache/filter:cache-warm-up-enable` - filters whether [cache warm up](#cache-warm-up) feature is enabled.
 * `bc-cache/filter:can-user-flush-cache` - filters whether current user can clear the cache. By default, any user with `manage_options` capability can clear the cache.
-* `bc-cache/filter:disable-cache-locking` - filters whether cache locking should be disabled. By default, cache locking is enabled, but if your webserver has issues with [flock()](https://secure.php.net/manual/en/function.flock.php) or you notice degraded performance due to cache locking, you may want to disable it.
 * `bc-cache/filter:html-signature` - filters HTML signature appended to HTML files stored in cache. You can use this filter to get rid of the signature: `add_filter('bc-cache/filter:html-signature', '__return_empty_string');`
 
 #### Filters for advanced functions
