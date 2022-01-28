@@ -135,7 +135,7 @@ File locking is used to ensure atomicity of operations that manipulate the cache
 define('BC_CACHE_FILE_LOCKING_ENABLED', false);
 ```
 
-Both constant must be defined at the time the plugin boots - typically the best place to define them is `wp-config.php` file. It is recommended to deactivate the plugin **before** setting the constant and then reactivate.
+Both constant must be defined at the time the plugin boots - typically the best place to define them is `wp-config.php` file. It is recommended to set the constants **before** activating the plugin.
 
 ### Filters
 

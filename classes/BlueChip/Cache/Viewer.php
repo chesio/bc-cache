@@ -216,7 +216,7 @@ class Viewer
 
         // Prepare stats information.
         $stats = sprintf(
-            esc_html__('%s (%d in queue / %d processed / %d total)', 'bc-cache'),
+            esc_html__('%s of known frontend pages is cached (%d in queue | %d processed | %d total)', 'bc-cache'),
             sprintf('<strong>%d%%</strong>', $progress), // render progress in bold
             $waiting,
             $processed,
@@ -224,7 +224,7 @@ class Viewer
         );
 
         if ($processed === $total) {
-            return sprintf(esc_html__('Website should be fully cached. Current progress is: %s', 'bc-cache'), $stats);
+            return sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
         }
 
         $next_run_timestamp = $this->cache_crawler->getNextScheduled();
@@ -235,11 +235,11 @@ class Viewer
         }
 
         if ($next_run_timestamp <= time()) {
-            return sprintf(esc_html__('Warm up runs in background. Current progress is: %s', 'bc-cache'), $stats);
+            return sprintf(esc_html__('Warm up runs in background: %s', 'bc-cache'), $stats);
         }
 
         return sprintf(
-            esc_html__('Warm up starts in %s. Current progress is: %s', 'bc-cache'),
+            esc_html__('Warm up starts in %s: %s', 'bc-cache'),
             human_time_diff($next_run_timestamp),
             $stats
         );
