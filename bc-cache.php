@@ -83,7 +83,10 @@ if (
 require_once __DIR__ . '/autoload.php';
 
 // Construct plugin instance.
-$bc_cache = new \BlueChip\Cache\Plugin(__FILE__);
+$bc_cache = new \BlueChip\Cache\Plugin(
+    __FILE__,
+    defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true
+);
 
 // Register activation hook.
 register_activation_hook(__FILE__, [$bc_cache, 'activate']);

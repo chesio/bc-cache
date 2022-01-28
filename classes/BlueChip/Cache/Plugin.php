@@ -157,13 +157,14 @@ class Plugin
 
 
     /**
-     * @param string $plugin_filename
+     * @param string $plugin_filename Absolute path to plugin main file.
+     * @param bool $file_locking_enabled True if file locking should be enabled, false otherwise.
      */
-    public function __construct(string $plugin_filename)
+    public function __construct(string $plugin_filename, bool $file_locking_enabled)
     {
         $this->plugin_filename = $plugin_filename;
         $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
-        $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
+        $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_LOCK_FILENAME) : new DummyLock();
         $this->cache_feeder = new Feeder();
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
         $this->cache_crawler = new Crawler($this->cache, $this->cache_feeder);

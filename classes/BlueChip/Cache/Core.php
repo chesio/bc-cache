@@ -106,7 +106,7 @@ class Core
     public function flush(bool $tear_down = false): bool
     {
         // Wait for exclusive lock.
-        if (!$this->lockCache(true)) {
+        if (!$this->cache_lock->acquire(true)) {
             // Exclusive lock could not be acquired, bail.
             return false;
         }
@@ -115,7 +115,7 @@ class Core
             // Treat as successful cache flush.
             $this->cache_info->reset()->write();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Cache directory does not exist, therefore report success.
             return true;
         }
@@ -140,7 +140,7 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Signal that cache has been flushed.
             do_action(Hooks::ACTION_CACHE_FLUSHED, $tear_down);
         }
@@ -172,7 +172,7 @@ class Core
         }
 
         // Wait for exclusive lock.
-        if (!$this->lockCache(true)) {
+        if (!$this->cache_lock->acquire(true)) {
             // Exclusive lock could not be acquired, bail.
             return false;
         }
@@ -199,7 +199,7 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
         }
     }
 
@@ -215,7 +215,7 @@ class Core
     public function push(Item $item, string $data): bool
     {
         // Try to acquire exclusive lock, but do not wait for it.
-        if (!$this->lockCache(true, true)) {
+        if (!$this->cache_lock->acquire(true, true)) {
             // Exclusive lock could not be acquired immediately, so bail.
             return false;
         }
@@ -225,7 +225,7 @@ class Core
             $path = $this->makeDirectory($item->getUrl());
         } catch (Exception $e) {
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Trigger a warning and let WordPress handle it.
             \trigger_error($e, E_USER_WARNING);
             // :(
@@ -255,7 +255,7 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
         }
     }
 
@@ -285,7 +285,7 @@ class Core
         }
 
         // Wait for non-exclusive lock.
-        if (!$this->lockCache(false)) {
+        if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
             return null;
         }
@@ -295,7 +295,7 @@ class Core
         // ...update cache information...
         $this->cache_info->setSize($cache_size)->write();
         // ...unlock cache for other operations...
-        $this->unlockCache();
+        $this->cache_lock->release();
         // ...and return the size:
         return $cache_size;
     }
@@ -330,7 +330,7 @@ class Core
         }
 
         // Wait for non-exclusive lock.
-        if (!$this->lockCache(false)) {
+        if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
             return null;
         }
@@ -339,7 +339,7 @@ class Core
         $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
 
         // Unlock cache for other operations.
-        $this->unlockCache();
+        $this->cache_lock->release();
 
         $state = [];
 
@@ -364,27 +364,6 @@ class Core
         }
 
         return $state;
-    }
-
-
-    /**
-     * @param bool $exclusive If true, require exclusive lock. If false, require shared lock.
-     * @param bool $non_blocking [optional] If true, do not wait for lock, but fail immediately.
-     *
-     * @return bool True on success, false on failure.
-     */
-    private function lockCache(bool $exclusive, bool $non_blocking = false): bool
-    {
-        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->acquire($exclusive, $non_blocking);
-    }
-
-
-    /**
-     * @return bool True on success, false on failure.
-     */
-    private function unlockCache(): bool
-    {
-        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->release();
     }
 
 

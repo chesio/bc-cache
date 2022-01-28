@@ -15,11 +15,6 @@ abstract class Hooks
     public const ACTION_FLUSH_CACHE = 'bc-cache/action:flush-cache';
 
     /**
-     * @var string Name of hook to filter whether cache locking should be disabled.
-     */
-    public const FILTER_DISABLE_CACHE_LOCKING = 'bc-cache/filter:disable-cache-locking';
-
-    /**
      * @var string Name of hook to filter result of can user flush cache check.
      */
     public const FILTER_USER_CAN_FLUSH_CACHE = 'bc-cache/filter:can-user-flush-cache';
