@@ -75,11 +75,6 @@ abstract class Hooks
     public const FILTER_REQUEST_VARIANTS = 'bc-cache/filter:request-variants';
 
     /**
-     * @var string Name of hook to filter state (enabled or disabled) of cache warm up.
-     */
-    public const FILTER_CACHE_WARM_ENABLED = 'bc-cache/filter:cache-warm-up-enable';
-
-    /**
      * @var string Name of hook to filter arguments of HTTP request run during cache warm up.
      */
     public const FILTER_CACHE_WARM_UP_REQUEST_ARGS = 'bc-cache/filter:cache-warm-up-request-arguments';
