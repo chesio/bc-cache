@@ -24,21 +24,19 @@ class Feeder
     {
         $queue = $this->getQueue(true);
 
-        if ($queue->isEmpty()) {
-            // No more URLs to crawl.
-            return null;
-        }
-
         $item = $queue->fetch();
 
-        $this->setQueue($queue);
+        if ($item) {
+            // Fetch has changed queue state, save it.
+            $this->setQueue($queue);
+        }
 
         return $item;
     }
 
 
     /**
-     * @param Item $item Item to uncrawl.
+     * @param Item $item Item to mark as processed.
      *
      * @return bool True on success, false on failure.
      */
@@ -46,14 +44,12 @@ class Feeder
     {
         $queue = $this->getQueue(true);
 
-        $queue->pull($item);
-
-        return $this->setQueue($queue);
+        return $queue->pull($item) ? $this->setQueue($queue) : true;
     }
 
 
     /**
-     * @param Item $item Item to crawl.
+     * @param Item $item Item to mark as waiting.
      *
      * @return bool True on success, false on failure.
      */
@@ -61,9 +57,7 @@ class Feeder
     {
         $queue = $this->getQueue(true);
 
-        $queue->push($item);
-
-        return $this->setQueue($queue);
+        return $queue->push($item) ? $this->setQueue($queue) : true;
     }
 
 

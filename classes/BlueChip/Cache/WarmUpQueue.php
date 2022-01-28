@@ -94,39 +94,55 @@ class WarmUpQueue
      * Pulling an $item marks is as processed.
      *
      * @param Item $item
+     *
+     * @return bool True if state of warm up queue has changed as result of pull, false otherwise.
      */
-    public function pull(Item $item): void
+    public function pull(Item $item): bool
     {
+        $dirty = false;
+
         // Remove item from waiting items list if present.
         $index = \array_search($item, $this->waiting, false);
         if ($index !== false) {
             \array_splice($this->waiting, $index, 1);
+            $dirty = true; // !
         }
 
         // Add item to processed items list if *not* present.
         $index = \array_search($item, $this->processed, false);
         if ($index === false) {
             \array_push($this->processed, $item);
+            $dirty = true; // !
         }
+
+        return $dirty;
     }
 
     /**
      * Pushing an $item marks it as waiting and puts it on top of the queue.
      *
      * @param Item $item
+     *
+     * @return bool True if state of warm up queue has changed as result of push, false otherwise.
      */
-    public function push(Item $item): void
+    public function push(Item $item): bool
     {
+        $dirty = false;
+
         // Remove item from processed items list if present.
         $index = \array_search($item, $this->processed, false);
         if ($index !== false) {
             \array_splice($this->processed, $index, 1);
+            $dirty = true; // !
         }
 
         // Add item to waiting items list if *not* present.
         $index = \array_search($item, $this->waiting, false);
         if ($index === false) {
             \array_push($this->waiting, $item);
+            $dirty = true; // !
         }
+
+        return $dirty;
     }
 }
