@@ -103,12 +103,12 @@ class Plugin
     private $cache_lock;
 
     /**
-     * @var \BlueChip\Cache\Crawler
+     * @var \BlueChip\Cache\Crawler|null Null if cache warm up is disabled.
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder
+     * @var \BlueChip\Cache\Feeder|null Null if cache warm up is disabled.
      */
     private $cache_feeder;
 
@@ -133,7 +133,9 @@ class Plugin
             );
         }
 
-        $this->cache_feeder->setUp();
+        if ($this->cache_feeder) {
+            $this->cache_feeder->setUp();
+        }
         $this->cache_info->setUp();
         $this->cache_lock->setUp();
     }
@@ -148,25 +150,31 @@ class Plugin
      */
     public function deactivate(): void
     {
-        $this->cache_crawler->deactivate();
+        if ($this->cache_crawler) {
+            $this->cache_crawler->deactivate();
+        }
         $this->cache->tearDown();
-        $this->cache_feeder->tearDown();
+        if ($this->cache_feeder) {
+            $this->cache_feeder->tearDown();
+        }
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
 
 
     /**
-     * @param string $plugin_filename
+     * @param string $plugin_filename Absolute path to plugin main file.
+     * @param bool $file_locking_enabled True if file locking should be enabled, false otherwise.
+     * @param bool $warm_up_enabled True if cache warm up should be enabled, false otherwise.
      */
-    public function __construct(string $plugin_filename)
+    public function __construct(string $plugin_filename, bool $file_locking_enabled, bool $warm_up_enabled)
     {
         $this->plugin_filename = $plugin_filename;
         $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
-        $this->cache_lock = new Lock(self::CACHE_LOCK_FILENAME);
-        $this->cache_feeder = new Feeder();
+        $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_LOCK_FILENAME) : new DummyLock();
+        $this->cache_feeder = $warm_up_enabled ? new Feeder() : null;
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
-        $this->cache_crawler = new Crawler($this->cache, $this->cache_feeder);
+        $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache, $this->cache_feeder) : null;
     }
 
 
@@ -185,14 +193,9 @@ class Plugin
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
-            $cache_warm_up_enabled = self::isCacheWarmUpEnabled();
             \WP_CLI::add_command(
                 'bc-cache',
-                new Cli(
-                    $this->cache,
-                    $cache_warm_up_enabled ? $this->cache_crawler : null,
-                    $cache_warm_up_enabled ? $this->cache_feeder : null
-                )
+                new Cli($this->cache, $this->cache_crawler, $this->cache_feeder)
             );
         });
 
@@ -238,7 +241,7 @@ class Plugin
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache, self::isCacheWarmUpEnabled() ? $this->cache_feeder : null))->init();
+            (new Viewer($this->cache, $this->cache_feeder))->init();
 
             if (self::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
@@ -249,7 +252,7 @@ class Plugin
             add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
 
-        if (self::isCacheWarmUpEnabled()) {
+        if ($this->cache_crawler) {
             // Initialize warm up crawler.
             $this->cache_crawler->init();
 
@@ -509,7 +512,7 @@ class Plugin
 
             $data = $buffer . $this->getSignature();
 
-            if ($this->cache->push($item, $data) && self::isCacheWarmUpEnabled()) {
+            if ($this->cache->push($item, $data) && $this->cache_feeder) {
                 $this->cache_feeder->pull($item);
             }
         }
@@ -599,21 +602,10 @@ class Plugin
     public function warmUp(bool $tear_down): void
     {
         // If not deactivating plugin instance, reset feeder and (re)activate crawler.
-        if (!$tear_down) {
+        if (!$tear_down && $this->cache_feeder && $this->cache_crawler) {
             $this->cache_feeder->reset();
             $this->cache_crawler->activate();
         }
-    }
-
-
-    /**
-     * Determine whether cache warm up feature should be enabled.
-     *
-     * @return bool True if cache warm up is enabled, false otherwise.
-     */
-    private static function isCacheWarmUpEnabled(): bool
-    {
-        return apply_filters(Hooks::FILTER_CACHE_WARM_ENABLED, true);
     }
 
 

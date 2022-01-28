@@ -9,6 +9,11 @@ This release has been tested with WordPress 5.9.
 * WP-CLI command `bc-cache warm-up` to run cache warm up from command line [#71](https://github.com/chesio/bc-cache/issues/71).
 * Cache warm up now works on any website with XML sitemap(s) [#73](https://github.com/chesio/bc-cache/issues/73).
 
+### Changed
+
+* The `bc-cache/filter:cache-warm-up-enable` filter has been removed - use `BC_CACHE_WARM_UP_ENABLED` constant to disable cache warm up.
+* The `bc-cache/filter:disable-cache-locking` filter has been removed - use `BC_CACHE_FILE_LOCKING_ENABLED` constant to disable file locking instead.
+
 ## Version 2.1.1 (2022-01-12)
 
 ### Fixed
