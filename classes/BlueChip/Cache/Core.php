@@ -388,7 +388,7 @@ class Core
      *
      * @return int Total size of all regular files in given directory and its subdirectories.
      *
-     * @throws Exception If $dirname does not exists or is not a directory.
+     * @throws \BlueChip\Cache\Exception If $dirname does not exists or is not a directory.
      */
     private static function getFilesSize(string $dirname): int
     {
@@ -419,7 +419,7 @@ class Core
      *
      * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
     {
@@ -515,7 +515,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function getPath(string $url): string
     {
@@ -550,7 +550,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function getUrl(string $path): string
     {
@@ -581,7 +581,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function makeDirectory(string $url): string
     {
@@ -603,7 +603,7 @@ class Core
      *
      * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function removeDirectory(string $dirname, bool $contents_only = false): void
     {
@@ -650,7 +650,7 @@ class Core
      *
      * @return string Normalized absolute path without any trailing directory separator.
      *
-     * @throws Exception In case of attempt to normalize empty or relative path.
+     * @throws \BlueChip\Cache\Exception In case of attempt to normalize empty or relative path.
      */
     private static function normalizePath(string $path): string
     {
@@ -692,7 +692,7 @@ class Core
      *
      * @return int Number of bytes deleted (file size).
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function deleteFile(string $filename): int
     {
@@ -723,7 +723,7 @@ class Core
      *
      * @return int Number of bytes written to file.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function writeFile(string $filename, string $data): int
     {

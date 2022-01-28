@@ -23,12 +23,12 @@ class Crawler
 
 
     /**
-     * @var Core
+     * @var \BlueChip\Cache\Core
      */
     private $cache;
 
     /**
-     * @var Feeder
+     * @var \BlueChip\Cache\Feeder
      */
     private $cache_feeder;
 
