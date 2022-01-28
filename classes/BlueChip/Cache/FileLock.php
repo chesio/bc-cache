@@ -9,7 +9,7 @@ namespace BlueChip\Cache;
  *
  * @link https://www.php.net/manual/en/function.flock.php
  */
-class FileLock
+class FileLock implements Lock
 {
     /**
      * @var string Absolute path to lock file.
