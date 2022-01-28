@@ -184,37 +184,41 @@ class Viewer
         // Print section header
         echo '<h2>' . esc_html__('Warm up queue', 'bc-cache') . '</h2>';
 
-        $warm_up_queue_info = '';
+        echo '<p>' . $this->getWarmUpStatus() . '</p>';
+    }
 
-        if ($this->cache_feeder !== null) {
-            // Note: calling getStats() implicitly rebuilds the queue if it has not been rebuild yet.
-            ['processed' => $processed, 'remaining' => $remaining, 'total' => $total] = $this->cache_feeder->getStats();
 
-            if ($total > 0) {
-                // Prepare stats information.
-                $stats = sprintf(
-                    esc_html__('%d remaining / %d processed / %d total', 'bc-cache'),
-                    $remaining,
-                    $processed,
-                    $total
-                );
-
-                if ($remaining === 0) {
-                    $warm_up_queue_info = sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
-                } else {
-                    $progress = (int) (\round($processed / $total, 2) * 100);
-
-                    $warm_up_queue_info = sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats);
-                }
-            } else {
-                $warm_up_queue_info = esc_html__('Warm up queue statistics are not available.', 'bc-cache');
-            }
-
-        } else {
-            $warm_up_queue_info = esc_html__('Cache warm up is not enabled.', 'bc-cache');
+    /**
+     * @return string Info about warm up status.
+     */
+    private function getWarmUpStatus(): string
+    {
+        if ($this->cache_feeder === null) {
+            return esc_html__('Cache warm up is not enabled.', 'bc-cache');
         }
 
-        echo '<p>' . $warm_up_queue_info . '</p>';
+        // Note: calling getStats() implicitly rebuilds the queue if it has not been rebuild yet.
+        ['processed' => $processed, 'waiting' => $waiting, 'total' => $total] = $this->cache_feeder->getStats();
+
+        if ($total === 0) {
+            return esc_html__('Warm up queue statistics are not available.', 'bc-cache');
+        }
+
+        // Prepare stats information.
+        $stats = sprintf(
+            esc_html__('%d in queue / %d processed / %d total', 'bc-cache'),
+            $waiting,
+            $processed,
+            $total
+        );
+
+        if ($waiting === 0) {
+            return sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
+        }
+
+        $progress = (int) (\round($processed / $total, 2) * 100);
+
+        return sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats);
     }
 
 
