@@ -15,6 +15,16 @@ class Viewer
     private const REQUIRED_CAPABILITY = 'manage_options';
 
     /**
+     * @var string Name of nonce used for any custom actions on admin pages
+     */
+    protected const NONCE_NAME = '_wpnonce';
+
+    /**
+     * @var string Name for start warm up action (used for both nonce action and submit name)
+     */
+    private const START_WARM_UP_ACTION = 'start-warm-up';
+
+    /**
      * @var \BlueChip\Cache\Core
      */
     private $cache;
@@ -107,12 +117,47 @@ class Viewer
      */
     public function loadPage(): void
     {
+        $this->processActions();
+
         $this->list_table = new ListTable($this->cache, $this->cache_feeder, self::getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
 
         $this->checkCacheSize();
+    }
+
+
+    /**
+     * Process any actions according to POST-ed data.
+     */
+    public function processActions(): void
+    {
+        $nonce = \filter_input(INPUT_POST, self::NONCE_NAME, FILTER_SANITIZE_STRING);
+        if (empty($nonce)) {
+            // No nonce, no action.
+            return;
+        }
+
+        // Start cache warm up action requested?
+        if (\array_key_exists(self::START_WARM_UP_ACTION, $_POST) && wp_verify_nonce($nonce, self::START_WARM_UP_ACTION)) {
+            if (!$this->cache_crawler) {
+                AdminNotices::add(
+                    __('Cannot start cache warm up, because cache warm up is disabled.', 'bc-cache'),
+                    AdminNotices::ERROR
+                );
+            } elseif ($this->cache_crawler->activate(true)) {
+                AdminNotices::add(
+                    __('Cache warm up successfully started.', 'bc-cache'),
+                    AdminNotices::SUCCESS
+                );
+            } else {
+                AdminNotices::add(
+                    __('There has been an error when attempting to start cache warm up.', 'bc-cache'),
+                    AdminNotices::ERROR
+                );
+            }
+        }
     }
 
 
@@ -192,6 +237,8 @@ class Viewer
         echo '<h2>' . esc_html__('Warm up queue', 'bc-cache') . '</h2>';
 
         echo '<p>' . $this->getWarmUpStatus() . '</p>';
+
+        $this->renderWarmUpActivationForm();
     }
 
 
@@ -243,6 +290,38 @@ class Viewer
             human_time_diff($next_run_timestamp),
             $stats
         );
+    }
+
+
+    private function renderWarmUpActivationForm(): void
+    {
+        if (($this->cache_crawler === null) || ($this->cache_feeder === null)) {
+            // Cache warm up not enabled, bail.
+            return;
+        }
+
+        if ($this->cache_feeder->getSize(true) === 0) {
+            // Cache queue is empty, no need to activate the warm up.
+            return;
+        }
+
+        $next_run_timestamp = $this->cache_crawler->getNextScheduled();
+
+        if (($next_run_timestamp !== null) && ($next_run_timestamp <= time())) {
+            // Cache warm up is already running.
+            return;
+        }
+
+        // Phrase button text accordingly: warm up stalled => resume; not running yet => start.
+        $button_text = ($next_run_timestamp === null)
+            ? __('Resume warm up now', 'bc-cache')
+            : __('Start warm up now', 'bc-cache')
+        ;
+
+        echo '<form method="post">';
+        wp_nonce_field(self::START_WARM_UP_ACTION, self::NONCE_NAME);
+        submit_button($button_text, 'small', self::START_WARM_UP_ACTION, false);
+        echo '</form>';
     }
 
 

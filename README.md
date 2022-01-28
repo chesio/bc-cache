@@ -320,7 +320,7 @@ Since version 2, the plugin performs _cache warm up_, ie. stores all pages in ca
 
 Internally, the warm up process is hooked to WP-Cron and the website is crawling itself in the background. This automatic crawling is kicked up every time cache is flushed (with a 10 minutes delay by default, but this can be configured).
 
-Since version 2.2, cache can be warmed up also from command line via following WP-CLI command: `wp bc-cache warm-up`
+Since version 2.2, cache warm up can be triggered immediately from [Cache Viewer](#cache-viewer). Also, the cache can be warmed up from command line via following WP-CLI command: `wp bc-cache warm-up`
 
 In order for the warm up to function properly:
 

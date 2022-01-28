@@ -45,17 +45,19 @@ class Crawler
 
 
     /**
+     * @param bool $immediately [optional] Set to true to start crawling immediately instead with a delay.
+     *
      * @return bool True if crawler run has been successfully scheduled, false otherwise.
      */
-    public function activate(): bool
+    public function activate(bool $immediately = false): bool
     {
         // Unschedule any scheduled event first.
         if (($timestamp = wp_next_scheduled(self::CRON_JOB_HOOK)) !== false) {
             wp_unschedule_event($timestamp, self::CRON_JOB_HOOK);
         }
 
-        // By default, crawling starts with a delay, but this can be filtered.
-        $delay = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INVOCATION_DELAY, self::DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY);
+        // If not requested to activate immediately, start crawling with a delay that can be filtered.
+        $delay = $immediately ? 0 : apply_filters(Hooks::FILTER_CACHE_WARM_UP_INVOCATION_DELAY, self::DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY);
 
         return $this->schedule(\time() + $delay);
     }
