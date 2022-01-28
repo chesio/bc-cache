@@ -190,19 +190,26 @@ class Viewer
             // Note: calling getStats() implicitly rebuilds the queue if it has not been rebuild yet.
             ['processed' => $processed, 'remaining' => $remaining, 'total' => $total] = $this->cache_feeder->getStats();
 
-            $stats = sprintf(
-                esc_html__('%d remaining / %d processed / %d total', 'bc-cache'),
-                $remaining,
-                $processed,
-                $total
-            );
+            if ($total > 0) {
+                // Prepare stats information.
+                $stats = sprintf(
+                    esc_html__('%d remaining / %d processed / %d total', 'bc-cache'),
+                    $remaining,
+                    $processed,
+                    $total
+                );
 
-            $progress = (int) (\round($processed / $total, 2) * 100);
+                if ($remaining === 0) {
+                    $warm_up_queue_info = sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
+                } else {
+                    $progress = (int) (\round($processed / $total, 2) * 100);
 
-            $warm_up_queue_info = ($remaining === 0)
-                ? sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats)
-                : sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats)
-            ;
+                    $warm_up_queue_info = sprintf(esc_html__('Warm up in progress (%d%%): %s', 'bc-cache'), $progress, $stats);
+                }
+            } else {
+                $warm_up_queue_info = esc_html__('Warm up queue statistics are not available.', 'bc-cache');
+            }
+
         } else {
             $warm_up_queue_info = esc_html__('Cache warm up is not enabled.', 'bc-cache');
         }
