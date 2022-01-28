@@ -70,13 +70,13 @@ class Feeder
     /**
      * @param bool $strict [optional] If true, queue will be rebuilt on demand.
      *
-     * @return int|null Count of items remaining in the queue or null if queue has to be rebuilt yet and $strict was false.
+     * @return int|null Count of items waiting in the queue or null if queue has to be rebuilt yet and $strict was false.
      */
     public function getSize(bool $strict = false): ?int
     {
         $queue = $this->getQueue($strict);
 
-        return $queue ? $queue->getRemainingCount() : null;
+        return $queue ? $queue->getWaitingCount() : null;
     }
 
 

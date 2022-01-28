@@ -5,22 +5,24 @@ namespace BlueChip\Cache;
 class WarmUpQueue
 {
     /**
-     * @var Item[]
+     * @var Item[] List of items that have been processed already
      */
-    private $items = [];
+    private $processed = [];
 
     /**
-     * @var int
+     * @var Item[] LIFO queue with items to be processed yet
      */
-    private $current = 0;
+    private $waiting = [];
+
 
     /**
      * @param Item[] $items
      */
     public function __construct(array $items)
     {
-        $this->items = $items;
+        $this->waiting = \array_reverse($items);
     }
+
 
     /**
      * Fetch next item and mark it as processed.
@@ -29,33 +31,42 @@ class WarmUpQueue
      */
     public function fetch(): ?Item
     {
-        // Post-increment the pointer, but only if queue is not empty yet.
-        return $this->isEmpty() ? null : $this->items[$this->current++];
+        $item = \array_pop($this->waiting);
+
+        if ($item) {
+            \array_push($this->processed, $item);
+        }
+
+        return $item;
     }
+
 
     /**
      * @return int Number of processed items.
      */
     public function getProcessedCount(): int
     {
-        return $this->current;
+        return \count($this->processed);
     }
 
+
     /**
-     * @return int Number of unprocessed items.
+     * @return int Number of waiting (unprocessed) items.
      */
-    public function getRemainingCount(): int
+    public function getWaitingCount(): int
     {
-        return $this->getTotalCount() - $this->getProcessedCount();
+        return \count($this->waiting);
     }
 
+
     /**
-     * @return int Total number of items in queue (sum of processed and unprocessed items).
+     * @return int Total number of items in queue (sum of processed and waiting items).
      */
     public function getTotalCount(): int
     {
-        return \count($this->items);
+        return \count($this->processed) + \count($this->waiting);
     }
+
 
     /**
      * @return array
@@ -64,62 +75,58 @@ class WarmUpQueue
     {
         return [
             'processed' => $this->getProcessedCount(),
-            'remaining' => $this->getRemainingCount(),
+            'waiting' => $this->getWaitingCount(),
             'total' => $this->getTotalCount(),
         ];
     }
+
 
     /**
      * @return bool True if queue is empty (there are no more items to process), false otherwise.
      */
     public function isEmpty(): bool
     {
-        return $this->getProcessedCount() === $this->getTotalCount();
+        return $this->waiting === [];
     }
 
+
     /**
-     * Pulling an $item moves it at the beginning of processed items.
+     * Pulling an $item marks is as processed.
      *
      * @param Item $item
      */
     public function pull(Item $item): void
     {
-        $index = \array_search($item, $this->items, false);
-
+        // Remove item from waiting items list if present.
+        $index = \array_search($item, $this->waiting, false);
         if ($index !== false) {
-            // Item is in a queue already, remove it from original position.
-            \array_splice($this->items, $index, 1);
+            \array_splice($this->waiting, $index, 1);
         }
 
-        // Push item to the beginning of the array.
-        \array_unshift($this->items, $item);
-
-        if (($index === false) || ($index >= $this->current)) {
-            // Item either wasn't in queue yet or has not been processed yet, so correct the pointer.
-            $this->current += 1;
+        // Add item to processed items list if *not* present.
+        $index = \array_search($item, $this->processed, false);
+        if ($index === false) {
+            \array_push($this->processed, $item);
         }
     }
 
     /**
-     * Pushing an $item moves it to the end of unprocessed items.
+     * Pushing an $item marks it as waiting and puts it on top of the queue.
      *
      * @param Item $item
      */
     public function push(Item $item): void
     {
-        $index = \array_search($item, $this->items, false);
-
-        // Append item to end of the array.
-        \array_push($this->items, $item);
-
+        // Remove item from processed items list if present.
+        $index = \array_search($item, $this->processed, false);
         if ($index !== false) {
-            // Item was in a queue already, remove it from original position.
-            \array_splice($this->items, $index, 1);
+            \array_splice($this->processed, $index, 1);
+        }
 
-            if ($index < $this->current) {
-                // Item has been processed already, shift the pointer one item back.
-                $this->current -= 1;
-            }
+        // Add item to waiting items list if *not* present.
+        $index = \array_search($item, $this->waiting, false);
+        if ($index === false) {
+            \array_push($this->waiting, $item);
         }
     }
 }
