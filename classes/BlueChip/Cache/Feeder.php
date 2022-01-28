@@ -6,6 +6,8 @@ namespace BlueChip\Cache;
  * Feeder acts as proxy to actual warm up queue object, but provides two additional functions as well:
  * - it automatically populates the warm up queue when necessary
  * - it takes care of persistence and stores warm up queue as transient
+ *
+ * @internal All public methods employ locking in order to ensure atomicity of operations on the (global) queue object.
  */
 class Feeder
 {
@@ -14,14 +16,34 @@ class Feeder
      */
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
+    /**
+     * @var Lock
+     */
+    private $lock;
+
+
+    /**
+     * @param Lock $lock Lock to use to ensure atomicity of operations.
+     */
+    public function __construct(Lock $lock)
+    {
+        $this->lock = $lock;
+    }
+
 
     /**
      * Fetch next item to crawl.
      *
-     * @return Item|null Next item to crawl or null if queue is empty.
+     * @return Item|null Next item to crawl or null if queue is empty or there has been an error.
      */
     public function fetch(): ?Item
     {
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, bail.
+            return null;
+        }
+
         $queue = $this->getQueue(true);
 
         $item = $queue->fetch();
@@ -30,6 +52,8 @@ class Feeder
             // Fetch has changed queue state, save it.
             $this->setQueue($queue);
         }
+
+        $this->lock->release(); // !
 
         return $item;
     }
@@ -42,9 +66,19 @@ class Feeder
      */
     public function pull(Item $item): bool
     {
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, fail.
+            return false;
+        }
+
         $queue = $this->getQueue(true);
 
-        return $queue->pull($item) ? $this->setQueue($queue) : true;
+        $status = $queue->pull($item) ? $this->setQueue($queue) : true;
+
+        $this->lock->release(); // !
+
+        return $status;
     }
 
 
@@ -55,9 +89,19 @@ class Feeder
      */
     public function push(Item $item): bool
     {
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, fail.
+            return false;
+        }
+
         $queue = $this->getQueue(true);
 
-        return $queue->push($item) ? $this->setQueue($queue) : true;
+        $status = $queue->push($item) ? $this->setQueue($queue) : true;
+
+        $this->lock->release(); // !
+
+        return $status;
     }
 
 
@@ -68,18 +112,36 @@ class Feeder
      */
     public function getSize(bool $strict = false): ?int
     {
+        // Get shared lock, but continue even if it could not be acquired.
+        $locked = $this->lock->acquire(false);
+
         $queue = $this->getQueue($strict);
 
-        return $queue ? $queue->getWaitingCount() : null;
+        $count = $queue ? $queue->getWaitingCount() : null;
+
+        if ($locked) {
+            $this->lock->release(); // !
+        }
+
+        return $count;
     }
 
 
     /**
-     * @return array
+     * @return array Warm up queue statistics as: {'processed' => int, 'waiting' => int, 'total' => int}
      */
     public function getStats(): array
     {
-        return $this->getQueue(true)->getStats();
+        // Get shared lock, but continue even if it could not be acquired.
+        $locked = $this->lock->acquire(false);
+
+        $stats = $this->getQueue(true)->getStats();
+
+        if ($locked) {
+            $this->lock->release(); // !
+        }
+
+        return $stats;
     }
 
 
@@ -90,7 +152,17 @@ class Feeder
      */
     public function reset(): bool
     {
-        return $this->setQueue(null);
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, fail.
+            return false;
+        }
+
+        $status = $this->setQueue(null);
+
+        $this->lock->release(); // !
+
+        return $status;
     }
 
 

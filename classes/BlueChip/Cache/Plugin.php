@@ -15,9 +15,14 @@ class Plugin
     public const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
 
     /**
-     * @var string Path to cache lock file - must be outside of cache directory!
+     * @var string Path to cache core lock file - must be outside of cache directory!
      */
-    private const CACHE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+    private const CACHE_FILE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache.lock';
+
+    /**
+     * @var string Path to cache feeder lock file - must be outside of cache directory!
+     */
+    private const FEEDER_FILE_LOCK_FILENAME = WP_CONTENT_DIR . '/cache/.bc-cache-feeder.lock';
 
     /**
      * @var string Default name of cookie to denote front-end users.
@@ -103,6 +108,11 @@ class Plugin
     private $cache_lock;
 
     /**
+     * @var \BlueChip\Cache\Lock|null Null if cache warm up is disabled.
+     */
+    private $feeder_lock;
+
+    /**
      * @var \BlueChip\Cache\Crawler|null Null if cache warm up is disabled.
      */
     private $cache_crawler;
@@ -133,6 +143,10 @@ class Plugin
             );
         }
 
+        // Note: feeder lock has to be set up before cache feeder is set up.
+        if ($this->feeder_lock) {
+            $this->feeder_lock->setUp();
+        }
         if ($this->cache_feeder) {
             $this->cache_feeder->setUp();
         }
@@ -157,6 +171,9 @@ class Plugin
         if ($this->cache_feeder) {
             $this->cache_feeder->tearDown();
         }
+        if ($this->feeder_lock) {
+            $this->feeder_lock->tearDown();
+        }
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
@@ -171,9 +188,17 @@ class Plugin
     {
         $this->plugin_filename = $plugin_filename;
         $this->cache_info = new Info(self::TRANSIENT_CACHE_INFO);
-        $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_LOCK_FILENAME) : new DummyLock();
-        $this->cache_feeder = $warm_up_enabled ? new Feeder() : null;
+
+        // Initialize locks as either proper file locks or dummy locks.
+        $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_FILE_LOCK_FILENAME) : new DummyLock();
+        $this->feeder_lock = $warm_up_enabled
+            ? ($file_locking_enabled ? new FileLock(self::FEEDER_FILE_LOCK_FILENAME) : new DummyLock())
+            : null
+        ;
+
+        // Initialize core module and optional features.
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
+        $this->cache_feeder = $warm_up_enabled ? new Feeder($this->feeder_lock) : null;
         $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache, $this->cache_feeder) : null;
     }
 
