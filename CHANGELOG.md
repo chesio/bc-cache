@@ -1,6 +1,6 @@
 # BC Cache Changelog
 
-## Upcoming version 2.2.0 (????-??-??)
+## Version 2.2.0 (2022-01-31)
 
 This release has been tested with WordPress 5.9.
 
