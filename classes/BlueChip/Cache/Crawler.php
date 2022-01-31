@@ -23,12 +23,12 @@ class Crawler
 
 
     /**
-     * @var Core
+     * @var \BlueChip\Cache\Core
      */
     private $cache;
 
     /**
-     * @var Feeder
+     * @var \BlueChip\Cache\Feeder
      */
     private $cache_feeder;
 
@@ -45,17 +45,19 @@ class Crawler
 
 
     /**
+     * @param bool $immediately [optional] Set to true to start crawling immediately instead with a delay.
+     *
      * @return bool True if crawler run has been successfully scheduled, false otherwise.
      */
-    public function activate(): bool
+    public function activate(bool $immediately = false): bool
     {
         // Unschedule any scheduled event first.
         if (($timestamp = wp_next_scheduled(self::CRON_JOB_HOOK)) !== false) {
             wp_unschedule_event($timestamp, self::CRON_JOB_HOOK);
         }
 
-        // By default, crawling starts with a delay, but this can be filtered.
-        $delay = apply_filters(Hooks::FILTER_CACHE_WARM_UP_INVOCATION_DELAY, self::DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY);
+        // If not requested to activate immediately, start crawling with a delay that can be filtered.
+        $delay = $immediately ? 0 : apply_filters(Hooks::FILTER_CACHE_WARM_UP_INVOCATION_DELAY, self::DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY);
 
         return $this->schedule(\time() + $delay);
     }
@@ -89,11 +91,20 @@ class Crawler
 
 
     /**
+     * @return int|null Timestamp of next cron job invocation or null if none is scheduled.
+     */
+    public function getNextScheduled(): ?int
+    {
+        return wp_next_scheduled(self::CRON_JOB_HOOK) ?: null;
+    }
+
+
+    /**
      * Initialize crawler by hooking it to action registered to WP-Cron.
      */
     public function init(): void
     {
-        add_action(self::CRON_JOB_HOOK, [$this, 'run'], 10, 0);
+        add_action(self::CRON_JOB_HOOK, [$this, 'runCronJob'], 10, 0);
     }
 
 
@@ -102,43 +113,82 @@ class Crawler
      *
      * @internal This method is hooked to WP-Cron.
      */
-    public function run(): void
+    public function runCronJob(): void
     {
-        // Make sure we don't run (much) longer that single WP-Cron run is allowed/expected to take.
-        $wp_cron_start_time = get_transient('doing_cron') ?: \microtime(true);
-        // Warm up time to run value can be filtered...
-        $timeout = apply_filters(Hooks::FILTER_CACHE_WARM_UP_RUN_TIMEOUT, WP_CRON_LOCK_TIMEOUT);
-        // ...but it can only be set to value equal or lower than (default) WP_CRON_LOCK_TIMEOUT.
-        $stop_at = (float) ($wp_cron_start_time + \min($timeout, WP_CRON_LOCK_TIMEOUT));
+        // A single warm up run must not run (much) longer than single WP-Cron run is allowed/expected to take, therefore:
+        $now = \microtime(true);
+        // 1) Get the time current WP-Cron invocation started. If unknown, assume it just started now.
+        $wp_cron_start_time = get_transient('doing_cron') ?: $now;
+        // 2) Get the time-out value: it is equal to WP-Cron time-out by default, but can be set to a *smaller* value.
+        $timeout = \min(apply_filters(Hooks::FILTER_CACHE_WARM_UP_RUN_TIMEOUT, WP_CRON_LOCK_TIMEOUT), WP_CRON_LOCK_TIMEOUT);
+        // 3) Compute time-out value adjusted to time left in current WP-Cron invocation.
+        $adjusted_timeout = (int) max($wp_cron_start_time + $timeout - $now, 0);
 
-        // Get URLs to crawl (including request variants).
-        while (($item = $this->cache_feeder->fetch()) !== null) {
-            // Get URL and request variant to crawl.
-            ['url' => $url, 'request_variant' => $request_variant] = $item;
-
-            // If item is not cached yet...
-            if (!$this->cache->has($url, $request_variant)) {
-                // Get warm up HTTP request arguments.
-                $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);
-
-                // Get the URL...
-                $response = wp_remote_get($url, $args);
-
-                if (wp_remote_retrieve_response_code($response) !== 200) {
-                    // ... if there is unexpected response, bail current WP-Cron invocation.
-                    break;
-                }
-            }
-
-            if (\microtime(true) >= $stop_at) {
-                // Stop if we run out of time in current WP-Cron invocation.
-                break;
-            }
-        }
-
-        // If there are any items to crawl left, schedule next crawl.
-        if (($this->cache_feeder->getSize() ?: 0) > 0) {
+        // Run the warm up with computed timeout...
+        if ($this->run($adjusted_timeout) !== 0) {
+            // ...if there are any items to crawl left, schedule next WP-Cron invocation.
             $this->schedule();
         }
+    }
+
+
+    /**
+     * Run cache warm up.
+     *
+     * Note: warm up run stops immediately if any HTTP request fails or gets a server error response (HTTP status code 5xx).
+     *
+     * @param int|null $timeout [optional] Run at maximum given number of seconds (0 secs = stop after single HTTP request).
+     *
+     * @return int Number of items left in warm up queue after run.
+     */
+    public function run(?int $timeout = null): int
+    {
+        if ($timeout === null) {
+            // Run as long as HTTP requests do not fail.
+            while ($this->step());
+        } else {
+            // If timeout is given, set stop time mark.
+            $stop_at = (\microtime(true) + $timeout);
+            // Run as long as HTTP requests do not fail and allowed time do not run out.
+            while ($this->step() && (\microtime(true) < $stop_at));
+        }
+
+        return $this->cache_feeder->getSize(true);
+    }
+
+
+    /**
+     * Fetch next item from warm up queue and crawl it.
+     *
+     * @return bool|null True if remote HTTP request succeeded, false if it failed, null when there are no more items to crawl.
+     */
+    public function step(): ?bool
+    {
+        // Get next item to crawl.
+        if (($item = $this->cache_feeder->fetch()) !== null) {
+            // If item has been cached yet...
+            if ($this->cache->has($item)) {
+                return true;
+            }
+
+            // Get URL and request variant to crawl.
+            $url = $item->getUrl();
+            $request_variant = $item->getRequestVariant();
+
+            // Get warm up HTTP request arguments.
+            $args = apply_filters(Hooks::FILTER_CACHE_WARM_UP_REQUEST_ARGS, self::DEFAULT_WARM_UP_REQUEST_ARGS, $url, $request_variant);
+
+            // Get the URL...
+            $response = wp_remote_get($url, $args);
+
+            // ...fetch response code...
+            $response_code = wp_remote_retrieve_response_code($response);
+
+            // ...and signal success if there was no server error.
+            return ($response_code !== '') && ($response_code < 500);
+        }
+
+        // There are no more items in warm up queue.
+        return null;
     }
 }

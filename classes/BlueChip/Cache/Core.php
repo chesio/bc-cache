@@ -106,7 +106,7 @@ class Core
     public function flush(bool $tear_down = false): bool
     {
         // Wait for exclusive lock.
-        if (!$this->lockCache(true)) {
+        if (!$this->cache_lock->acquire(true)) {
             // Exclusive lock could not be acquired, bail.
             return false;
         }
@@ -115,7 +115,7 @@ class Core
             // Treat as successful cache flush.
             $this->cache_info->reset()->write();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Cache directory does not exist, therefore report success.
             return true;
         }
@@ -140,7 +140,7 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Signal that cache has been flushed.
             do_action(Hooks::ACTION_CACHE_FLUSHED, $tear_down);
         }
@@ -148,18 +148,17 @@ class Core
 
 
     /**
-     * Delete data for given URL from cache.
+     * Delete given $item from cache.
      *
-     * @param string $url
-     * @param string $request_variant [optional] Request variant to delete.
+     * @param Item $item
      *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function delete(string $url, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
+    public function delete(Item $item): bool
     {
         try {
             // Get directory for given URL.
-            $path = $this->getPath($url);
+            $path = $this->getPath($item->getUrl());
         } catch (Exception $e) {
             // Trigger a warning and let WordPress handle it.
             \trigger_error($e, E_USER_WARNING);
@@ -173,15 +172,15 @@ class Core
         }
 
         // Wait for exclusive lock.
-        if (!$this->lockCache(true)) {
+        if (!$this->cache_lock->acquire(true)) {
             // Exclusive lock could not be acquired, bail.
             return false;
         }
 
         try {
             $bytes_deleted
-                = self::deleteFile(self::getHtmlFilename($path, $request_variant))
-                + self::deleteFile(self::getGzipFilename($path, $request_variant))
+                = self::deleteFile(self::getHtmlFilename($path, $item->getRequestVariant()))
+                + self::deleteFile(self::getGzipFilename($path, $item->getRequestVariant()))
             ;
             // Update cache size.
             $this->cache_info->decrementSize($bytes_deleted);
@@ -200,34 +199,33 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
         }
     }
 
 
     /**
-     * Store data for given URL in cache.
+     * Create new cache entry: store $data for given cache $item.
      *
-     * @param string $url
+     * @param Item $item
      * @param string $data
-     * @param string $request_variant [optional] Request variant to store the data under.
      *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function push(string $url, string $data, string $request_variant = self::DEFAULT_REQUEST_VARIANT): bool
+    public function push(Item $item, string $data): bool
     {
         // Try to acquire exclusive lock, but do not wait for it.
-        if (!$this->lockCache(true, true)) {
+        if (!$this->cache_lock->acquire(true, true)) {
             // Exclusive lock could not be acquired immediately, so bail.
             return false;
         }
 
         try {
             // Make directory for given URL.
-            $path = $this->makeDirectory($url);
+            $path = $this->makeDirectory($item->getUrl());
         } catch (Exception $e) {
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
             // Trigger a warning and let WordPress handle it.
             \trigger_error($e, E_USER_WARNING);
             // :(
@@ -236,9 +234,9 @@ class Core
 
         try {
             // Write cache date to disk, get number of bytes written.
-            $bytes_written = self::writeFile(self::getHtmlFilename($path, $request_variant), $data);
+            $bytes_written = self::writeFile(self::getHtmlFilename($path, $item->getRequestVariant()), $data);
             if (($gzip = \gzencode($data, 9)) !== false) {
-                $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
+                $bytes_written += self::writeFile(self::getGzipFilename($path, $item->getRequestVariant()), $gzip);
             }
             // Increment cache size.
             $this->cache_info->incrementSize($bytes_written);
@@ -257,7 +255,7 @@ class Core
             // Always clear stat cache.
             \clearstatcache();
             // Unlock cache for other operations.
-            $this->unlockCache();
+            $this->cache_lock->release();
         }
     }
 
@@ -287,7 +285,7 @@ class Core
         }
 
         // Wait for non-exclusive lock.
-        if (!$this->lockCache(false)) {
+        if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
             return null;
         }
@@ -297,25 +295,24 @@ class Core
         // ...update cache information...
         $this->cache_info->setSize($cache_size)->write();
         // ...unlock cache for other operations...
-        $this->unlockCache();
+        $this->cache_lock->release();
         // ...and return the size:
         return $cache_size;
     }
 
 
     /**
-     * Check whether $url in $request_variant is in cache.
+     * Check whether $item is in cache.
      *
      * @internal Check is based on presence of HTML file only (gzip is optional, so cannot be reliably used).
      *
-     * @param string $url
-     * @param string $request_variant
+     * @param Item $item
      *
-     * @return bool True if $url in $request_variant is in cache, false otherwise.
+     * @return bool True if $item is in cache, false otherwise.
      */
-    public function has(string $url, string $request_variant): bool
+    public function has(Item $item): bool
     {
-        return \is_readable(self::getHtmlFilename($this->getPath($url), $request_variant));
+        return \is_readable(self::getHtmlFilename($this->getPath($item->getUrl()), $item->getRequestVariant()));
     }
 
 
@@ -333,7 +330,7 @@ class Core
         }
 
         // Wait for non-exclusive lock.
-        if (!$this->lockCache(false)) {
+        if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
             return null;
         }
@@ -342,7 +339,7 @@ class Core
         $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
 
         // Unlock cache for other operations.
-        $this->unlockCache();
+        $this->cache_lock->release();
 
         $state = [];
 
@@ -371,27 +368,6 @@ class Core
 
 
     /**
-     * @param bool $exclusive If true, require exclusive lock. If false, require shared lock.
-     * @param bool $non_blocking [optional] If true, do not wait for lock, but fail immediately.
-     *
-     * @return bool True on success, false on failure.
-     */
-    private function lockCache(bool $exclusive, bool $non_blocking = false): bool
-    {
-        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->acquire($exclusive, $non_blocking);
-    }
-
-
-    /**
-     * @return bool True on success, false on failure.
-     */
-    private function unlockCache(): bool
-    {
-        return apply_filters(Hooks::FILTER_DISABLE_CACHE_LOCKING, false) ? true : $this->cache_lock->release();
-    }
-
-
-    /**
      * Get time (as Unix timestamp) of creation of cache entry under given $path.
      *
      * @param string $path Path to cache directory without trailing directory separator.
@@ -412,7 +388,7 @@ class Core
      *
      * @return int Total size of all regular files in given directory and its subdirectories.
      *
-     * @throws Exception If $dirname does not exists or is not a directory.
+     * @throws \BlueChip\Cache\Exception If $dirname does not exists or is not a directory.
      */
     private static function getFilesSize(string $dirname): int
     {
@@ -443,7 +419,7 @@ class Core
      *
      * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
     {
@@ -539,7 +515,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function getPath(string $url): string
     {
@@ -574,7 +550,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function getUrl(string $path): string
     {
@@ -605,7 +581,7 @@ class Core
      *
      * @return string
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private function makeDirectory(string $url): string
     {
@@ -627,7 +603,7 @@ class Core
      *
      * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function removeDirectory(string $dirname, bool $contents_only = false): void
     {
@@ -674,7 +650,7 @@ class Core
      *
      * @return string Normalized absolute path without any trailing directory separator.
      *
-     * @throws Exception In case of attempt to normalize empty or relative path.
+     * @throws \BlueChip\Cache\Exception In case of attempt to normalize empty or relative path.
      */
     private static function normalizePath(string $path): string
     {
@@ -716,7 +692,7 @@ class Core
      *
      * @return int Number of bytes deleted (file size).
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function deleteFile(string $filename): int
     {
@@ -747,7 +723,7 @@ class Core
      *
      * @return int Number of bytes written to file.
      *
-     * @throws Exception
+     * @throws \BlueChip\Cache\Exception
      */
     private static function writeFile(string $filename, string $data): int
     {

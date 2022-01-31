@@ -140,10 +140,12 @@ class Cli
         $items_pushed_to_warm_up_queue = 0;
 
         foreach (Core::getRequestVariants() as $request_variant => $request_variant_name) {
-            if ($this->cache->delete($url, $request_variant)) {
+            $cache_item = new Item($url, $request_variant);
+
+            if ($this->cache->delete($cache_item)) {
                 if ($this->cache_feeder !== null) {
                     // Push item to feeder, update counter on success.
-                    if ($this->cache_feeder->push(['url' => $url, 'request_variant' => $request_variant])) {
+                    if ($this->cache_feeder->push($cache_item)) {
                         $items_pushed_to_warm_up_queue += 1;
                     }
                 }
@@ -166,5 +168,37 @@ class Cli
         if (($items_pushed_to_warm_up_queue > 0) && ($this->cache_crawler !== null)) {
             $this->cache_crawler->activate();
         }
+    }
+
+
+    /**
+     * Warm up cache.
+     *
+     * @subcommand warm-up
+     */
+    public function warmUp(array $args, array $assoc_args): void
+    {
+        if (($this->cache_crawler === null) || ($this->cache_feeder === null)) {
+            \WP_CLI::error('Cache warm up is disabled. Exiting ...');
+        }
+
+        \WP_CLI::line('Warming up BC Cache cache ...');
+
+        $warm_up_queue_size = $this->cache_feeder->getSize(true);
+
+        if ($warm_up_queue_size === 0) {
+            \WP_CLI::success('Warm up queue is empty.');
+            return; // !
+        }
+
+        $progress = \WP_CLI\Utils\make_progress_bar('Progress', $warm_up_queue_size);
+
+        while ($this->cache_crawler->step() !== null) {
+            $progress->tick();
+        }
+
+        $progress->finish();
+
+        \WP_CLI::success('Cache warm up finished.');
     }
 }

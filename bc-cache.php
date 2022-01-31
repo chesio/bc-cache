@@ -4,12 +4,12 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: 2.1.1
+ * Version: 2.2.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.3
  * Requires WP: 5.5
- * Tested up to: 5.8
+ * Tested up to: 5.9
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  * Update URI: https://github.com/chesio/bc-cache
@@ -83,7 +83,11 @@ if (
 require_once __DIR__ . '/autoload.php';
 
 // Construct plugin instance.
-$bc_cache = new \BlueChip\Cache\Plugin(__FILE__);
+$bc_cache = new \BlueChip\Cache\Plugin(
+    __FILE__,
+    defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
+    defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
+);
 
 // Register activation hook.
 register_activation_hook(__FILE__, [$bc_cache, 'activate']);
