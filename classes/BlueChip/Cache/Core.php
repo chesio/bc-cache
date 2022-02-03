@@ -349,7 +349,8 @@ class Core
             } catch (Exception $e) {
                 // Trigger a warning and let WordPress handle it.
                 \trigger_error($e, E_USER_WARNING);
-                $url = null;
+                // Skip this item.
+                continue;
             }
 
             $state[] = (object) [
