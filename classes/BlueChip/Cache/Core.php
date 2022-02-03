@@ -324,7 +324,7 @@ class Core
     /**
      * Get cache state information.
      *
-     * @return object[] List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
+     * @return ListTableItem[] List of cache entries read from cache directory.
      */
     public function inspect(): ?array
     {
@@ -361,15 +361,14 @@ class Core
                 continue;
             }
 
-            $state[] = (object) [
-                'entry_id' => \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
-                'url' => $url,
-                'request_variant' => $item['request_variant'],
-                'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
-                'size' => $item['html_size'] + $item['gzip_size'],
-                'html_size' => $item['html_size'],
-                'gzip_size' => $item['gzip_size'],
-            ];
+            $state[] = new ListTableItem(
+                \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
+                $url,
+                $item['request_variant'],
+                self::getCreationTimestamp($item['path'], $item['request_variant']),
+                $item['html_size'],
+                $item['gzip_size']
+            );
         }
 
         // Memoize the state.

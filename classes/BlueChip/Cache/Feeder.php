@@ -152,6 +152,37 @@ class Feeder
     }
 
 
+    /**
+     * Synchronise warm up queue state with cache state.
+     *
+     * @return bool True if sync has been successfull, false otherwise.
+     */
+    public function synchronize(): bool
+    {
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, fail.
+            return false;
+        }
+
+        $queue = $this->getQueue();
+
+        $dirty = false; // Has queue state changed?
+
+        foreach ($this->cache->inspect() as $list_table_item) {
+            $dirty = $queue->pull($list_table_item->getItem()) || $dirty;
+        }
+
+        if ($dirty) {
+            $this->setQueue($queue);
+        }
+
+        $this->lock->release(); // !
+
+        return true;
+    }
+
+
     private function getQueue(): WarmUpQueue
     {
         /** @var WarmUpQueue|null $queue */

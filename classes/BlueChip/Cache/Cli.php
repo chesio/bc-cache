@@ -182,6 +182,11 @@ class Cli
             \WP_CLI::error('Cache warm up is disabled. Exiting ...');
         }
 
+        // Synchronize state of warm up queue with state of cache to get precise warm up queue size.
+        if (!$this->cache_feeder->synchronize()) {
+            \WP_CLI::error('Synchronizing state of warm up queue with state of cache failed. Exiting ...');
+        }
+
         \WP_CLI::line('Warming up BC Cache cache ...');
 
         $warm_up_queue_size = $this->cache_feeder->getSize();

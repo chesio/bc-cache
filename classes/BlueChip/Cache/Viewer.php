@@ -251,6 +251,10 @@ class Viewer
             return esc_html__('Cache warm up is not enabled.', 'bc-cache');
         }
 
+        if (!$this->cache_feeder->synchronize()) {
+            return esc_html__('Warm up queue statistics could not be synchronised with cache state.', 'bc-cache');
+        }
+
         // Note: calling getStats() implicitly rebuilds the queue if it has not been rebuild yet.
         ['processed' => $processed, 'waiting' => $waiting, 'total' => $total] = $this->cache_feeder->getStats();
 
