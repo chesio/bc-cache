@@ -1,5 +1,11 @@
 # BC Cache Changelog
 
+## Version 2.2.1 (2022-02-03)
+
+### Fixed
+
+This bugfix release improve synchronization of warm up queue state with cache state. The synchronization is now only done in WP-CLI and backend contexts - never on frontend [#76](https://github.com/chesio/bc-cache/issues/76).
+
 ## Version 2.2.0 (2022-01-31)
 
 This release has been tested with WordPress 5.9.
