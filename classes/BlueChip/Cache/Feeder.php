@@ -51,7 +51,7 @@ class Feeder
             return null;
         }
 
-        $queue = $this->getQueue(true);
+        $queue = $this->getQueue();
 
         if ($queue->isEmpty()) {
             $this->lock->release(); // !
@@ -83,7 +83,7 @@ class Feeder
             return false;
         }
 
-        $queue = $this->getQueue(true);
+        $queue = $this->getQueue();
 
         $status = $queue->push($item) ? $this->setQueue($queue) : true;
 
@@ -94,18 +94,16 @@ class Feeder
 
 
     /**
-     * @param bool $strict [optional] If true, queue will be rebuilt on demand.
-     *
-     * @return int|null Count of items waiting in the queue or null if queue has to be rebuilt yet and $strict was false.
+     * @return int Count of items waiting in the queue.
      */
-    public function getSize(bool $strict = false): ?int
+    public function getSize(): int
     {
         // Get shared lock, but continue even if it could not be acquired.
         $locked = $this->lock->acquire(false);
 
-        $queue = $this->getQueue($strict);
+        $queue = $this->getQueue();
 
-        $count = $queue ? $queue->getWaitingCount() : null;
+        $count = $queue->getWaitingCount();
 
         if ($locked) {
             $this->lock->release(); // !
@@ -123,7 +121,7 @@ class Feeder
         // Get shared lock, but continue even if it could not be acquired.
         $locked = $this->lock->acquire(false);
 
-        $stats = $this->getQueue(true)->getStats();
+        $stats = $this->getQueue()->getStats();
 
         if ($locked) {
             $this->lock->release(); // !
@@ -154,12 +152,12 @@ class Feeder
     }
 
 
-    private function getQueue(bool $rebuild = false): ?WarmUpQueue
+    private function getQueue(): WarmUpQueue
     {
         /** @var WarmUpQueue|null $queue */
         $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE) ?: null;
 
-        if (!($queue instanceof WarmUpQueue) && $rebuild) {
+        if (!($queue instanceof WarmUpQueue)) {
             // Rebuild queue.
             $queue = new WarmUpQueue($this->getItems());
             // And save.

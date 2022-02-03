@@ -300,7 +300,7 @@ class Viewer
             return;
         }
 
-        if ($this->cache_feeder->getSize(true) === 0) {
+        if ($this->cache_feeder->getSize() === 0) {
             // Cache queue is empty, no need to activate the warm up.
             return;
         }

@@ -184,7 +184,7 @@ class Cli
 
         \WP_CLI::line('Warming up BC Cache cache ...');
 
-        $warm_up_queue_size = $this->cache_feeder->getSize(true);
+        $warm_up_queue_size = $this->cache_feeder->getSize();
 
         if ($warm_up_queue_size === 0) {
             \WP_CLI::success('Warm up queue is empty.');
