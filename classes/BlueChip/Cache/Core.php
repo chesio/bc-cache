@@ -30,6 +30,11 @@ class Core
      */
     private $cache_lock;
 
+    /**
+     * @var array|null Cached result of call to inspect() method
+     */
+    private $inspection = null;
+
 
     /**
      * @param string $cache_dir Absolute path to root cache directory
@@ -327,6 +332,11 @@ class Core
             return [];
         }
 
+        if ($this->inspection !== null) {
+            // Return memoized data.
+            return $this->inspection;
+        }
+
         // Wait for non-exclusive lock.
         if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
@@ -361,6 +371,9 @@ class Core
                 'gzip_size' => $item['gzip_size'],
             ];
         }
+
+        // Memoize the state.
+        $this->inspection = $state;
 
         return $state;
     }
