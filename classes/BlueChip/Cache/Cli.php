@@ -139,7 +139,7 @@ class Cli
     {
         $items_pushed_to_warm_up_queue = 0;
 
-        foreach (Core::getRequestVariants() as $request_variant => $request_variant_name) {
+        foreach ($this->cache->getRequestVariants() as $request_variant => $request_variant_name) {
             $cache_item = new Item($url, $request_variant);
 
             if ($this->cache->delete($cache_item)) {

@@ -87,7 +87,7 @@ class Core
     /**
      * @return string[] Filtered list of request variants.
      */
-    public static function getRequestVariants(): array
+    public function getRequestVariants(): array
     {
         return apply_filters(
             Hooks::FILTER_REQUEST_VARIANTS,

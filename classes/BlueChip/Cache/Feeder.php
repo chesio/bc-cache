@@ -187,7 +187,7 @@ class Feeder
         $urls = $this->getUrls();
 
         // Get request variants to include.
-        $request_variants = Core::getRequestVariants();
+        $request_variants = $this->cache->getRequestVariants();
 
         $items = [];
 

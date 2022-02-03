@@ -106,7 +106,7 @@ class ListTable extends \WP_List_Table
         $this->url = $url;
 
         // Get list of request variants.
-        $this->request_variants = Core::getRequestVariants();
+        $this->request_variants = $cache->getRequestVariants();
 
         $order_by = \filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
         if (\in_array($order_by, $this->get_sortable_columns(), true)) {
