@@ -8,11 +8,6 @@ namespace BlueChip\Cache;
 class ListTable extends \WP_List_Table
 {
     /**
-     * @var string Separator between URL and request variant part in cache entry ID. Do not change!
-     */
-    private const ENTRY_ID_SEPARATOR = '#';
-
-    /**
      * @var string Name of delete action
      */
     private const ACTION_DELETE = 'delete';
@@ -106,7 +101,7 @@ class ListTable extends \WP_List_Table
         $this->url = $url;
 
         // Get list of request variants.
-        $this->request_variants = Core::getRequestVariants();
+        $this->request_variants = $cache->getRequestVariants();
 
         $order_by = \filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
         if (\in_array($order_by, $this->get_sortable_columns(), true)) {
@@ -134,7 +129,7 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "checkbox" column.
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
@@ -142,7 +137,7 @@ class ListTable extends \WP_List_Table
     {
         return \sprintf(
             '<input type="checkbox" name="urls[]" value="%s" />',
-            $item->url . self::ENTRY_ID_SEPARATOR . $item->request_variant
+            (string) $item
         );
     }
 
@@ -150,14 +145,14 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "ID" column (including row actions).
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
-    public function column_entry_id(object $item): string // phpcs:ignore
+    public function column_entry_id(ListTableItem $item): string // phpcs:ignore
     {
         return
-            '<code>' . esc_html($item->entry_id) . '</code>' . '<br>' .
+            '<code>' . esc_html($item->getEntryId()) . '</code>' . '<br>' .
             $this->row_actions($this->getRowActions($item))
         ;
     }
@@ -166,30 +161,30 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "Request variant" column.
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
-    public function column_request_variant(object $item): string // phpcs:ignore
+    public function column_request_variant(ListTableItem $item): string // phpcs:ignore
     {
-        return esc_html($this->request_variants[$item->request_variant]);
+        return esc_html($this->request_variants[$item->getRequestVariant()]);
     }
 
 
     /**
      * Return content for "Size" column.
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
-    public function column_size(object $item): string // phpcs:ignore
+    public function column_size(ListTableItem $item): string // phpcs:ignore
     {
         return \sprintf(
             '%s | %s | %s',
-            esc_html(size_format($item->size)),
-            esc_html(size_format($item->html_size)),
-            esc_html(size_format($item->gzip_size))
+            esc_html(size_format($item->getTotalDiskSize())),
+            esc_html(size_format($item->getHtmlFileSize())),
+            esc_html(size_format($item->getGzipFileSize()))
         );
     }
 
@@ -197,14 +192,16 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "Created" column.
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
-    public function column_timestamp(object $item): string // phpcs:ignore
+    public function column_timestamp(ListTableItem $item): string // phpcs:ignore
     {
-        return $item->timestamp
-            ? (wp_date('Y-m-d', $item->timestamp) . '<br>' . wp_date('H:i:s', $item->timestamp))
+        $timestamp = $item->getTimestamp();
+
+        return $timestamp !== null
+            ? (wp_date('Y-m-d', $timestamp) . '<br>' . wp_date('H:i:s', $timestamp))
             : self::UNKNOWN_VALUE
         ;
     }
@@ -213,16 +210,13 @@ class ListTable extends \WP_List_Table
     /**
      * Return content for "URL" column.
      *
-     * @param object $item
+     * @param ListTableItem $item
      *
      * @return string
      */
-    public function column_url(object $item): string // phpcs:ignore
+    public function column_url(ListTableItem $item): string // phpcs:ignore
     {
-        return $item->url
-            ? ('<a href="' . esc_url($item->url) . '">' . esc_html($item->url) . '</a>')
-            : self::UNKNOWN_VALUE
-        ;
+        return '<a href="' . esc_url($item->getUrl()) . '">' . esc_html($item->getUrl()) . '</a>';
     }
 
 
@@ -290,7 +284,7 @@ class ListTable extends \WP_List_Table
      */
     public function prepare_items() // phpcs:ignore
     {
-        $state = $this->cache->inspect(\array_keys($this->request_variants));
+        $state = $this->cache->inspect();
 
         if ($state === null) {
             // There has been an error...
@@ -306,7 +300,12 @@ class ListTable extends \WP_List_Table
             }
 
             // Also calculate total cache files size.
-            $this->cache_files_size = \array_sum(\array_column($state, 'size'));
+            $this->cache_files_size = \array_sum(
+                \array_map(
+                    function (ListTableItem $item): int { return $item->getTotalDiskSize(); }, // phpcs:ignore
+                    $state
+                )
+            );
         }
 
         $current_page = $this->get_pagenum();
@@ -388,9 +387,7 @@ class ListTable extends \WP_List_Table
             $items_pushed_to_warm_up_queue = 0;
 
             foreach ($urls as $url_with_request_variant) {
-                [$url, $request_variant] = \explode(self::ENTRY_ID_SEPARATOR, $url_with_request_variant);
-
-                $cache_item = new Item($url, $request_variant);
+                $cache_item = Item::createFromString($url_with_request_variant);
 
                 if ($this->cache->delete($cache_item)) {
                     $items_deleted += 1;
@@ -503,19 +500,19 @@ class ListTable extends \WP_List_Table
 
 
     /**
-     * @param object $item
+     * @param Item $item
      *
      * @return string[]
      */
-    private function getRowActions(object $item): array
+    private function getRowActions(Item $item): array
     {
         $actions = [];
 
         if (Plugin::canUserFlushCache()) {
             $actions[self::ACTION_DELETE] = $this->renderRowAction(
                 self::ACTION_DELETE,
-                $item->url,
-                $item->request_variant,
+                $item->getUrl(),
+                $item->getRequestVariant(),
                 'delete',
                 __('Delete entry', 'bc-cache')
             );

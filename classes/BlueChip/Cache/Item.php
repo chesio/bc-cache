@@ -46,4 +46,12 @@ class Item
     {
         return $this->url . self::SEPARATOR . $this->request_variant;
     }
+
+
+    public static function createFromString(string $value): self
+    {
+        [$url, $request_variant] = \explode(self::SEPARATOR, $value);
+
+        return new self($url, $request_variant);
+    }
 }
