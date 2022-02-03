@@ -139,7 +139,7 @@ class Cli
     {
         $items_pushed_to_warm_up_queue = 0;
 
-        foreach (Core::getRequestVariants() as $request_variant => $request_variant_name) {
+        foreach ($this->cache->getRequestVariants() as $request_variant => $request_variant_name) {
             $cache_item = new Item($url, $request_variant);
 
             if ($this->cache->delete($cache_item)) {
@@ -182,9 +182,14 @@ class Cli
             \WP_CLI::error('Cache warm up is disabled. Exiting ...');
         }
 
+        // Synchronize state of warm up queue with state of cache to get precise warm up queue size.
+        if (!$this->cache_feeder->synchronize()) {
+            \WP_CLI::error('Synchronizing state of warm up queue with state of cache failed. Exiting ...');
+        }
+
         \WP_CLI::line('Warming up BC Cache cache ...');
 
-        $warm_up_queue_size = $this->cache_feeder->getSize(true);
+        $warm_up_queue_size = $this->cache_feeder->getSize();
 
         if ($warm_up_queue_size === 0) {
             \WP_CLI::success('Warm up queue is empty.');

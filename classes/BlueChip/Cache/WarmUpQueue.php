@@ -118,6 +118,7 @@ class WarmUpQueue
         return $dirty;
     }
 
+
     /**
      * Pushing an $item marks it as waiting and puts it on top of the queue.
      *

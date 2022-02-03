@@ -17,16 +17,23 @@ class Feeder
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
     /**
+     * @var \BlueChip\Cache\Core
+     */
+    private $cache;
+
+    /**
      * @var Lock
      */
     private $lock;
 
 
     /**
+     * @param \BlueChip\Cache\Core $cache
      * @param Lock $lock Lock to use to ensure atomicity of operations.
      */
-    public function __construct(Lock $lock)
+    public function __construct(Core $cache, Lock $lock)
     {
+        $this->cache = $cache;
         $this->lock = $lock;
     }
 
@@ -34,7 +41,7 @@ class Feeder
     /**
      * Fetch next item to crawl.
      *
-     * @return Item|null Next item to crawl or null if queue is empty or there has been an error.
+     * @return Item|null Next item to crawl or null if there are no more uncached items in queue or there has been an error.
      */
     public function fetch(): ?Item
     {
@@ -44,41 +51,22 @@ class Feeder
             return null;
         }
 
-        $queue = $this->getQueue(true);
+        $queue = $this->getQueue();
 
-        $item = $queue->fetch();
-
-        if ($item) {
-            // Fetch has changed queue state, save it.
-            $this->setQueue($queue);
+        if ($queue->isEmpty()) {
+            $this->lock->release(); // !
+            return null;
         }
+
+        // Keep fetching items untile there are no items or we found item that has not been cached yet.
+        while ((($item = $queue->fetch()) !== null) && $this->cache->has($item));
+
+        // Fetch has changed queue state, save it.
+        $this->setQueue($queue);
 
         $this->lock->release(); // !
 
         return $item;
-    }
-
-
-    /**
-     * @param Item $item Item to mark as processed.
-     *
-     * @return bool True on success, false on failure.
-     */
-    public function pull(Item $item): bool
-    {
-        // Get an exclusive lock.
-        if (!$this->lock->acquire(true)) {
-            // If lock cannot be acquired, fail.
-            return false;
-        }
-
-        $queue = $this->getQueue(true);
-
-        $status = $queue->pull($item) ? $this->setQueue($queue) : true;
-
-        $this->lock->release(); // !
-
-        return $status;
     }
 
 
@@ -95,7 +83,7 @@ class Feeder
             return false;
         }
 
-        $queue = $this->getQueue(true);
+        $queue = $this->getQueue();
 
         $status = $queue->push($item) ? $this->setQueue($queue) : true;
 
@@ -106,18 +94,16 @@ class Feeder
 
 
     /**
-     * @param bool $strict [optional] If true, queue will be rebuilt on demand.
-     *
-     * @return int|null Count of items waiting in the queue or null if queue has to be rebuilt yet and $strict was false.
+     * @return int Count of items waiting in the queue.
      */
-    public function getSize(bool $strict = false): ?int
+    public function getSize(): int
     {
         // Get shared lock, but continue even if it could not be acquired.
         $locked = $this->lock->acquire(false);
 
-        $queue = $this->getQueue($strict);
+        $queue = $this->getQueue();
 
-        $count = $queue ? $queue->getWaitingCount() : null;
+        $count = $queue->getWaitingCount();
 
         if ($locked) {
             $this->lock->release(); // !
@@ -135,7 +121,7 @@ class Feeder
         // Get shared lock, but continue even if it could not be acquired.
         $locked = $this->lock->acquire(false);
 
-        $stats = $this->getQueue(true)->getStats();
+        $stats = $this->getQueue()->getStats();
 
         if ($locked) {
             $this->lock->release(); // !
@@ -166,12 +152,43 @@ class Feeder
     }
 
 
-    private function getQueue(bool $rebuild = false): ?WarmUpQueue
+    /**
+     * Synchronise warm up queue state with cache state.
+     *
+     * @return bool True if sync has been successfull, false otherwise.
+     */
+    public function synchronize(): bool
+    {
+        // Get an exclusive lock.
+        if (!$this->lock->acquire(true)) {
+            // If lock cannot be acquired, fail.
+            return false;
+        }
+
+        $queue = $this->getQueue();
+
+        $dirty = false; // Has queue state changed?
+
+        foreach ($this->cache->inspect() as $list_table_item) {
+            $dirty = $queue->pull($list_table_item->getItem()) || $dirty;
+        }
+
+        if ($dirty) {
+            $this->setQueue($queue);
+        }
+
+        $this->lock->release(); // !
+
+        return true;
+    }
+
+
+    private function getQueue(): WarmUpQueue
     {
         /** @var WarmUpQueue|null $queue */
         $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE) ?: null;
 
-        if (!($queue instanceof WarmUpQueue) && $rebuild) {
+        if (!($queue instanceof WarmUpQueue)) {
             // Rebuild queue.
             $queue = new WarmUpQueue($this->getItems());
             // And save.
@@ -201,7 +218,7 @@ class Feeder
         $urls = $this->getUrls();
 
         // Get request variants to include.
-        $request_variants = Core::getRequestVariants();
+        $request_variants = $this->cache->getRequestVariants();
 
         $items = [];
 

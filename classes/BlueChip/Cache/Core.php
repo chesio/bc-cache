@@ -30,6 +30,11 @@ class Core
      */
     private $cache_lock;
 
+    /**
+     * @var array|null Cached result of call to inspect() method
+     */
+    private $inspection = null;
+
 
     /**
      * @param string $cache_dir Absolute path to root cache directory
@@ -87,7 +92,7 @@ class Core
     /**
      * @return string[] Filtered list of request variants.
      */
-    public static function getRequestVariants(): array
+    public function getRequestVariants(): array
     {
         return apply_filters(
             Hooks::FILTER_REQUEST_VARIANTS,
@@ -319,14 +324,17 @@ class Core
     /**
      * Get cache state information.
      *
-     * @param string[] $request_variants List of all request variants to inspect.
-     *
-     * @return object[] List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
+     * @return ListTableItem[] List of cache entries read from cache directory.
      */
-    public function inspect(array $request_variants): ?array
+    public function inspect(): ?array
     {
         if (!\is_dir($this->cache_dir)) {
             return [];
+        }
+
+        if ($this->inspection !== null) {
+            // Return memoized data.
+            return $this->inspection;
         }
 
         // Wait for non-exclusive lock.
@@ -336,7 +344,7 @@ class Core
         }
 
         // Get cache sizes.
-        $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
+        $cache_sizes = self::getCacheSizes($this->cache_dir, \array_keys($this->getRequestVariants()));
 
         // Unlock cache for other operations.
         $this->cache_lock->release();
@@ -349,19 +357,22 @@ class Core
             } catch (Exception $e) {
                 // Trigger a warning and let WordPress handle it.
                 \trigger_error($e, E_USER_WARNING);
-                $url = null;
+                // Skip this item.
+                continue;
             }
 
-            $state[] = (object) [
-                'entry_id' => \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
-                'url' => $url,
-                'request_variant' => $item['request_variant'],
-                'timestamp' => self::getCreationTimestamp($item['path'], $item['request_variant']),
-                'size' => $item['html_size'] + $item['gzip_size'],
-                'html_size' => $item['html_size'],
-                'gzip_size' => $item['gzip_size'],
-            ];
+            $state[] = new ListTableItem(
+                \substr($id, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), // make ID relative to cache directory
+                $url,
+                $item['request_variant'],
+                self::getCreationTimestamp($item['path'], $item['request_variant']),
+                $item['html_size'],
+                $item['gzip_size']
+            );
         }
+
+        // Memoize the state.
+        $this->inspection = $state;
 
         return $state;
     }

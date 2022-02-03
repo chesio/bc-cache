@@ -23,23 +23,16 @@ class Crawler
 
 
     /**
-     * @var \BlueChip\Cache\Core
-     */
-    private $cache;
-
-    /**
      * @var \BlueChip\Cache\Feeder
      */
     private $cache_feeder;
 
 
     /**
-     * @param \BlueChip\Cache\Core $cache
      * @param \BlueChip\Cache\Feeder $cache_feeder
      */
-    public function __construct(Core $cache, Feeder $cache_feeder)
+    public function __construct(Feeder $cache_feeder)
     {
-        $this->cache = $cache;
         $this->cache_feeder = $cache_feeder;
     }
 
@@ -153,7 +146,7 @@ class Crawler
             while ($this->step() && (\microtime(true) < $stop_at));
         }
 
-        return $this->cache_feeder->getSize(true);
+        return $this->cache_feeder->getSize();
     }
 
 
@@ -166,11 +159,6 @@ class Crawler
     {
         // Get next item to crawl.
         if (($item = $this->cache_feeder->fetch()) !== null) {
-            // If item has been cached yet...
-            if ($this->cache->has($item)) {
-                return true;
-            }
-
             // Get URL and request variant to crawl.
             $url = $item->getUrl();
             $request_variant = $item->getRequestVariant();
