@@ -537,9 +537,7 @@ class Plugin
 
             $data = $buffer . $this->getSignature();
 
-            if ($this->cache->push($item, $data) && $this->cache_feeder) {
-                $this->cache_feeder->pull($item);
-            }
+            $this->cache->push($item, $data);
         }
 
         return $buffer;

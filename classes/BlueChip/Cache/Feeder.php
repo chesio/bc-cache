@@ -60,29 +60,6 @@ class Feeder
 
 
     /**
-     * @param Item $item Item to mark as processed.
-     *
-     * @return bool True on success, false on failure.
-     */
-    public function pull(Item $item): bool
-    {
-        // Get an exclusive lock.
-        if (!$this->lock->acquire(true)) {
-            // If lock cannot be acquired, fail.
-            return false;
-        }
-
-        $queue = $this->getQueue(true);
-
-        $status = $queue->pull($item) ? $this->setQueue($queue) : true;
-
-        $this->lock->release(); // !
-
-        return $status;
-    }
-
-
-    /**
      * @param Item $item Item to mark as waiting.
      *
      * @return bool True on success, false on failure.
