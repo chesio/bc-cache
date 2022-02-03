@@ -17,7 +17,7 @@ class Feeder
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
     /**
-     * @var \BlueChip\Cache\Core
+     * @var Core
      */
     private $cache;
 
@@ -28,7 +28,7 @@ class Feeder
 
 
     /**
-     * @param \BlueChip\Cache\Core $cache
+     * @param Core $cache
      * @param Lock $lock Lock to use to ensure atomicity of operations.
      */
     public function __construct(Core $cache, Lock $lock)

@@ -43,17 +43,17 @@ class ListTable extends \WP_List_Table
     private const UNKNOWN_VALUE = '--';
 
     /**
-     * @var \BlueChip\Cache\Core
+     * @var Core
      */
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Crawler|null
+     * @var Crawler|null
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder|null
+     * @var Feeder|null
      */
     private $cache_feeder;
 
@@ -84,8 +84,8 @@ class ListTable extends \WP_List_Table
 
 
     /**
-     * @param \BlueChip\Cache\Core $cache
-     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
+     * @param Core $cache
+     * @param Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      * @param string $url
      */
     public function __construct(Core $cache, ?Feeder $cache_feeder, string $url)

@@ -93,32 +93,32 @@ class Plugin
     private $plugin_filename;
 
     /**
-     * @var \BlueChip\Cache\Core
+     * @var Core
      */
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Info
+     * @var Info
      */
     private $cache_info;
 
     /**
-     * @var \BlueChip\Cache\Lock
+     * @var Lock
      */
     private $cache_lock;
 
     /**
-     * @var \BlueChip\Cache\Lock|null Null if cache warm up is disabled.
+     * @var Lock|null Null if cache warm up is disabled.
      */
     private $feeder_lock;
 
     /**
-     * @var \BlueChip\Cache\Crawler|null Null if cache warm up is disabled.
+     * @var Crawler|null Null if cache warm up is disabled.
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder|null Null if cache warm up is disabled.
+     * @var Feeder|null Null if cache warm up is disabled.
      */
     private $cache_feeder;
 

@@ -39,7 +39,7 @@ class XmlSitemapReader
      *
      * @return string[] List of URLs parsed from all available XML sitemaps.
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     public function getUrls(): array
     {
@@ -75,7 +75,7 @@ class XmlSitemapReader
      *
      * @return string[]
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private static function fetch(string $url, bool $expect_sitemap = false): array
     {

@@ -10,25 +10,25 @@ namespace BlueChip\Cache;
 class Cli
 {
     /**
-     * @var \BlueChip\Cache\Core
+     * @var Core
      */
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Crawler|null
+     * @var Crawler|null
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder|null
+     * @var Feeder|null
      */
     private $cache_feeder;
 
 
     /**
-     * @param \BlueChip\Cache\Core $cache
-     * @param \BlueChip\Cache\Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
-     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
+     * @param Core $cache
+     * @param Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
+     * @param Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
     public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
     {
