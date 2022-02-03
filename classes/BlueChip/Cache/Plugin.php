@@ -198,8 +198,8 @@ class Plugin
 
         // Initialize core module and optional features.
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
-        $this->cache_feeder = $warm_up_enabled ? new Feeder($this->feeder_lock) : null;
-        $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache, $this->cache_feeder) : null;
+        $this->cache_feeder = $warm_up_enabled ? new Feeder($this->cache, $this->feeder_lock) : null;
+        $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache_feeder) : null;
     }
 
 

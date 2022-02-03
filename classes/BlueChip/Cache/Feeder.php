@@ -17,16 +17,23 @@ class Feeder
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
     /**
+     * @var \BlueChip\Cache\Core
+     */
+    private $cache;
+
+    /**
      * @var Lock
      */
     private $lock;
 
 
     /**
+     * @param \BlueChip\Cache\Core $cache
      * @param Lock $lock Lock to use to ensure atomicity of operations.
      */
-    public function __construct(Lock $lock)
+    public function __construct(Core $cache, Lock $lock)
     {
+        $this->cache = $cache;
         $this->lock = $lock;
     }
 
@@ -34,7 +41,7 @@ class Feeder
     /**
      * Fetch next item to crawl.
      *
-     * @return Item|null Next item to crawl or null if queue is empty or there has been an error.
+     * @return Item|null Next item to crawl or null if there are no more uncached items in queue or there has been an error.
      */
     public function fetch(): ?Item
     {
@@ -46,12 +53,16 @@ class Feeder
 
         $queue = $this->getQueue(true);
 
-        $item = $queue->fetch();
-
-        if ($item) {
-            // Fetch has changed queue state, save it.
-            $this->setQueue($queue);
+        if ($queue->isEmpty()) {
+            $this->lock->release(); // !
+            return null;
         }
+
+        // Keep fetching items untile there are no items or we found item that has not been cached yet.
+        while ((($item = $queue->fetch()) !== null) && $this->cache->has($item));
+
+        // Fetch has changed queue state, save it.
+        $this->setQueue($queue);
 
         $this->lock->release(); // !
 
