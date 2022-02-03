@@ -290,7 +290,7 @@ class ListTable extends \WP_List_Table
      */
     public function prepare_items() // phpcs:ignore
     {
-        $state = $this->cache->inspect(\array_keys($this->request_variants));
+        $state = $this->cache->inspect();
 
         if ($state === null) {
             // There has been an error...

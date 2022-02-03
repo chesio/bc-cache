@@ -319,11 +319,9 @@ class Core
     /**
      * Get cache state information.
      *
-     * @param string[] $request_variants List of all request variants to inspect.
-     *
      * @return object[] List of all cache entries with data about `entry_id`, `size`, `url`, `request_variant` and creation `timestamp`.
      */
-    public function inspect(array $request_variants): ?array
+    public function inspect(): ?array
     {
         if (!\is_dir($this->cache_dir)) {
             return [];
@@ -336,7 +334,7 @@ class Core
         }
 
         // Get cache sizes.
-        $cache_sizes = self::getCacheSizes($this->cache_dir, $request_variants);
+        $cache_sizes = self::getCacheSizes($this->cache_dir, \array_keys($this->getRequestVariants()));
 
         // Unlock cache for other operations.
         $this->cache_lock->release();
