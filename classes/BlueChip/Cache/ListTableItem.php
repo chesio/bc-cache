@@ -10,22 +10,27 @@ class ListTableItem extends Item
     /**
      * @var string
      */
-    private $entry_id;
+    protected $entry_id;
 
     /**
      * @var int|null
      */
-    private $timestamp;
+    protected $timestamp;
 
     /**
      * @var int
      */
-    private $html_file_size;
+    protected $html_file_size;
 
     /**
      * @var int
      */
-    private $gzip_file_size;
+    protected $gzip_file_size;
+
+    /**
+     * @var int Sum of HTML and GZIP file size
+     */
+    protected $total_size;
 
 
     public function __construct(string $entry_id, string $url, string $request_variant, ?int $timestamp, int $html_file_size, int $gzip_file_size)
@@ -36,6 +41,20 @@ class ListTableItem extends Item
         $this->timestamp = $timestamp;
         $this->html_file_size = $html_file_size;
         $this->gzip_file_size = $gzip_file_size;
+        $this->total_size = $html_file_size + $gzip_file_size;
+    }
+
+
+    /**
+     * Property getter
+     *
+     * @param string $name Property name
+     *
+     * @return mixed Property value or null if property does not exists.
+     */
+    public function __get(string $name)
+    {
+        return \property_exists($this, $name) ? $this->$name : null;
     }
 
 
@@ -63,9 +82,9 @@ class ListTableItem extends Item
     }
 
 
-    public function getTotalDiskSize(): int
+    public function getTotalSize(): int
     {
-        return $this->gzip_file_size + $this->html_file_size;
+        return $this->total_size;
     }
 
 

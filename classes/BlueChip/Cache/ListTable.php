@@ -184,7 +184,7 @@ class ListTable extends \WP_List_Table
     {
         return \sprintf(
             '%s | %s | %s',
-            esc_html(size_format($item->getTotalDiskSize())),
+            esc_html(size_format($item->getTotalSize())),
             esc_html(size_format($item->getHtmlFileSize())),
             esc_html(size_format($item->getGzipFileSize()))
         );
@@ -267,7 +267,7 @@ class ListTable extends \WP_List_Table
             'entry_id' => 'entry_id',
             'url' => 'url',
             'timestamp' => 'timestamp',
-            'size' => 'size',
+            'size' => 'total_size',
         ];
     }
 
@@ -304,7 +304,7 @@ class ListTable extends \WP_List_Table
             // Also calculate total cache files size.
             $this->cache_files_size = \array_sum(
                 \array_map(
-                    function (ListTableItem $item): int { return $item->getTotalDiskSize(); }, // phpcs:ignore
+                    function (ListTableItem $item): int { return $item->getTotalSize(); }, // phpcs:ignore
                     $state
                 )
             );
@@ -470,7 +470,7 @@ class ListTable extends \WP_List_Table
      */
     private static function getAscSortingMethod(string $order_by): callable
     {
-        return function (object $a, object $b) use ($order_by): int {
+        return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
             if ($a->$order_by < $b->$order_by) {
                 return -1;
             } elseif ($a->$order_by > $b->$order_by) {
@@ -489,7 +489,7 @@ class ListTable extends \WP_List_Table
      */
     private static function getDescSortingMethod(string $order_by): callable
     {
-        return function (object $a, object $b) use ($order_by): int {
+        return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
             if ($a->$order_by < $b->$order_by) {
                 return 1;
             } elseif ($a->$order_by > $b->$order_by) {

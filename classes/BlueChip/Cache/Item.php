@@ -15,12 +15,12 @@ class Item
     /**
      * @var string
      */
-    private $url;
+    protected $url;
 
     /**
      * @var string
      */
-    private $request_variant;
+    protected $request_variant;
 
 
     public function __construct(string $url, string $request_variant)
