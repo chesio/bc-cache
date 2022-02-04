@@ -1,5 +1,7 @@
 # BC Cache Changelog
 
+## Version 2.2.2 (2022-02-04)
+
 ## Version 2.2.1 (2022-02-03)
 
 ### Fixed
