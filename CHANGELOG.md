@@ -2,6 +2,13 @@
 
 ## Upcoming version 2.3.0 (????-??-??)
 
+## Version 2.2.2 (2022-02-04)
+
+### Fixed
+
+* Sorting of entries via column in Cache Viewer works again (it was accidentally broken in version 2.2.1) [#77](https://github.com/chesio/bc-cache/issues/77).
+* Warm up crawler is reactivated when cache item is deleted from Cache Viewer [#78](https://github.com/chesio/bc-cache/issues/78).
+
 ## Version 2.2.1 (2022-02-03)
 
 ### Fixed
