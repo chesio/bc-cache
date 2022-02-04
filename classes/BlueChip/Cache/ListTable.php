@@ -85,10 +85,11 @@ class ListTable extends \WP_List_Table
 
     /**
      * @param \BlueChip\Cache\Core $cache
+     * @param \BlueChip\Cache\Crawler|null $cache_crawler
      * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      * @param string $url
      */
-    public function __construct(Core $cache, ?Feeder $cache_feeder, string $url)
+    public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder, string $url)
     {
         parent::__construct([
             'singular' => __('Entry', 'bc-cache'),
@@ -97,6 +98,7 @@ class ListTable extends \WP_List_Table
         ]);
 
         $this->cache = $cache;
+        $this->cache_crawler = $cache_crawler;
         $this->cache_feeder = $cache_feeder;
         $this->url = $url;
 

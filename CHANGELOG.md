@@ -2,6 +2,10 @@
 
 ## Version 2.2.2 (2022-02-04)
 
+### Fixed
+
+* Warm up crawler is reactivated when cache item is deleted from Cache Viewer [#78](https://github.com/chesio/bc-cache/issues/78).
+
 ## Version 2.2.1 (2022-02-03)
 
 ### Fixed

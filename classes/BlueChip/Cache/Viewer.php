@@ -119,7 +119,7 @@ class Viewer
     {
         $this->processActions();
 
-        $this->list_table = new ListTable($this->cache, $this->cache_feeder, self::getUrl());
+        $this->list_table = new ListTable($this->cache, $this->cache_crawler, $this->cache_feeder, self::getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
