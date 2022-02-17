@@ -132,4 +132,4 @@ Fixes problem when cache has not been flushed when a post of public post type ha
 
 ## Older releases
 
-Changelog for older releases can be found (here)[https://github.com/chesio/bc-cache/releases].
+Notes on changes in all releases can be found [here](https://github.com/chesio/bc-cache/releases).
