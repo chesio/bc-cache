@@ -206,7 +206,7 @@ class Plugin
     /**
      * Load the plugin by hooking into WordPress actions and filters.
      *
-     * @internal Method should be invoked immediately on plugin load.
+     * @action https://developer.wordpress.org/reference/hooks/plugins_loaded/
      */
     public function load(): void
     {

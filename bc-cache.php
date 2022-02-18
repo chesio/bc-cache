@@ -93,7 +93,6 @@ $bc_cache = new \BlueChip\Cache\Plugin(
 register_activation_hook(__FILE__, [$bc_cache, 'activate']);
 // Register deactivation hook.
 register_deactivation_hook(__FILE__, [$bc_cache, 'deactivate']);
-// Ideally, uninstall hook would be registered here, but WordPress allows only static method in uninstall hook...
 
-// Load the plugin.
-$bc_cache->load();
+// Boot up the plugin after all plugins are loaded.
+add_action('plugins_loaded', [$bc_cache, 'load'], 10, 0);
