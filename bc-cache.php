@@ -82,17 +82,22 @@ if (
 // Register autoloader for this plugin.
 require_once __DIR__ . '/autoload.php';
 
-// Construct plugin instance.
-$bc_cache = new \BlueChip\Cache\Plugin(
-    __FILE__,
-    defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
-    defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
-);
+return call_user_func(function () {
+    // Construct plugin instance.
+    $bc_cache = new \BlueChip\Cache\Plugin(
+        __FILE__,
+        defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
+        defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
+    );
 
-// Register activation hook.
-register_activation_hook(__FILE__, [$bc_cache, 'activate']);
-// Register deactivation hook.
-register_deactivation_hook(__FILE__, [$bc_cache, 'deactivate']);
+    // Register activation hook.
+    register_activation_hook(__FILE__, [$bc_cache, 'activate']);
+    // Register deactivation hook.
+    register_deactivation_hook(__FILE__, [$bc_cache, 'deactivate']);
 
-// Boot up the plugin after all plugins are loaded.
-add_action('plugins_loaded', [$bc_cache, 'load'], 10, 0);
+    // Boot up the plugin after all plugins are loaded.
+    add_action('plugins_loaded', [$bc_cache, 'load'], 10, 0);
+
+    // Return the instance.
+    return $bc_cache;
+});
