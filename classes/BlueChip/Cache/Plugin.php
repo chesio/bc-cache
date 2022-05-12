@@ -78,6 +78,8 @@ class Plugin
         'gclsrc',
         // https://www.facebook.com/business/help/330994334179410 "URL in ad can't contain Facebook Click ID" section
         'fbclid',
+        // https://help.ads.microsoft.com/apex/index/3/en/60000
+        'msclkid',
         // https://en.wikipedia.org/wiki/UTM_parameters
         'utm_campaign',
         'utm_content',
