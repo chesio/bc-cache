@@ -15,10 +15,10 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Limitations
 
-* BC Cache has not been tested with [WordPress block editor](https://wordpress.org/support/article/wordpress-editor/).
 * BC Cache has not been tested on WordPress multisite installation.
 * BC Cache has not been tested on Windows servers.
 * BC Cache can only serve requests without filename in path, ie. `/some/path` or `some/other/path/`, but not `/some/path/to/filename.html`.
+* BC Cache does not support [content negotation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#the_accept_header). If contents of URL are deemed cacheable, content is always returned as `text/html` regardless of `Accept` header send by client.
 
 ## Installation
 
