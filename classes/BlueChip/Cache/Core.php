@@ -324,7 +324,7 @@ class Core
     /**
      * Get cache state information.
      *
-     * @return ListTableItem[] List of cache entries read from cache directory.
+     * @return ListTableItem[]|null List of cache entries read from cache directory or null in case of I/O error.
      */
     public function inspect(): ?array
     {
