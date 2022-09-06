@@ -2,6 +2,8 @@
 
 ## Upcoming version 2.3.0 (????-??-??)
 
+This release has been tested with WordPress 6.0.
+
 ## Version 2.2.2 (2022-02-04)
 
 ### Fixed
