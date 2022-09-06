@@ -671,7 +671,7 @@ class Plugin
         }
 
         // Do not cache page if WooCommerce says so.
-        if (\defined('DONOTCACHEPAGE') && DONOTCACHEPAGE) {
+        if (\defined('DONOTCACHEPAGE') && constant('DONOTCACHEPAGE')) {
             return true;
         }
 

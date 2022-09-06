@@ -86,8 +86,8 @@ return call_user_func(function () {
     // Construct plugin instance.
     $bc_cache = new \BlueChip\Cache\Plugin(
         __FILE__,
-        defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
-        defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
+        defined('BC_CACHE_FILE_LOCKING_ENABLED') ? constant('BC_CACHE_FILE_LOCKING_ENABLED') : true,
+        defined('BC_CACHE_WARM_UP_ENABLED') ? constant('BC_CACHE_WARM_UP_ENABLED') : true
     );
 
     // Register activation hook.
