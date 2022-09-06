@@ -21,12 +21,12 @@ class Core
     private $cache_dir;
 
     /**
-     * @var \BlueChip\Cache\Info Cache information handler
+     * @var Info Cache information handler
      */
     private $cache_info;
 
     /**
-     * @var \BlueChip\Cache\Lock Flock wrapper for atomic cache reading/writing
+     * @var Lock Flock wrapper for atomic cache reading/writing
      */
     private $cache_lock;
 
@@ -38,8 +38,8 @@ class Core
 
     /**
      * @param string $cache_dir Absolute path to root cache directory
-     * @param \BlueChip\Cache\Info $cache_info Cache information (age, size) handler
-     * @param \BlueChip\Cache\Lock $cache_lock Flock wrapper for atomic cache reading/writing
+     * @param Info $cache_info Cache information (age, size) handler
+     * @param Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
     public function __construct(string $cache_dir, Info $cache_info, Lock $cache_lock)
     {
@@ -324,7 +324,7 @@ class Core
     /**
      * Get cache state information.
      *
-     * @return ListTableItem[] List of cache entries read from cache directory.
+     * @return ListTableItem[]|null List of cache entries read from cache directory or null in case of I/O error.
      */
     public function inspect(): ?array
     {
@@ -399,7 +399,7 @@ class Core
      *
      * @return int Total size of all regular files in given directory and its subdirectories.
      *
-     * @throws \BlueChip\Cache\Exception If $dirname does not exists or is not a directory.
+     * @throws Exception If $dirname does not exists or is not a directory.
      */
     private static function getFilesSize(string $dirname): int
     {
@@ -430,7 +430,7 @@ class Core
      *
      * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
     {
@@ -526,7 +526,7 @@ class Core
      *
      * @return string
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private function getPath(string $url): string
     {
@@ -561,7 +561,7 @@ class Core
      *
      * @return string
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private function getUrl(string $path): string
     {
@@ -592,7 +592,7 @@ class Core
      *
      * @return string
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private function makeDirectory(string $url): string
     {
@@ -614,7 +614,7 @@ class Core
      *
      * @param bool $contents_only If true, only contents of directory $dirname are removed, but not the directory itself.
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private static function removeDirectory(string $dirname, bool $contents_only = false): void
     {
@@ -661,7 +661,7 @@ class Core
      *
      * @return string Normalized absolute path without any trailing directory separator.
      *
-     * @throws \BlueChip\Cache\Exception In case of attempt to normalize empty or relative path.
+     * @throws Exception In case of attempt to normalize empty or relative path.
      */
     private static function normalizePath(string $path): string
     {
@@ -703,7 +703,7 @@ class Core
      *
      * @return int Number of bytes deleted (file size).
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private static function deleteFile(string $filename): int
     {
@@ -734,7 +734,7 @@ class Core
      *
      * @return int Number of bytes written to file.
      *
-     * @throws \BlueChip\Cache\Exception
+     * @throws Exception
      */
     private static function writeFile(string $filename, string $data): int
     {

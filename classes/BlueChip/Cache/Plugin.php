@@ -78,6 +78,8 @@ class Plugin
         'gclsrc',
         // https://www.facebook.com/business/help/330994334179410 "URL in ad can't contain Facebook Click ID" section
         'fbclid',
+        // https://help.ads.microsoft.com/apex/index/3/en/60000
+        'msclkid',
         // https://en.wikipedia.org/wiki/UTM_parameters
         'utm_campaign',
         'utm_content',
@@ -93,32 +95,32 @@ class Plugin
     private $plugin_filename;
 
     /**
-     * @var \BlueChip\Cache\Core
+     * @var Core
      */
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Info
+     * @var Info
      */
     private $cache_info;
 
     /**
-     * @var \BlueChip\Cache\Lock
+     * @var Lock
      */
     private $cache_lock;
 
     /**
-     * @var \BlueChip\Cache\Lock|null Null if cache warm up is disabled.
+     * @var Lock|null Null if cache warm up is disabled.
      */
     private $feeder_lock;
 
     /**
-     * @var \BlueChip\Cache\Crawler|null Null if cache warm up is disabled.
+     * @var Crawler|null Null if cache warm up is disabled.
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder|null Null if cache warm up is disabled.
+     * @var Feeder|null Null if cache warm up is disabled.
      */
     private $cache_feeder;
 
@@ -206,7 +208,7 @@ class Plugin
     /**
      * Load the plugin by hooking into WordPress actions and filters.
      *
-     * @internal Method should be invoked immediately on plugin load.
+     * @action https://developer.wordpress.org/reference/hooks/plugins_loaded/
      */
     public function load(): void
     {

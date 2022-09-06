@@ -1,5 +1,14 @@
 # BC Cache Changelog
 
+## Version 2.3.0 (2022-09-06)
+
+This release has been tested with WordPress 6.0.
+
+### Added
+
+* Add `msclkid` to ignored query string parameters [#79](https://github.com/chesio/bc-cache/issues/79).
+* Add `bc-cache list` WP-CLI command [#38](https://github.com/chesio/bc-cache/issues/38).
+
 ## Version 2.2.2 (2022-02-04)
 
 ### Fixed
@@ -130,4 +139,4 @@ Fixes problem when cache has not been flushed when a post of public post type ha
 
 ## Older releases
 
-Changelog for older releases can be found (here)[https://github.com/chesio/bc-cache/releases].
+Notes on changes in all releases can be found [here](https://github.com/chesio/bc-cache/releases).

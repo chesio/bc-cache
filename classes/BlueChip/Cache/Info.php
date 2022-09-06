@@ -73,7 +73,7 @@ class Info
     /**
      * Set cache modification date to now.
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function resetAge(): self
     {
@@ -101,7 +101,7 @@ class Info
      *
      * @param int $bytes
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function decrementSize(int $bytes): self
     {
@@ -124,7 +124,7 @@ class Info
      *
      * @param int $bytes
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function incrementSize(int $bytes): self
     {
@@ -139,7 +139,7 @@ class Info
     /**
      * Set cache size to 0.
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function resetSize(): self
     {
@@ -152,7 +152,7 @@ class Info
      *
      * @param int $size New cache size (must be greater or equal to 0).
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function setSize(int $size): self
     {
@@ -167,7 +167,7 @@ class Info
     /**
      * Mark cache size as unknown.
      *
-     * @return \BlueChip\Cache\Info
+     * @return Info
      */
     public function unsetSize(): self
     {

@@ -10,25 +10,30 @@ namespace BlueChip\Cache;
 class Cli
 {
     /**
-     * @var \BlueChip\Cache\Core
+     * @var string
+     */
+    private const UNKNOWN_VALUE = '???';
+
+    /**
+     * @var Core
      */
     private $cache;
 
     /**
-     * @var \BlueChip\Cache\Crawler|null
+     * @var Crawler|null
      */
     private $cache_crawler;
 
     /**
-     * @var \BlueChip\Cache\Feeder|null
+     * @var Feeder|null
      */
     private $cache_feeder;
 
 
     /**
-     * @param \BlueChip\Cache\Core $cache
-     * @param \BlueChip\Cache\Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
-     * @param \BlueChip\Cache\Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
+     * @param Core $cache
+     * @param Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
+     * @param Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
     public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
     {
@@ -168,6 +173,123 @@ class Cli
         if (($items_pushed_to_warm_up_queue > 0) && ($this->cache_crawler !== null)) {
             $this->cache_crawler->activate();
         }
+    }
+
+
+    /**
+     * List cache entries.
+     *
+     * By default following columns are printed:
+     * - URL (url)
+     * - Request variant (request_variant)
+     * - Created (created)
+     * - Size (size)
+     *
+     * Note: Request variant column is printed only if there are multiple request variants configured or column is explicitly requested (see options below).
+     *
+     * ## OPTIONS
+     *
+     * [<column>...]
+     * : Explicitly set columns (incl. their order) to print: proper column keys has to be given (see the list above).
+     *
+     * [--format=<format>]
+     * : Output format to use. Can be 'table', 'json', 'csv', 'yaml' or 'count'. Default is 'table'.
+     *
+     * [--plain]
+     * : Print URL including scheme and host, request variant as a key only, creation time as Unix timestamp and size as number of bytes without unit.
+     *
+     * [--sort-by=<column>]
+     * : Sort by given column in ascending order. It is possible to sort by column that is not being printed out.
+     *
+     * ## EXAMPLES
+     *
+     *  wp bc-cache list url request-variant size
+     */
+    public function list(array $args, array $assoc_args): void
+    {
+        $available_columns = [
+            'url',
+            'request_variant',
+            'created',
+            'size',
+        ];
+
+        // Explicitly set columns to display?
+        if ($args !== []) {
+            // Set and validate columns to display.
+            $columns_to_display = [];
+            foreach ($args as $arg) {
+                if (\array_search($arg, $available_columns, true) === false) {
+                    \WP_CLI::error(sprintf('Unknown column key given: "%s". Exiting ...', $arg));
+                }
+
+                $columns_to_display[] = $arg;
+            }
+        }
+
+        $format = $assoc_args['format'] ?? 'table';
+        $plain = $assoc_args['plain'] ?? false;
+        $sort_by = $assoc_args['sort-by'] ?? '';
+
+        // Validate sort by value.
+        if ($sort_by) {
+            if (\array_search($sort_by, $available_columns, true) === false) {
+                \WP_CLI::error(sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
+            }
+        }
+
+        $request_variants = $this->cache->getRequestVariants();
+
+        if (!isset($columns_to_display)) {
+            // Columns to display have not been set explicitly, so use all available columns...
+            $columns_to_display = $available_columns;
+            // ...but unset request variant if there is only single (default) variant configured.
+            if (\count($request_variants) === 1) {
+                $columns_to_display = \array_diff($columns_to_display, ['request_variant']);
+            }
+        }
+
+        $cache_items = $this->cache->inspect();
+
+        if ($cache_items === null) {
+            \WP_CLI::error('Cache items could not be fetched due to I/O error. Exiting ...');
+        }
+
+        // Prepare items.
+        $items = array_map(
+            function (ListTableItem $item) use ($plain, $request_variants): array {
+                $request_variant = $item->getRequestVariant();
+                $timestamp = $item->getTimestamp();
+                $total_size = $item->getTotalSize();
+                $url = $item->getUrl();
+
+                return [
+                    'url' => $plain ? $url : \parse_url($url, PHP_URL_PATH),
+                    'request_variant' => $plain ? $request_variant : $request_variants[$request_variant],
+                    'created' => $timestamp ? ($plain ? $timestamp : wp_date('Y-m-d H:i:s', $timestamp)) : self::UNKNOWN_VALUE,
+                    'size' => $plain ? $total_size : size_format($total_size),
+                ];
+            },
+            $cache_items
+        );
+
+        // Sort items?
+        if ($sort_by) {
+            usort(
+                $items,
+                function (array $a, array $b) use ($sort_by): int {
+                    if ($a[$sort_by] < $b[$sort_by]) {
+                        return -1;
+                    }
+                    if ($a[$sort_by] > $b[$sort_by]) {
+                        return 1;
+                    }
+                    return 0;
+                }
+            );
+        }
+
+        \WP_CLI\Utils\format_items($format, $items, $columns_to_display);
     }
 
 

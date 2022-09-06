@@ -23,13 +23,13 @@ class Crawler
 
 
     /**
-     * @var \BlueChip\Cache\Feeder
+     * @var Feeder
      */
     private $cache_feeder;
 
 
     /**
-     * @param \BlueChip\Cache\Feeder $cache_feeder
+     * @param Feeder $cache_feeder
      */
     public function __construct(Feeder $cache_feeder)
     {

@@ -15,10 +15,10 @@ BC Cache has no settings page - it is intended for webmasters who are familiar w
 
 ## Limitations
 
-* BC Cache has not been tested with [WordPress block editor](https://wordpress.org/support/article/wordpress-editor/).
 * BC Cache has not been tested on WordPress multisite installation.
 * BC Cache has not been tested on Windows servers.
 * BC Cache can only serve requests without filename in path, ie. `/some/path` or `some/other/path/`, but not `/some/path/to/filename.html`.
+* BC Cache does not support [content negotation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation#the_accept_header). If contents of URL are deemed cacheable, content is always returned as `text/html` regardless of `Accept` header send by client.
 
 ## Installation
 
@@ -104,7 +104,7 @@ AddDefaultCharset utf-8
 
   # Main rules: serve only GET requests with whitelisted query string fields coming from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
-  RewriteCond %{QUERY_STRING} ^(?:(?:_gl|gclid|gclsrc|fbclid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
+  RewriteCond %{QUERY_STRING} ^(?:(?:_gl|gclid|gclsrc|fbclid|msclkid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]
@@ -370,13 +370,14 @@ If you see 403 errors instead of cached pages, you have to either remove the `|g
 
 ## WP-CLI integration
 
-You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up or get size information. BC Cache registers `bc-cache` command with following subcommands:
+You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up, get size information or even list all cache entries. BC Cache registers `bc-cache` command with following subcommands:
 
 * `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
 * `remove <url>` - deletes cache data (all request variants) of given URL
 * `flush` - flushes entire cache
-* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
 * `warm-up` - runs cache warm up
+* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
+* `list [<column>...] [--format=<format>] [--plain] [--sort-by=<column>]` - list cache entries, optionally in specified format or sorted
 
 ## Credits
 

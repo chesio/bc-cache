@@ -4,12 +4,12 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: 2.2.2
+ * Version: 2.3.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.3
  * Requires WP: 5.5
- * Tested up to: 5.9
+ * Tested up to: 6.0
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  * Update URI: https://github.com/chesio/bc-cache
@@ -82,18 +82,22 @@ if (
 // Register autoloader for this plugin.
 require_once __DIR__ . '/autoload.php';
 
-// Construct plugin instance.
-$bc_cache = new \BlueChip\Cache\Plugin(
-    __FILE__,
-    defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
-    defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
-);
+return call_user_func(function () {
+    // Construct plugin instance.
+    $bc_cache = new \BlueChip\Cache\Plugin(
+        __FILE__,
+        defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
+        defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
+    );
 
-// Register activation hook.
-register_activation_hook(__FILE__, [$bc_cache, 'activate']);
-// Register deactivation hook.
-register_deactivation_hook(__FILE__, [$bc_cache, 'deactivate']);
-// Ideally, uninstall hook would be registered here, but WordPress allows only static method in uninstall hook...
+    // Register activation hook.
+    register_activation_hook(__FILE__, [$bc_cache, 'activate']);
+    // Register deactivation hook.
+    register_deactivation_hook(__FILE__, [$bc_cache, 'deactivate']);
 
-// Load the plugin.
-$bc_cache->load();
+    // Boot up the plugin after all plugins are loaded.
+    add_action('plugins_loaded', [$bc_cache, 'load'], 10, 0);
+
+    // Return the instance.
+    return $bc_cache;
+});
