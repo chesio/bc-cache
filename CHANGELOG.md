@@ -4,6 +4,10 @@
 
 This release has been tested with WordPress 6.0.
 
+### Added
+
+* Add `msclkid` to ignored query string parameters [#79](https://github.com/chesio/bc-cache/issues/79).
+
 ## Version 2.2.2 (2022-02-04)
 
 ### Fixed
