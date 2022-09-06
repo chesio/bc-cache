@@ -370,13 +370,14 @@ If you see 403 errors instead of cached pages, you have to either remove the `|g
 
 ## WP-CLI integration
 
-You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up or get size information. BC Cache registers `bc-cache` command with following subcommands:
+You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up, get size information or even list all cache entries. BC Cache registers `bc-cache` command with following subcommands:
 
 * `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
 * `remove <url>` - deletes cache data (all request variants) of given URL
 * `flush` - flushes entire cache
-* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
 * `warm-up` - runs cache warm up
+* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
+* `list [<column>...] [--format=<format>] [--plain] [--sort-by=<column>]` - list cache entries, optionally in specified format or sorted
 
 ## Credits
 
