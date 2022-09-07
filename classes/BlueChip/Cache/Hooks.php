@@ -75,6 +75,16 @@ abstract class Hooks
     public const FILTER_REQUEST_VARIANTS = 'bc-cache/filter:request-variants';
 
     /**
+     * @var string Name of hook to filter format of cache generation timestamp. Must be a valid format for wp_date().
+     */
+    public const FILTER_CACHE_GENERATION_TIMESTAMP_FORMAT = 'bc-cache/filter:cache-generation-timestamp-format';
+
+    /**
+     * @var string Name of hook to filter type of HTTP headers saved together with cache entry.
+     */
+    public const FILTER_CACHED_RESPONSE_HEADERS = 'bc-cache/filter:cached-response-headers';
+
+    /**
      * @var string Name of hook to filter arguments of HTTP request run during cache warm up.
      */
     public const FILTER_CACHE_WARM_UP_REQUEST_ARGS = 'bc-cache/filter:cache-warm-up-request-arguments';
