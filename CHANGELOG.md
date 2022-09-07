@@ -2,7 +2,8 @@
 
 ## Upcoming version 3.0.0 (????-??-??)
 
-This release brings support for caching of HTTP headers [#28]. This is a major change and requires an update of `.htaccess` rules!
+This release brings support for caching of HTTP headers [#28](https://github.com/chesio/bc-cache/issues/28).
+This is a major change and requires an update of `.htaccess` rules!
 
 ### Added
 
