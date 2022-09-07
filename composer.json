@@ -40,7 +40,7 @@
   },
   "scripts": {
     "phpcs": "phpcs",
-    "phpstan": "phpstan analyse --memory-limit 256M",
+    "phpstan": "phpstan analyse --memory-limit 768M",
     "unit-tests": "phpunit --configuration tests/unit/phpunit.xml",
     "ci": [
       "@phpcs",
