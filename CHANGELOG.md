@@ -4,6 +4,10 @@
 
 This release brings support for caching of HTTP headers [#28]. This is a major change and requires an update of `.htaccess` rules!
 
+### Added
+
+* Core XML sitemaps are now cached as well [#49](https://github.com/chesio/bc-cache/issues/49).
+
 ## Version 2.3.0 (2022-09-06)
 
 This release has been tested with WordPress 6.0.
