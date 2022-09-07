@@ -1,6 +1,8 @@
 # BC Cache Changelog
 
-## Upcoming version 2.4.0 (????-??-??)
+## Upcoming version 3.0.0 (????-??-??)
+
+This release brings support for caching of HTTP headers [#28]. This is a major change and requires an update of `.htaccess` rules!
 
 ## Version 2.3.0 (2022-09-06)
 

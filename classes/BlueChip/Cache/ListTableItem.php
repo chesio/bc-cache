@@ -20,7 +20,7 @@ class ListTableItem extends Item
     /**
      * @var int
      */
-    protected $html_file_size;
+    protected $plain_file_size;
 
     /**
      * @var int
@@ -28,20 +28,26 @@ class ListTableItem extends Item
     protected $gzip_file_size;
 
     /**
-     * @var int Sum of HTML and GZIP file size
+     * @var int
+     */
+    protected $htaccess_file_size;
+
+    /**
+     * @var int Sum of plain, GZIP and .htaccess file size
      */
     protected $total_size;
 
 
-    public function __construct(string $entry_id, string $url, string $request_variant, ?int $timestamp, int $html_file_size, int $gzip_file_size)
+    public function __construct(string $entry_id, string $url, string $request_variant, ?int $timestamp, int $plain_file_size, int $gzip_file_size, int $htaccess_file_size)
     {
         parent::__construct($url, $request_variant);
 
         $this->entry_id = $entry_id;
         $this->timestamp = $timestamp;
-        $this->html_file_size = $html_file_size;
+        $this->plain_file_size = $plain_file_size;
         $this->gzip_file_size = $gzip_file_size;
-        $this->total_size = $html_file_size + $gzip_file_size;
+        $this->htaccess_file_size = $htaccess_file_size;
+        $this->total_size = $plain_file_size + $gzip_file_size + $htaccess_file_size;
     }
 
 
@@ -70,9 +76,15 @@ class ListTableItem extends Item
     }
 
 
-    public function getHtmlFileSize(): int
+    public function getPlainFileSize(): int
     {
-        return $this->html_file_size;
+        return $this->plain_file_size;
+    }
+
+
+    public function getHtaccessFileSize(): int
+    {
+        return $this->htaccess_file_size;
     }
 
 

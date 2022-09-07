@@ -14,6 +14,16 @@ class Core
      */
     private const SCHEME_HOST_SEPARATOR = '_';
 
+    /**
+     * @var string Name of subdirectory for cache entries for URLs with file-like paths.
+     */
+    private const FILE_PATH_DIRNAME = '@file';
+
+    /**
+     * @var string Name of subdirectory for cache entries for URLs with directory-like paths.
+     */
+    private const DIRECTORY_PATH_DIRNAME = '@dir';
+
 
     /**
      * @var string Absolute path to root cache directory
@@ -184,9 +194,11 @@ class Core
 
         try {
             $bytes_deleted
-                = self::deleteFile(self::getHtmlFilename($path, $item->getRequestVariant()))
+                = self::deleteFile(self::getPlainFilename($path, $item->getRequestVariant()))
                 + self::deleteFile(self::getGzipFilename($path, $item->getRequestVariant()))
+                + self::deleteFile(self::getHtaccessFilename($path))
             ;
+            \rmdir($path);
             // Update cache size.
             $this->cache_info->decrementSize($bytes_deleted);
             // :)
@@ -213,11 +225,12 @@ class Core
      * Create new cache entry: store $data for given cache $item.
      *
      * @param Item $item
+     * @param string[] $headers Response HTTP headers
      * @param string $data
      *
      * @return bool True on success (there has been no error), false otherwise.
      */
-    public function push(Item $item, string $data): bool
+    public function push(Item $item, array $headers, string $data): bool
     {
         // Try to acquire exclusive lock, but do not wait for it.
         if (!$this->cache_lock->acquire(true, true)) {
@@ -239,10 +252,14 @@ class Core
 
         try {
             // Write cache date to disk, get number of bytes written.
-            $bytes_written = self::writeFile(self::getHtmlFilename($path, $item->getRequestVariant()), $data);
+            $bytes_written = self::writeFile(self::getPlainFilename($path, $item->getRequestVariant()), $data);
             if (($gzip = \gzencode($data, 9)) !== false) {
                 $bytes_written += self::writeFile(self::getGzipFilename($path, $item->getRequestVariant()), $gzip);
             }
+            $bytes_written += self::writeFile(
+                self::getHtaccessFilename($path),
+                self::prepareHtaccessFile($headers)
+            );
             // Increment cache size.
             $this->cache_info->incrementSize($bytes_written);
             // :)
@@ -309,7 +326,7 @@ class Core
     /**
      * Check whether $item is in cache.
      *
-     * @internal Check is based on presence of HTML file only (gzip is optional, so cannot be reliably used).
+     * @internal Check is based on presence of plain file only (gzip is optional, so cannot be reliably used).
      *
      * @param Item $item
      *
@@ -317,7 +334,7 @@ class Core
      */
     public function has(Item $item): bool
     {
-        return \is_readable(self::getHtmlFilename($this->getPath($item->getUrl()), $item->getRequestVariant()));
+        return \is_readable(self::getPlainFilename($this->getPath($item->getUrl()), $item->getRequestVariant()));
     }
 
 
@@ -366,8 +383,9 @@ class Core
                 $url,
                 $item['request_variant'],
                 self::getCreationTimestamp($item['path'], $item['request_variant']),
-                $item['html_size'],
-                $item['gzip_size']
+                $item['plain_size'],
+                $item['gzip_size'],
+                $item['htaccess_size']
             );
         }
 
@@ -388,7 +406,7 @@ class Core
      */
     private static function getCreationTimestamp(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): ?int
     {
-        return \filemtime(self::getHtmlFilename($path, $request_variant)) ?: null;
+        return \filemtime(self::getPlainFilename($path, $request_variant)) ?: null;
     }
 
 
@@ -428,7 +446,7 @@ class Core
      * @param string $dirname
      * @param string[] $request_variants
      *
-     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `html_size` and `gzip_size`.
+     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `plain_size`, `gzip_size` and `htaccess_size`.
      *
      * @throws Exception
      */
@@ -455,11 +473,11 @@ class Core
 
         // Loop through all request variants and grab size information.
         foreach ($request_variants as $request_variant) {
-            $request_variant_html_size = $request_variant_gzip_size = 0;
+            $request_variant_plain_size = $request_variant_gzip_size = $request_variant_htaccess_size = 0;
 
-            $htmlFilename = self::getHtmlFilename($dirname, $request_variant);
-            if (\is_file($htmlFilename)) {
-                $request_variant_html_size = \filesize($htmlFilename) ?: 0;
+            $plainFilename = self::getPlainFilename($dirname, $request_variant);
+            if (\is_file($plainFilename)) {
+                $request_variant_plain_size = \filesize($plainFilename) ?: 0;
             }
 
             $gzipFilename = self::getGzipFilename($dirname, $request_variant);
@@ -467,12 +485,18 @@ class Core
                 $request_variant_gzip_size = \filesize($gzipFilename) ?: 0;
             }
 
-            if (($request_variant_html_size + $request_variant_gzip_size) > 0) {
-                $entries[self::getBaseFilename($dirname, $request_variant)] = [
+            $htaccessFilename = self::getHtaccessFilename($dirname);
+            if (\is_file($htaccessFilename)) {
+                $request_variant_htaccess_size = \filesize($htaccessFilename) ?: 0;
+            }
+
+            if (($request_variant_plain_size + $request_variant_gzip_size + $request_variant_htaccess_size) > 0) {
+                $entries[self::getPlainFilename($dirname, $request_variant)] = [
                     'path'  => $dirname,
                     'request_variant' => $request_variant,
-                    'html_size' => $request_variant_html_size,
+                    'plain_size' => $request_variant_plain_size,
                     'gzip_size' => $request_variant_gzip_size,
+                    'htaccess_size' => $request_variant_htaccess_size,
                 ];
             }
         }
@@ -482,12 +506,12 @@ class Core
 
 
     /**
-     * @param string $path Path to cache directory without trailing directory separator.
+     * @param string $path Absolute path to cache directory without trailing directory separator.
      * @param string $request_variant [optional] Request variant (default empty).
      *
-     * @return string Path to cache basename file (cache entry ID) for given $path and $request variant.
+     * @return string Path to plain cache file for given $path and $request variant.
      */
-    private static function getBaseFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
+    private static function getPlainFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
         return $path . DIRECTORY_SEPARATOR . "index{$request_variant}";
     }
@@ -501,19 +525,18 @@ class Core
      */
     private static function getGzipFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
     {
-        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html.gz";
+        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.gz";
     }
 
 
     /**
      * @param string $path Absolute path to directory of cache entry without trailing directory separator.
-     * @param string $request_variant [optional] Request variant (default empty).
      *
-     * @return string Path to HTML cache file for given $path and $request variant.
+     * @return string Path to .htaccess file for given $path.
      */
-    private static function getHtmlFilename(string $path, string $request_variant = self::DEFAULT_REQUEST_VARIANT): string
+    private static function getHtaccessFilename(string $path): string
     {
-        return $path . DIRECTORY_SEPARATOR . "index{$request_variant}.html";
+        return $path . DIRECTORY_SEPARATOR . ".htaccess";
     }
 
 
@@ -530,7 +553,9 @@ class Core
      */
     private function getPath(string $url): string
     {
-        $url_parts = \parse_url(trailingslashit($url));
+        $url_parts = \parse_url($url);
+
+        $url_path = $url_parts['path'] ?? '';
 
         $path = \implode([
             $this->cache_dir,
@@ -538,7 +563,9 @@ class Core
             $url_parts['scheme'],
             self::SCHEME_HOST_SEPARATOR,
             $url_parts['host'],
-            $url_parts['path'],
+            trailingslashit($url_path),
+            // URL path ends with slash? Yes: treat as directory path. No: treat as file path.
+            Utils::endsWithString($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME
         ]);
 
         $normalized_path = self::normalizePath($path);
@@ -577,11 +604,26 @@ class Core
         $parts = \explode(self::SCHEME_HOST_SEPARATOR, \substr($normalized_path, \strlen($this->cache_dir . DIRECTORY_SEPARATOR)), 2);
 
         if (\count($parts) !== 2) {
-            // At least scheme and host must be present.
             throw new Exception("Could not retrieve a valid URL from cache path {$path}.");
         }
 
-        return $parts[0] . '://' . \str_replace(DIRECTORY_SEPARATOR, '/', $parts[1]) . '/';
+        // Break host + path into host and path.
+        $subparts = \explode(DIRECTORY_SEPARATOR, $parts[1], 2);
+
+        if (\count($subparts) !== 2) {
+            throw new Exception("Could not retrieve a valid URL from cache path {$path}.");
+        }
+
+        $path = DIRECTORY_SEPARATOR . $subparts[1];
+        if (Utils::endsWithString($path, DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME)) {
+            // Strip file path dirname including trailing directory separator.
+            $path = substr($path, 0, -1 * strlen(DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME));
+        } elseif (Utils::endsWithString($path, DIRECTORY_SEPARATOR . self::DIRECTORY_PATH_DIRNAME)) {
+            // Strip directory path dirname, but keep trailing directory separator.
+            $path = substr($path, 0, -1 * strlen(self::DIRECTORY_PATH_DIRNAME));
+        }
+
+        return $parts[0] . '://' . $subparts[0] . \str_replace(DIRECTORY_SEPARATOR, '/', $path);
     }
 
 
@@ -753,5 +795,54 @@ class Core
         return $status;
 
         // TODO: Set file permissions like Cachify do?
+    }
+
+
+    /**
+     * Return contents of `.htaccess` file with ruleset for provided headers and optional ForceType directive.
+     *
+     * @internal ForceType is only set if MIME type can be detected from $headers.
+     *
+     * @param string[] $headers Headers to set
+     *
+     * @return string
+     */
+    private static function prepareHtaccessFile(array $headers): string
+    {
+        $htaccess = [];
+
+        $mime_type = Utils::getResponseMimeType($headers);
+        if ($mime_type) {
+            $htaccess[] = "ForceType $mime_type";
+        }
+
+        // Sanitize headers.
+        $headers = \array_filter(
+            $headers,
+            function (string $header): bool {
+                return \strpos($header, ':') !== false;
+            }
+        );
+
+        // Parse headers into name (type) and value parts.
+        $headers = \array_map(
+            function (string $header): array {
+                return \array_map('trim', \explode(':', $header, 2));
+            },
+            $headers
+        );
+
+        if ($headers !== []) {
+            $htaccess[] = '<IfModule mod_headers.c>';
+            foreach ($headers as [$name, $value]) {
+                // Make sure that "Link" headers are appended.
+                $directive = \strtolower($name) === 'link' ? 'append' : 'set';
+
+                $htaccess[] = \sprintf('Header %s %s "%s"', $directive, $name, \str_replace('"', '\"', $value));
+            }
+            $htaccess[] = '</IfModule>';
+        }
+
+        return \implode(PHP_EOL, $htaccess);
     }
 }
