@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <ruleset name="BC Cache">
-	<description>BC Cache Coding Standards</description>
+    <description>BC Cache Coding Standards</description>
 
-	<!-- Scan these files -->
-	<file>classes</file>
-	<file>tests/unit/src</file>
-	<file>autoload.php</file>
-	<file>bc-cache.php</file>
+    <!-- Scan these files -->
+    <file>classes</file>
+    <file>tests/unit/src</file>
+    <file>autoload.php</file>
+    <file>bc-cache.php</file>
 
-	<!-- Use PSR-12 -->
-	<rule ref="PSR12">
-		<!-- Disable PSR-12 line length warnings -->
-		<exclude name="Generic.Files.LineLength"/>
-	</rule>
+    <!-- Use PSR-12 -->
+    <rule ref="PSR12">
+        <!-- Disable PSR-12 line length warnings -->
+        <exclude name="Generic.Files.LineLength"/>
+    </rule>
 </ruleset>
