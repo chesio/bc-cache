@@ -2,7 +2,6 @@
 /.gitattributes export-ignore
 /.github export-ignore
 /.gitignore export-ignore
-/CHANGELOG.md export-ignore
 /composer.lock export-ignore
 /phpcs.xml export-ignore
 /phpstan.neon export-ignore

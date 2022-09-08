@@ -186,7 +186,7 @@ jobs:
 
       - name: "Check exported files"
         run: |
-          EXPECTED="LICENSE,README.md,autoload.php,bc-cache.php,composer.json"
+          EXPECTED="CHANGELOG.md,LICENSE,README.md,autoload.php,bc-cache.php,composer.json"
           CURRENT="$(git archive HEAD | tar --list --exclude="classes" --exclude="classes/*" --exclude="assets" --exclude="assets/*" | paste --serial --delimiters=",")"
           echo "CURRENT =${CURRENT}"
           echo "EXPECTED=${EXPECTED}"
