@@ -80,7 +80,6 @@ jobs:
           - "7.4"
           - "7.3"
         dependencies:
-          - "lowest"
           - "locked"
           - "highest"
     runs-on: "ubuntu-latest"
