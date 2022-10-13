@@ -14,6 +14,54 @@ abstract class Utils
 
 
     /**
+     * Retrieve MIME Type of HTTP response from response headers.
+     *
+     * @param string[] $response_headers
+     *
+     * @return string MIME Type of HTTP response or empty string if no Content-Type header has been found in PHP response headers.
+     */
+    public static function getResponseMimeType($response_headers): string
+    {
+        $mime_type = '';
+
+        foreach ($response_headers as $response_header) {
+            $matches = [];
+
+            if (\preg_match('/Content-Type: ?(\S+\/\S+); ?charset=\S+/i', $response_header, $matches)) {
+                $mime_type = $matches[1];
+            }
+        }
+
+        return $mime_type;
+    }
+
+
+    /**
+     * Remove all but $allowed_header_types from list of HTTP $headers.
+     *
+     * @param string[] $headers List of headers to filter.
+     * @param string[] $allowed_header_types List of allowed header types (names).
+     *
+     * @return string[] List of $headers including only types included in $allowed_header_types.
+     */
+    public static function filterHttpHeaders(array $headers, array $allowed_header_types): array
+    {
+        return \array_filter(
+            $headers,
+            function (string $header) use ($allowed_header_types): bool {
+                foreach ($allowed_header_types as $allowed_header_type) {
+                    if (\stripos($header, $allowed_header_type) === 0) { // Perform case-insensitive search!
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        );
+    }
+
+
+    /**
      * Check whether current user might see personalized content.
      *
      * Check covers users who have:
@@ -72,5 +120,25 @@ abstract class Utils
             \array_diff($user_caps, $frontend_user_caps) === [], // User should only have whitelisted capabilities.
             $user
         );
+    }
+
+
+    /**
+     * Polyfill for `str_ends_with()` function added in PHP 8.0.
+     *
+     * @todo Remove as soon as PHP 8.0 or newer is required. WordPress 5.9 won't cut it, because unit tests will fail.
+     *
+     * @param string $haystack The string to search in.
+     * @param string $needle The substring to search for in the `$haystack`.
+     * @return bool True if `$haystack` ends with `$needle`, otherwise false.
+     */
+    public static function endsWithString(string $haystack, string $needle): bool
+    {
+        if (($haystack === '') && ($needle === '')) {
+            return false;
+        }
+
+        $len = \strlen($needle);
+        return \substr_compare($haystack, $needle, -$len, $len) === 0;
     }
 }

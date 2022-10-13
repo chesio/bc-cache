@@ -185,7 +185,7 @@ class ListTable extends \WP_List_Table
         return \sprintf(
             '%s | %s | %s',
             esc_html(size_format($item->getTotalSize())),
-            esc_html(size_format($item->getHtmlFileSize())),
+            esc_html(size_format($item->getPlainFileSize())),
             esc_html(size_format($item->getGzipFileSize()))
         );
     }
@@ -250,7 +250,7 @@ class ListTable extends \WP_List_Table
             'url' => __('URL', 'bc-cache'),
             'request_variant' => __('Request variant', 'bc-cache'),
             'timestamp' => __('Created', 'bc-cache'),
-            'size' => __('Size: total | html | gzipped', 'bc-cache'),
+            'size' => __('Size: total | plain | gzipped', 'bc-cache'),
         ];
     }
 

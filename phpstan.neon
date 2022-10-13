@@ -9,6 +9,5 @@ parameters:
         - %currentWorkingDirectory%/tests/static-analysis/bootstrap.php
         - %currentWorkingDirectory%/autoload.php
     ignoreErrors:
-        - '#^Function apply_filters invoked with [\d+] parameters, 2 required\.$#'
         - '#^Call to static method \S+\(\) on an unknown class WP_CLI\.$#'
         - '#^Function WP_CLI\\.+ not found.$#'

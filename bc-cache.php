@@ -4,12 +4,12 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: 2.3.0
+ * Version: 3.0.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.3
  * Requires WP: 5.5
- * Tested up to: 6.0
+ * Tested up to: 6.1
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  * Update URI: https://github.com/chesio/bc-cache
@@ -17,9 +17,9 @@
 
 // Check plugin requirements, disable if they are not met.
 if (
-    false === call_user_func(
+    false === \call_user_func(
         function () {
-            $php_version_ok = version_compare(PHP_VERSION, '7.3', '>=');
+            $php_version_ok = \version_compare(PHP_VERSION, '7.3', '>=');
             $pretty_permalinks_on = (bool) get_option('permalink_structure');
 
             if (!$php_version_ok) {
@@ -27,7 +27,7 @@ if (
                 add_action('admin_notices', function () {
                     echo '<div class="error"><p>';
                     echo esc_html(
-                        sprintf(
+                        \sprintf(
                             __('BC Cache plugin requires PHP 7.3 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
                             PHP_VERSION
                         )
@@ -40,9 +40,9 @@ if (
                 // Warn user that plugin does not work without pretty permalinks activated.
                 add_action('admin_notices', function () {
                     echo '<div class="error"><p>';
-                    echo sprintf(
+                    echo \sprintf(
                         __('BC Cache plugin requires %s to be activated, but your website have them turned off. The plugin has been auto-deactivated.', 'bc-cache'),
-                        sprintf(
+                        \sprintf(
                             '<a href="%s">%s</a>',
                             admin_url('options-permalink.php'),
                             esc_html('pretty permalinks', 'bc-cache')
@@ -82,12 +82,12 @@ if (
 // Register autoloader for this plugin.
 require_once __DIR__ . '/autoload.php';
 
-return call_user_func(function () {
+return \call_user_func(function () {
     // Construct plugin instance.
     $bc_cache = new \BlueChip\Cache\Plugin(
         __FILE__,
-        defined('BC_CACHE_FILE_LOCKING_ENABLED') ? BC_CACHE_FILE_LOCKING_ENABLED : true,
-        defined('BC_CACHE_WARM_UP_ENABLED') ? BC_CACHE_WARM_UP_ENABLED : true
+        \defined('BC_CACHE_FILE_LOCKING_ENABLED') ? \constant('BC_CACHE_FILE_LOCKING_ENABLED') : true,
+        \defined('BC_CACHE_WARM_UP_ENABLED') ? \constant('BC_CACHE_WARM_UP_ENABLED') : true
     );
 
     // Register activation hook.

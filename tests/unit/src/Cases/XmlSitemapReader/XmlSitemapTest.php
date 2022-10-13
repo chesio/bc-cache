@@ -1,6 +1,6 @@
 <?php
 
-namespace BlueChip\Cache\Tests\Unit\Cases\Core;
+namespace BlueChip\Cache\Tests\Unit\Cases\XmlSitemapReader;
 
 use BlueChip\Cache\XmlSitemapReader;
 
