@@ -1,5 +1,11 @@
 # BC Cache Changelog
 
+## Upcoming version 3.1.0 (????-??-??)
+
+### Fixed
+
+* Prevent deprecation notices on PHP 8.1 and newer [#89](https://github.com/chesio/bc-cache/issues/89).
+
 ## Version 3.0.0 (2022-10-13)
 
 This release has been tested with upcoming WordPress 6.1 and PHP 8.2.
