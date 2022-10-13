@@ -98,6 +98,7 @@ class Plugin
      */
     private const WHITELISTED_RESPONSE_HTTP_HEADER_TYPES = [
         'Link',
+        'X-Pingback',
         'X-Robots-Tag',
         self::CACHE_RESPONSE_HTTP_HEADER,
     ];
