@@ -2,6 +2,10 @@
 
 ## Upcoming version 3.1.0 (????-??-??)
 
+### Changed
+
+* WordPress 5.8 or newer is now required [#88](https://github.com/chesio/bc-security/issues/88).
+
 ### Fixed
 
 * Prevent deprecation notices on PHP 8.1 and newer [#89](https://github.com/chesio/bc-cache/issues/89).
