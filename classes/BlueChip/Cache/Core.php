@@ -571,7 +571,7 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // Make sure that normalized path still points to a subdirectory of root cache directory.
-        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (!\str_starts_with($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR)) {
             throw new Exception("Could not retrieve a valid cache filename from URL {$url}.");
         }
 
@@ -596,7 +596,7 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // The path must point to a subdirectory of root cache directory.
-        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (!\str_starts_with($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR)) {
             throw new Exception("Path {$path} is not a valid cache path.");
         }
 
@@ -820,7 +820,7 @@ class Core
         $headers = \array_filter(
             $headers,
             function (string $header): bool {
-                return \strpos($header, ':') !== false;
+                return \str_contains($header, ':');
             }
         );
 

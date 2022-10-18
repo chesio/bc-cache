@@ -13,7 +13,7 @@ BC Cache can cache not only HTML pages, but [core XML sitemaps](https://make.wor
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
 * [PHP](https://www.php.net/) 7.3 or newer
-* [WordPress](https://wordpress.org/) 5.8 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
+* [WordPress](https://wordpress.org/) 5.9 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
 
 ## Limitations
 
