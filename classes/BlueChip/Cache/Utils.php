@@ -121,24 +121,4 @@ abstract class Utils
             $user
         );
     }
-
-
-    /**
-     * Polyfill for `str_ends_with()` function added in PHP 8.0.
-     *
-     * @todo Remove as soon as PHP 8.0 or newer is required. WordPress 5.9 won't cut it, because unit tests will fail.
-     *
-     * @param string $haystack The string to search in.
-     * @param string $needle The substring to search for in the `$haystack`.
-     * @return bool True if `$haystack` ends with `$needle`, otherwise false.
-     */
-    public static function endsWithString(string $haystack, string $needle): bool
-    {
-        if (($haystack === '') && ($needle === '')) {
-            return false;
-        }
-
-        $len = \strlen($needle);
-        return \substr_compare($haystack, $needle, -$len, $len) === 0;
-    }
 }
