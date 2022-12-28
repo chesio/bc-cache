@@ -383,6 +383,7 @@ class Core
                 $url,
                 $item['request_variant'],
                 self::getCreationTimestamp($item['path'], $item['request_variant']),
+                $item['total_disk_size'],
                 $item['plain_size'],
                 $item['gzip_size'],
                 $item['htaccess_size']
@@ -446,7 +447,7 @@ class Core
      * @param string $dirname
      * @param string[] $request_variants
      *
-     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `plain_size`, `gzip_size` and `htaccess_size`.
+     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `total_disk_size`, `plain_size`, `gzip_size` and `htaccess_size`.
      *
      * @throws Exception
      */
@@ -471,9 +472,13 @@ class Core
             }
         }
 
+        // .htaccess file is shared for all request variants, so its size must be counted only once in total disk size.
+        $htaccessFilename = self::getHtaccessFilename($dirname);
+        $request_variant_htaccess_size = $htaccess_size = \is_file($htaccessFilename) ? (\filesize($htaccessFilename) ?: 0) : 0;
+
         // Loop through all request variants and grab size information.
         foreach ($request_variants as $request_variant) {
-            $request_variant_plain_size = $request_variant_gzip_size = $request_variant_htaccess_size = 0;
+            $request_variant_plain_size = $request_variant_gzip_size = 0;
 
             $plainFilename = self::getPlainFilename($dirname, $request_variant);
             if (\is_file($plainFilename)) {
@@ -485,19 +490,18 @@ class Core
                 $request_variant_gzip_size = \filesize($gzipFilename) ?: 0;
             }
 
-            $htaccessFilename = self::getHtaccessFilename($dirname);
-            if (\is_file($htaccessFilename)) {
-                $request_variant_htaccess_size = \filesize($htaccessFilename) ?: 0;
-            }
-
-            if (($request_variant_plain_size + $request_variant_gzip_size + $request_variant_htaccess_size) > 0) {
+            if (($request_variant_plain_size + $request_variant_gzip_size) > 0) {
                 $entries[self::getPlainFilename($dirname, $request_variant)] = [
                     'path'  => $dirname,
                     'request_variant' => $request_variant,
+                    'total_disk_size' => $request_variant_plain_size + $request_variant_gzip_size + $htaccess_size,
                     'plain_size' => $request_variant_plain_size,
                     'gzip_size' => $request_variant_gzip_size,
                     'htaccess_size' => $request_variant_htaccess_size,
                 ];
+
+                // Calculate .htaccess size in total disk size only once per directory.
+                $htaccess_size = 0;
             }
         }
 
