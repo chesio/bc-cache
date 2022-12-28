@@ -139,6 +139,11 @@ class Plugin
      */
     private $cache_feeder;
 
+    /**
+     * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
+     */
+    private $cache_is_flushed = null;
+
 
     /**
      * Perform activation and installation tasks.
@@ -488,18 +493,12 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
-     *
-     * @return bool Cached result of call to Core::flush().
      */
-    public function flushCacheOnce(): bool
+    public function flushCacheOnce(): void
     {
-        static $is_flushed = null;
-
-        if ($is_flushed === null) {
-            $is_flushed = $this->cache->flush();
+        if ($this->cache_is_flushed === null) {
+            $this->cache_is_flushed = $this->cache->flush();
         }
-
-        return $is_flushed;
     }
 
 
