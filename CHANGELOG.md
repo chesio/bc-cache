@@ -1,6 +1,8 @@
 # BC Cache Changelog
 
-## Upcoming version 3.0.0 (2022-10-13)
+## Upcoming version 3.0.1 (????-??-??)
+
+## Version 3.0.0 (2022-10-13)
 
 This release has been tested with upcoming WordPress 6.1 and PHP 8.2.
 
