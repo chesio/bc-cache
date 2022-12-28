@@ -1,13 +1,12 @@
 includes:
-    - phar://phpstan.phar/conf/bleedingEdge.neon
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 parameters:
     level: 5
     paths:
-        - %currentWorkingDirectory%/classes/
+        - classes/
     bootstrapFiles:
-        - %currentWorkingDirectory%/tests/static-analysis/bootstrap.php
-        - %currentWorkingDirectory%/autoload.php
-    ignoreErrors:
-        - '#^Call to static method \S+\(\) on an unknown class WP_CLI\.$#'
-        - '#^Function WP_CLI\\.+ not found.$#'
+        - tests/static-analysis/bootstrap.php
+        - autoload.php
+    scanFiles:
+        - tests/static-analysis/stubs/php-cli-tools.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
