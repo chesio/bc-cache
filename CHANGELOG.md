@@ -3,6 +3,7 @@
 ## Upcoming version 3.0.1 (????-??-??)
 
 * Fix calculation of total disk size in Cache Viewer that has been broken for websites using request variants in version 3.0 [#91](https://github.com/chesio/bc-cache/issues/91).
+* Improve performance of cache inspection method [#92](https://github.com/chesio/bc-cache/issues/92).
 
 ## Version 3.0.0 (2022-10-13)
 

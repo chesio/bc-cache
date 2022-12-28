@@ -449,7 +449,7 @@ class Core
      *
      * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `total_disk_size`, `plain_size`, `gzip_size` and `htaccess_size`.
      *
-     * @throws Exception
+     * @throws Exception When $dirname is not a directory.
      */
     private static function getCacheSizes(string $dirname, array $request_variants): array
     {
@@ -462,19 +462,45 @@ class Core
         // An array of all cache entries (path + request variant) and their sizes.
         $entries = [];
 
-        // Process any subdirectories first.
         foreach ($it as $fileinfo) {
-            if ($it->isDir() && !$it->isDot()) { // Skip '.' and '..' directories.
-                // Get the path.
-                $subdirname = $fileinfo->getPathname();
-                // Update the pool of cache sizes.
-                $entries += self::getCacheSizes($subdirname, $request_variants);
+            if (!$fileinfo->isDir() || $fileinfo->isDot()) {
+                // Skip non-directories and '.' and '..' directories.
+                continue;
+            }
+
+            $basename = $fileinfo->getBasename();
+            $pathname = $fileinfo->getPathname();
+
+            if (($basename === self::DIRECTORY_PATH_DIRNAME) || ($basename === self::FILE_PATH_DIRNAME)) {
+                // Directory holds cache entry, get its sizes.
+                $entries += self::getCacheEntrySizes($pathname, $request_variants);
+            } else {
+                // Recurse in the subdirectory.
+                $entries += self::getCacheSizes($pathname, $request_variants);
             }
         }
 
+        return $entries;
+    }
+
+
+    /**
+     * Return an array with cache size information for all request variants in given cache entry directory.
+     *
+     * @param string $dirname Path to cache entry directory (must end either with "/@dir" or "/@file").
+     * @param string[] $request_variants
+     *
+     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `total_disk_size`, `plain_size`, `gzip_size` and `htaccess_size`.
+     *
+     * @throws Exception
+     */
+    private static function getCacheEntrySizes(string $dirname, array $request_variants): array
+    {
         // .htaccess file is shared for all request variants, so its size must be counted only once in total disk size.
         $htaccessFilename = self::getHtaccessFilename($dirname);
         $request_variant_htaccess_size = $htaccess_size = \is_file($htaccessFilename) ? (\filesize($htaccessFilename) ?: 0) : 0;
+
+        $entries = [];
 
         // Loop through all request variants and grab size information.
         foreach ($request_variants as $request_variant) {
