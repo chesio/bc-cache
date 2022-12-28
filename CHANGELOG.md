@@ -4,7 +4,7 @@
 
 ### Changed
 
-* WordPress 5.9 or newer is now required [#88](https://github.com/chesio/bc-security/issues/88).
+* WordPress 5.9 or newer is now required [#88](https://github.com/chesio/bc-cache/issues/88).
 
 ### Fixed
 
