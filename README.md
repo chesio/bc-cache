@@ -233,7 +233,7 @@ wp cron event schedule 'bc-cache/action:flush-cache' midnight daily
 A response to HTTP(S) request is **not** cached by BC Cache if **any** of the conditions below evaluates as true:
 
 1. Request is a POST request.
-2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#filters).
+2. Request is a GET request with one or more query string fields that are not whitelisted. By default, the whitelist consists of [Google click IDs](https://support.google.com/searchads/answer/7342044), [Facebook Click Identifier](https://fbclid.com/), [Microsoft Click ID](https://help.ads.microsoft.com/apex/index/3/en/60000) and standard [UTM parameters](https://en.wikipedia.org/wiki/UTM_parameters), but it can be [filtered](#filters).
 3. Request is not for a front-end page (ie. [`wp_using_themes`](https://developer.wordpress.org/reference/functions/wp_using_themes/) returns `false`). Output of AJAX, WP-CLI or WP-Cron calls is never cached.
 4. Request comes from a non-anonymous user (ie. user that is logged in, left a comment or accessed password protected page/post). The rule can be tweaked to ignore [front-end users](#front-end-users-and-caching) if your theme supports it.
 5. Request/response type is one of the following: search, 404, feed, trackback, robots.txt, preview or password protected post.
