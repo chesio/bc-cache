@@ -2,7 +2,7 @@
 
 ## Upcoming version 3.2.0 (????-??-??)
 
-## Upcoming version 3.1.0 (2023-01-04)
+## Version 3.1.0 (2023-01-04)
 
 ### Changed
 
