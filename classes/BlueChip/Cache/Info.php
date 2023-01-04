@@ -24,7 +24,7 @@ class Info
 
 
     /**
-     * @var mixed[] Cache data (lazy loaded)
+     * @var array Cache data (lazy loaded)
      */
     private $data = [];
 
