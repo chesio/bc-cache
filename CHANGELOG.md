@@ -5,6 +5,7 @@
 ### Changed
 
 * WordPress 5.9 or newer is now required [#88](https://github.com/chesio/bc-cache/issues/88).
+* Improved serialization of data stored in database [#90](https://github.com/chesio/bc-cache/issues/90).
 
 ### Fixed
 

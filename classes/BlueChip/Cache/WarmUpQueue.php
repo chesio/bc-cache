@@ -2,8 +2,13 @@
 
 namespace BlueChip\Cache;
 
-class WarmUpQueue
+class WarmUpQueue extends Serializable
 {
+    /**
+     * @var int Internal class version (used for serialization/unserialization)
+     */
+    protected const DB_VERSION = 1;
+
     /**
      * @var Item[] List of items that have been processed already
      */
@@ -21,6 +26,24 @@ class WarmUpQueue
     public function __construct(array $items)
     {
         $this->waiting = \array_reverse($items);
+    }
+
+
+    /**
+     * @internal Serialization helper.
+     */
+    protected function deflate(): array
+    {
+        return ['processed' => $this->processed, 'waiting' => $this->waiting];
+    }
+
+
+    /**
+     * @internal Serialization helper.
+     */
+    public function inflate(array $data): void
+    {
+        ['processed' => $this->processed, 'waiting' => $this->waiting] = $data;
     }
 
 

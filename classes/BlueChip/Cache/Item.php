@@ -5,8 +5,13 @@ namespace BlueChip\Cache;
 /**
  * A single cache item consists of URL and request variant.
  */
-class Item
+class Item extends Serializable
 {
+    /**
+     * @var int Internal class version (used for serialization/unserialization)
+     */
+    protected const DB_VERSION = 1;
+
     /**
      * @var string
      */
@@ -27,6 +32,24 @@ class Item
     {
         $this->url = $url;
         $this->request_variant = $request_variant;
+    }
+
+
+    /**
+     * @internal Serialization helper.
+     */
+    protected function deflate(): array
+    {
+        return ['request_variant' => $this->request_variant, 'url' => $this->url];
+    }
+
+
+    /**
+     * @internal Serialization helper.
+     */
+    public function inflate(array $data): void
+    {
+        ['request_variant' => $this->request_variant, 'url' => $this->url] = $data;
     }
 
 
