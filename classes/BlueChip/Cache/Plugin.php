@@ -296,7 +296,9 @@ class Plugin
             }
         } else {
             // Add action to catch output buffer.
-            add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
+            // Use `send_headers` action from WordPress 6.1 on - see:
+            // https://make.wordpress.org/core/2022/10/10/moving-the-send_headers-action-to-later-in-the-load/
+            add_action(is_wp_version_compatible('6.1') ? 'send_headers' : 'template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
 
         if ($this->cache_crawler) {

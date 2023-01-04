@@ -6,6 +6,7 @@
 
 * WordPress 5.9 or newer is now required [#88](https://github.com/chesio/bc-cache/issues/88).
 * Improved serialization of data stored in database [#90](https://github.com/chesio/bc-cache/issues/90).
+* On WordPress 6.1 and newer, output buffering is started in `send_headers` action already [#87](https://github.com/chesio/bc-cache/issues/87).
 
 ### Fixed
 
