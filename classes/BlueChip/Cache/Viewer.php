@@ -133,7 +133,7 @@ class Viewer
      */
     public function processActions(): void
     {
-        $nonce = \filter_input(INPUT_POST, self::NONCE_NAME, FILTER_SANITIZE_STRING);
+        $nonce = \filter_input(INPUT_POST, self::NONCE_NAME);
         if (empty($nonce)) {
             // No nonce, no action.
             return;

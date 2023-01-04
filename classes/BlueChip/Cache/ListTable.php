@@ -105,13 +105,13 @@ class ListTable extends \WP_List_Table
         // Get list of request variants.
         $this->request_variants = $cache->getRequestVariants();
 
-        $order_by = \filter_input(INPUT_GET, 'orderby', FILTER_SANITIZE_STRING);
+        $order_by = \filter_input(INPUT_GET, 'orderby');
         if (\in_array($order_by, $this->get_sortable_columns(), true)) {
             $this->order_by = $order_by;
             $this->url = add_query_arg('orderby', $order_by, $this->url);
         }
 
-        $order = \filter_input(INPUT_GET, 'order', FILTER_SANITIZE_STRING);
+        $order = \filter_input(INPUT_GET, 'order');
         if ($order === 'asc' || $order === 'desc') {
             $this->order = $order;
             $this->url = add_query_arg('order', $order, $this->url);
@@ -339,7 +339,7 @@ class ListTable extends \WP_List_Table
                 return;
             }
 
-            $request_variant = \filter_input(INPUT_GET, 'request_variant', FILTER_SANITIZE_STRING);
+            $request_variant = \filter_input(INPUT_GET, 'request_variant');
             if (!isset($this->request_variants[$request_variant])) {
                 return;
             }

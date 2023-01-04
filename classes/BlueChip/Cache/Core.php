@@ -595,13 +595,13 @@ class Core
             $url_parts['host'],
             trailingslashit($url_path),
             // URL path ends with slash? Yes: treat as directory path. No: treat as file path.
-            Utils::endsWithString($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME
+            \str_ends_with($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME
         ]);
 
         $normalized_path = self::normalizePath($path);
 
         // Make sure that normalized path still points to a subdirectory of root cache directory.
-        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (!\str_starts_with($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR)) {
             throw new Exception("Could not retrieve a valid cache filename from URL {$url}.");
         }
 
@@ -626,7 +626,7 @@ class Core
         $normalized_path = self::normalizePath($path);
 
         // The path must point to a subdirectory of root cache directory.
-        if (\strpos($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR) !== 0) {
+        if (!\str_starts_with($normalized_path, $this->cache_dir . DIRECTORY_SEPARATOR)) {
             throw new Exception("Path {$path} is not a valid cache path.");
         }
 
@@ -645,12 +645,12 @@ class Core
         }
 
         $path = DIRECTORY_SEPARATOR . $subparts[1];
-        if (Utils::endsWithString($path, DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME)) {
+        if (\str_ends_with($path, DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME)) {
             // Strip file path dirname including trailing directory separator.
-            $path = substr($path, 0, -1 * strlen(DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME));
-        } elseif (Utils::endsWithString($path, DIRECTORY_SEPARATOR . self::DIRECTORY_PATH_DIRNAME)) {
+            $path = \substr($path, 0, -1 * \strlen(DIRECTORY_SEPARATOR . self::FILE_PATH_DIRNAME));
+        } elseif (\str_ends_with($path, DIRECTORY_SEPARATOR . self::DIRECTORY_PATH_DIRNAME)) {
             // Strip directory path dirname, but keep trailing directory separator.
-            $path = substr($path, 0, -1 * strlen(self::DIRECTORY_PATH_DIRNAME));
+            $path = \substr($path, 0, -1 * \strlen(self::DIRECTORY_PATH_DIRNAME));
         }
 
         return $parts[0] . '://' . $subparts[0] . \str_replace(DIRECTORY_SEPARATOR, '/', $path);
@@ -850,7 +850,7 @@ class Core
         $headers = \array_filter(
             $headers,
             function (string $header): bool {
-                return \strpos($header, ':') !== false;
+                return \str_contains($header, ':');
             }
         );
 

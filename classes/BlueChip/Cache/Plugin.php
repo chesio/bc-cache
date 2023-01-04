@@ -139,6 +139,11 @@ class Plugin
      */
     private $cache_feeder;
 
+    /**
+     * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
+     */
+    private $cache_is_flushed = null;
+
 
     /**
      * Perform activation and installation tasks.
@@ -291,7 +296,9 @@ class Plugin
             }
         } else {
             // Add action to catch output buffer.
-            add_action('template_redirect', [$this, 'startOutputBuffering'], 0, 0);
+            // Use `send_headers` action from WordPress 6.1 on - see:
+            // https://make.wordpress.org/core/2022/10/10/moving-the-send_headers-action-to-later-in-the-load/
+            add_action(is_wp_version_compatible('6.1') ? 'send_headers' : 'template_redirect', [$this, 'startOutputBuffering'], 0, 0);
         }
 
         if ($this->cache_crawler) {
@@ -488,18 +495,12 @@ class Plugin
      * Flush cache once per request only.
      *
      * @see Core::flush()
-     *
-     * @return bool Cached result of call to Core::flush().
      */
-    public function flushCacheOnce(): bool
+    public function flushCacheOnce(): void
     {
-        static $is_flushed = null;
-
-        if ($is_flushed === null) {
-            $is_flushed = $this->cache->flush();
+        if ($this->cache_is_flushed === null) {
+            $this->cache_is_flushed = $this->cache->flush();
         }
-
-        return $is_flushed;
     }
 
 
