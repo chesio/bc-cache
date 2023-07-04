@@ -9,7 +9,7 @@
  * Author URI: https://www.chesio.com
  * Requires PHP: 7.3
  * Requires WP: 5.9
- * Tested up to: 6.1
+ * Tested up to: 6.2
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  * Update URI: https://github.com/chesio/bc-cache

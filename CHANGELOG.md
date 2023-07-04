@@ -2,6 +2,8 @@
 
 ## Upcoming version 3.2.0 (????-??-??)
 
+This release has been tested with WordPress 6.2.
+
 ## Version 3.1.0 (2023-01-04)
 
 ### Changed
