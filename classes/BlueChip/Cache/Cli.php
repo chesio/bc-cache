@@ -59,12 +59,10 @@ class Cli
     {
         if (empty($post_id = \intval($args[0]))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
-            return;
         }
 
         if (empty($url = get_permalink($post_id))) {
             \WP_CLI::error(\sprintf('No URL could be generated for post with ID "%d"', $post_id));
-            return;
         }
 
         // Use helper method to actually delete related cache entries.
@@ -126,7 +124,6 @@ class Cli
     {
         if (empty($url = \filter_var($args[0], FILTER_VALIDATE_URL))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));
-            return;
         }
 
         // Use helper method to actually remove related cache entries.
