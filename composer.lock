@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a5bd551459b17438deb7df6a8a56d2f4",
+    "content-hash": "05758df5caf9efbec2565f247b67b15d",
     "packages": [
         {
             "name": "composer/installers",
@@ -796,16 +796,16 @@
         },
         {
             "name": "php-stubs/wp-cli-stubs",
-            "version": "v2.7.0",
+            "version": "v2.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wp-cli-stubs.git",
-                "reference": "428544fc3696273bfbb4cffe4ac88f5fed428fc8"
+                "reference": "5a4fce1430c5d59f8d8a5f0ab573930139b0279b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wp-cli-stubs/zipball/428544fc3696273bfbb4cffe4ac88f5fed428fc8",
-                "reference": "428544fc3696273bfbb4cffe4ac88f5fed428fc8",
+                "url": "https://api.github.com/repos/php-stubs/wp-cli-stubs/zipball/5a4fce1430c5d59f8d8a5f0ab573930139b0279b",
+                "reference": "5a4fce1430c5d59f8d8a5f0ab573930139b0279b",
                 "shasum": ""
             },
             "require": {
@@ -834,9 +834,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-stubs/wp-cli-stubs/issues",
-                "source": "https://github.com/php-stubs/wp-cli-stubs/tree/v2.7.0"
+                "source": "https://github.com/php-stubs/wp-cli-stubs/tree/v2.8.0"
             },
-            "time": "2022-11-10T19:19:05+00:00"
+            "time": "2023-06-02T09:21:15+00:00"
         },
         {
             "name": "phpstan/phpstan",
