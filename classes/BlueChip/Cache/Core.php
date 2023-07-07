@@ -368,7 +368,7 @@ class Core
                 $item['total_disk_size'],
                 $item['plain_size'],
                 $item['gzip_size'],
-                $item['htaccess_size']
+                $item['htaccess_size'],
             );
         }
 
@@ -577,7 +577,7 @@ class Core
             $url_parts['host'],
             trailingslashit($url_path),
             // URL path ends with slash? Yes: treat as directory path. No: treat as file path.
-            \str_ends_with($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME
+            \str_ends_with($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME,
         ]);
 
         $normalized_path = self::normalizePath($path);

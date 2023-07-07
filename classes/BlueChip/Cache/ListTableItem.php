@@ -34,8 +34,16 @@ class ListTableItem extends Item
     protected int $total_size;
 
 
-    public function __construct(string $entry_id, string $url, string $request_variant, ?int $timestamp, int $total_disk_size, int $plain_file_size, int $gzip_file_size, int $htaccess_file_size)
-    {
+    public function __construct(
+        string $entry_id,
+        string $url,
+        string $request_variant,
+        ?int $timestamp,
+        int $total_disk_size,
+        int $plain_file_size,
+        int $gzip_file_size,
+        int $htaccess_file_size,
+    ) {
         parent::__construct($url, $request_variant);
 
         $this->entry_id = $entry_id;
