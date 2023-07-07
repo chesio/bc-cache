@@ -12,12 +12,12 @@ class WarmUpQueue extends Serializable
     /**
      * @var Item[] List of items that have been processed already
      */
-    private $processed = [];
+    private array $processed = [];
 
     /**
      * @var Item[] LIFO queue with items to be processed yet
      */
-    private $waiting = [];
+    private array $waiting = [];
 
 
     /**

@@ -22,10 +22,7 @@ class Crawler
     private const DEFAULT_CACHE_WARM_UP_INVOCATION_DELAY = 10 * MINUTE_IN_SECONDS;
 
 
-    /**
-     * @var Feeder
-     */
-    private $cache_feeder;
+    private Feeder $cache_feeder;
 
 
     /**

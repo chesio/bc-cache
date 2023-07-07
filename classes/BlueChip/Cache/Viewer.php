@@ -24,25 +24,13 @@ class Viewer
      */
     private const START_WARM_UP_ACTION = 'start-warm-up';
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Crawler|null
-     */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
-    /**
-     * @var Feeder|null
-     */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
-    /**
-     * @var ListTable
-     */
-    private $list_table;
+    private ListTable $list_table;
 
 
     /**

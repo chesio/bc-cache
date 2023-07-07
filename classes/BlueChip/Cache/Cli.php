@@ -14,20 +14,11 @@ class Cli
      */
     private const UNKNOWN_VALUE = '???';
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Crawler|null
-     */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
-    /**
-     * @var Feeder|null
-     */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
 
     /**

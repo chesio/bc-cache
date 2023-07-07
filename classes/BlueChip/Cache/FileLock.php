@@ -14,12 +14,12 @@ class FileLock implements Lock
     /**
      * @var string Absolute path to lock file.
      */
-    private $file_name;
+    private string $file_name;
 
     /**
      * @var resource|bool|null File handle if lock file has been opened successfully, false in case of failure, null if file has not been opened yet.
      */
-    private $file_handle;
+    private mixed $file_handle;
 
 
     /**

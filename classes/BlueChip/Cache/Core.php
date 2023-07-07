@@ -28,22 +28,22 @@ class Core
     /**
      * @var string Absolute path to root cache directory
      */
-    private $cache_dir;
+    private string $cache_dir;
 
     /**
      * @var Info Cache information handler
      */
-    private $cache_info;
+    private Info $cache_info;
 
     /**
      * @var Lock Flock wrapper for atomic cache reading/writing
      */
-    private $cache_lock;
+    private Lock $cache_lock;
 
     /**
      * @var array|null Cached result of call to inspect() method
      */
-    private $inspection = null;
+    private ?array $inspection = null;
 
 
     /**

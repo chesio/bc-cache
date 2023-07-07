@@ -7,30 +7,15 @@ namespace BlueChip\Cache;
  */
 class ListTableItem extends Item
 {
-    /**
-     * @var string
-     */
-    protected $entry_id;
+    protected string $entry_id;
 
-    /**
-     * @var int|null
-     */
-    protected $timestamp;
+    protected ?int $timestamp;
 
-    /**
-     * @var int
-     */
-    protected $plain_file_size;
+    protected int $plain_file_size;
 
-    /**
-     * @var int
-     */
-    protected $gzip_file_size;
+    protected int $gzip_file_size;
 
-    /**
-     * @var int
-     */
-    protected $htaccess_file_size;
+    protected int $htaccess_file_size;
 
     /**
      * @var int Total disk size occupied by list table item
@@ -41,12 +26,12 @@ class ListTableItem extends Item
      * single .htaccess file is shared between all request variants. This way sum over total disk sizes of all
      * ListItemTable instances is technically valid.
      */
-    protected $total_disk_size;
+    protected int $total_disk_size;
 
     /**
      * @var int Sum of plain, GZIP and .htaccess file size
      */
-    protected $total_size;
+    protected int $total_size;
 
 
     public function __construct(string $entry_id, string $url, string $request_variant, ?int $timestamp, int $total_disk_size, int $plain_file_size, int $gzip_file_size, int $htaccess_file_size)

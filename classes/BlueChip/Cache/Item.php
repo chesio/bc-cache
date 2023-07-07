@@ -17,15 +17,9 @@ class Item extends Serializable
      */
     private const SEPARATOR = '#';
 
-    /**
-     * @var string
-     */
-    protected $url;
+    protected string $url;
 
-    /**
-     * @var string
-     */
-    protected $request_variant;
+    protected string $request_variant;
 
 
     public function __construct(string $url, string $request_variant)

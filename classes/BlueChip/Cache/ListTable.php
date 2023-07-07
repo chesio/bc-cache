@@ -42,45 +42,36 @@ class ListTable extends \WP_List_Table
      */
     private const UNKNOWN_VALUE = '--';
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Crawler|null
-     */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
-    /**
-     * @var Feeder|null
-     */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
     /**
      * @var string[] List of known request variants: id => label
      */
-    private $request_variants = [];
+    private array $request_variants = [];
 
     /**
      * @var string Sorting direction (asc or desc)
      */
-    private $order = 'asc';
+    private string $order = 'asc';
 
     /**
      * @var string Sorting column
      */
-    private $order_by = '';
+    private string $order_by = '';
 
     /**
      * @var string Base URL of admin page (without any status-like query string parameters)
      */
-    private $url;
+    private string $url;
 
     /**
      * @var int|null Total size of all files (entries) reported in the list.
      */
-    private $cache_files_size = null;
+    private ?int $cache_files_size = null;
 
 
     /**

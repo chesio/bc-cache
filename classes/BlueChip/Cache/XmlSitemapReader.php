@@ -9,15 +9,9 @@ namespace BlueChip\Cache;
  */
 class XmlSitemapReader
 {
-    /**
-     * @var string
-     */
-    private $robots_txt_url;
+    private string $robots_txt_url;
 
-    /**
-     * @var string
-     */
-    private $default_sitemap_url;
+    private string $default_sitemap_url;
 
 
     /**

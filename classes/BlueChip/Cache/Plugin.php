@@ -104,45 +104,33 @@ class Plugin
     ];
 
 
-    /**
-     * @var string
-     */
-    private $plugin_filename;
+    private string $plugin_filename;
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Info
-     */
-    private $cache_info;
+    private Info $cache_info;
 
-    /**
-     * @var Lock
-     */
-    private $cache_lock;
+    private Lock $cache_lock;
 
     /**
      * @var Lock|null Null if cache warm up is disabled.
      */
-    private $feeder_lock;
+    private ?Lock $feeder_lock;
 
     /**
      * @var Crawler|null Null if cache warm up is disabled.
      */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
     /**
      * @var Feeder|null Null if cache warm up is disabled.
      */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
     /**
      * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
      */
-    private $cache_is_flushed = null;
+    private ?bool $cache_is_flushed = null;
 
 
     /**

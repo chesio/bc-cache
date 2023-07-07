@@ -16,15 +16,9 @@ class Feeder
      */
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Lock
-     */
-    private $lock;
+    private Lock $lock;
 
 
     /**
