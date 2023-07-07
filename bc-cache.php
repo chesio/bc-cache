@@ -7,7 +7,7 @@
  * Version: 3.2.0-dev
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
- * Requires PHP: 7.3
+ * Requires PHP: 8.0
  * Requires WP: 6.1
  * Tested up to: 6.2
  * Text Domain: bc-cache
@@ -19,7 +19,7 @@
 if (
     false === \call_user_func(
         function () {
-            $php_version_ok = \version_compare(PHP_VERSION, '7.3', '>=');
+            $php_version_ok = \version_compare(PHP_VERSION, '8.0', '>=');
             $pretty_permalinks_on = (bool) get_option('permalink_structure');
 
             if (!$php_version_ok) {
@@ -28,7 +28,7 @@ if (
                     echo '<div class="error"><p>';
                     echo esc_html(
                         \sprintf(
-                            __('BC Cache plugin requires PHP 7.3 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
+                            __('BC Cache plugin requires PHP 8.0 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
                             PHP_VERSION
                         )
                     );
