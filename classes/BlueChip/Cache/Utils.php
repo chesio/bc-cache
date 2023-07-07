@@ -104,9 +104,7 @@ abstract class Utils
      */
     public static function isFrontendUser(?\WP_User $user = null): bool
     {
-        if ($user === null) {
-            $user = wp_get_current_user();
-        }
+        $user ??= wp_get_current_user();
 
         // Get capabilities that front-end user should *only* have.
         // Note: the 'customer' capability is a WooCommerce thing.

@@ -485,9 +485,7 @@ class Plugin
      */
     public function flushCacheOnce(): void
     {
-        if ($this->cache_is_flushed === null) {
-            $this->cache_is_flushed = $this->cache->flush();
-        }
+        $this->cache_is_flushed ??= $this->cache->flush();
     }
 
 
