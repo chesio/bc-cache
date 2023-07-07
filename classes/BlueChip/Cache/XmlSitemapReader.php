@@ -85,15 +85,12 @@ class XmlSitemapReader
             throw new Exception("Could not parse {$url} as XML file - XML parser reports: " . $e->getMessage());
         }
 
-        switch ($xml->getName()) {
-            case 'sitemapindex':
-                // Ignore sitemap index if only sitemap is expected.
-                return $expect_sitemap ? [] : self::readUrlsFromSitemapIndex($xml);
-            case 'urlset':
-                return self::readUrlsFromSitemap($xml);
-            default:
-                return [];
-        }
+        return match ($xml->getName()) {
+            // Ignore sitemap index if only sitemap is expected.
+            'sitemapindex' => $expect_sitemap ? [] : self::readUrlsFromSitemapIndex($xml),
+            'urlset' => self::readUrlsFromSitemap($xml),
+            default => [],
+        };
     }
 
 
