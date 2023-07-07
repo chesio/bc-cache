@@ -26,12 +26,6 @@ class Core
 
 
     /**
-     * @var array|null Cached result of call to inspect() method
-     */
-    private ?array $inspection = null;
-
-
-    /**
      * @param string $cache_dir Absolute path to root cache directory
      * @param Info $cache_info Cache information (age, size) handler
      * @param Lock $cache_lock Flock wrapper for atomic cache reading/writing
@@ -331,11 +325,6 @@ class Core
             return [];
         }
 
-        if ($this->inspection !== null) {
-            // Return memoized data.
-            return $this->inspection;
-        }
-
         // Wait for non-exclusive lock.
         if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
@@ -371,9 +360,6 @@ class Core
                 $item['htaccess_size'],
             );
         }
-
-        // Memoize the state.
-        $this->inspection = $state;
 
         return $state;
     }
