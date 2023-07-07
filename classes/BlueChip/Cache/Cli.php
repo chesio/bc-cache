@@ -201,10 +201,12 @@ class Cli
             $columns_to_display = [];
             foreach ($args as $arg) {
                 if (\array_search($arg, $available_columns, true) === false) {
-                    \WP_CLI::error(sprintf('Unknown column key given: "%s". Exiting ...', $arg));
+                    \WP_CLI::error(\sprintf('Unknown column key given: "%s". Exiting ...', $arg));
                 }
 
-                $columns_to_display[] = $arg;
+                if (!\in_array($arg, $columns_to_display, true)) {
+                    $columns_to_display[] = $arg;
+                }
             }
         }
 
@@ -215,7 +217,7 @@ class Cli
         // Validate sort by value.
         if ($sort_by) {
             if (\array_search($sort_by, $available_columns, true) === false) {
-                \WP_CLI::error(sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
+                \WP_CLI::error(\sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
             }
         }
 
@@ -226,7 +228,9 @@ class Cli
             $columns_to_display = $available_columns;
             // ...but unset request variant if there is only single (default) variant configured.
             if (\count($request_variants) === 1) {
-                $columns_to_display = \array_diff($columns_to_display, ['request_variant']);
+                // Use array values, so $columns_to_display have subsequent indices.
+                // This seems to be necessary to have properly formatted table header.
+                $columns_to_display = \array_values(\array_diff($columns_to_display, ['request_variant']));
             }
         }
 
@@ -237,7 +241,7 @@ class Cli
         }
 
         // Prepare items.
-        $items = array_map(
+        $items = \array_map(
             function (ListTableItem $item) use ($plain, $request_variants): array {
                 $request_variant = $item->getRequestVariant();
                 $timestamp = $item->getTimestamp();
@@ -256,7 +260,7 @@ class Cli
 
         // Sort items?
         if ($sort_by) {
-            usort(
+            \usort(
                 $items,
                 function (array $a, array $b) use ($sort_by): int {
                     if ($a[$sort_by] < $b[$sort_by]) {

@@ -2,7 +2,7 @@
 
 ## Upcoming version 3.2.0 (????-??-??)
 
-This release has been tested with WordPress 6.2.
+This release has been tested with WordPress 6.2 and 6.3.
 
 ### Changed
 
