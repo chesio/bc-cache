@@ -4,6 +4,10 @@
 
 This release has been tested with WordPress 6.2.
 
+### Changed
+
+* WordPress 6.1 or newer is now required [#96](https://github.com/chesio/bc-cache/issues/96).
+
 ## Version 3.1.0 (2023-01-04)
 
 ### Changed
