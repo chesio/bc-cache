@@ -55,9 +55,7 @@ class XmlSitemapReader
         if (\preg_match_all('/^[Ss]itemap: ?(.+)$/m', $body, $matches)) {
             return \array_reduce(
                 $matches[1],
-                function (array $urls, string $sitemap_url): array {
-                    return \array_merge($urls, self::fetch($sitemap_url));
-                },
+                fn (array $urls, string $sitemap_url): array => \array_merge($urls, self::fetch($sitemap_url)),
                 []
             );
         } else {

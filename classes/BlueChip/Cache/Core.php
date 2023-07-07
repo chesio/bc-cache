@@ -849,16 +849,12 @@ class Core
         // Sanitize headers.
         $headers = \array_filter(
             $headers,
-            function (string $header): bool {
-                return \str_contains($header, ':');
-            }
+            fn (string $header): bool => \str_contains($header, ':')
         );
 
         // Parse headers into name (type) and value parts.
         $headers = \array_map(
-            function (string $header): array {
-                return \array_map('trim', \explode(':', $header, 2));
-            },
+            fn (string $header): array => \array_map('trim', \explode(':', $header, 2)),
             $headers
         );
 

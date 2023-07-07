@@ -304,7 +304,7 @@ class ListTable extends \WP_List_Table
             // Also calculate total cache files size.
             $this->cache_files_size = \array_sum(
                 \array_map(
-                    function (ListTableItem $item): int { return $item->getTotalDiskSize(); }, // phpcs:ignore
+                    fn (ListTableItem $item): int => $item->getTotalDiskSize(),
                     $state
                 )
             );
