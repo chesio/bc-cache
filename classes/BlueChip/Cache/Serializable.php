@@ -4,10 +4,8 @@ namespace BlueChip\Cache;
 
 /**
  * Serialization helper
- *
- * @internal As soon as PHP 7.4 is required, only __serialize() and __unserialize() methods are necessary.
  */
-abstract class Serializable implements \Serializable
+abstract class Serializable
 {
     /**
      * @var int
@@ -16,24 +14,10 @@ abstract class Serializable implements \Serializable
      */
     protected const DB_VERSION = 0;
 
-
-    public function serialize(): string
-    {
-        return \serialize($this->__serialize());
-    }
-
-
-    public function unserialize($serialized): void
-    {
-        $this->__unserialize(\unserialize($serialized));
-    }
-
-
     public function __serialize(): array
     {
         return ['db_version' => static::DB_VERSION, 'data' => $this->deflate()];
     }
-
 
     public function __unserialize(array $data): void
     {
