@@ -52,8 +52,8 @@ class Core
             // If cache directory exists, make sure it is empty.
             try {
                 self::removeDirectory($this->cache_dir, true);
-            } catch (Exception $e) {
-                \trigger_error($e, E_USER_WARNING);
+            } catch (Exception $exception) {
+                \trigger_error((string) $exception, E_USER_WARNING);
                 return false;
             }
         } elseif (!wp_mkdir_p($this->cache_dir)) {
@@ -124,11 +124,11 @@ class Core
             $this->cache_info->reset();
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Clear information about cache size, it might be corrupted.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -156,9 +156,9 @@ class Core
         try {
             // Get directory for given URL.
             $path = $this->getPath($item->getUrl());
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         }
@@ -185,11 +185,11 @@ class Core
             $this->cache_info->decrementSize($bytes_deleted);
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // I/O error - clear information about cache size, it might be no longer valid.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -223,11 +223,11 @@ class Core
         try {
             // Make directory for given URL.
             $path = $this->makeDirectory($item->getUrl());
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Unlock cache for other operations.
             $this->cache_lock->release();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         }
@@ -246,11 +246,11 @@ class Core
             $this->cache_info->incrementSize($bytes_written);
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Clear information about cache size, it might be corrupted.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -353,9 +353,9 @@ class Core
         foreach ($cache_sizes as $id => $item) {
             try {
                 $url = $this->getUrl($item['path']);
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 // Trigger a warning and let WordPress handle it.
-                \trigger_error($e, E_USER_WARNING);
+                \trigger_error((string) $exception, E_USER_WARNING);
                 // Skip this item.
                 continue;
             }

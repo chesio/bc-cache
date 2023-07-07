@@ -74,8 +74,8 @@ class XmlSitemapReader
 
         try {
             $xml = new \SimpleXMLElement($body);
-        } catch (\Exception $e) {
-            throw new Exception("Could not parse {$url} as XML file - XML parser reports: " . $e->getMessage());
+        } catch (\Exception $exception) {
+            throw new Exception("Could not parse {$url} as XML file - XML parser reports: " . $exception->getMessage());
         }
 
         return match ($xml->getName()) {

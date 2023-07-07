@@ -236,9 +236,9 @@ class Feeder
 
             try {
                 $urls = $xml_sitemap_reader->getUrls();
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 // Trigger a warning and let WordPress handle it.
-                \trigger_error($e, E_USER_WARNING);
+                \trigger_error((string) $exception, E_USER_WARNING);
                 // Sorry, no URLs available.
                 $urls = [];
             }
