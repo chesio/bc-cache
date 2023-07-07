@@ -93,9 +93,6 @@ class WarmUpQueue extends Serializable
     }
 
 
-    /**
-     * @return array
-     */
     public function getStats(): array
     {
         return [

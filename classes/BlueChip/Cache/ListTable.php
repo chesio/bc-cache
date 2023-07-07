@@ -139,10 +139,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "ID" column (including row actions).
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_entry_id(ListTableItem $item): string // phpcs:ignore
     {
@@ -155,10 +151,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Request variant" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_request_variant(ListTableItem $item): string // phpcs:ignore
     {
@@ -168,10 +160,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Size" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_size(ListTableItem $item): string // phpcs:ignore
     {
@@ -186,10 +174,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Created" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_timestamp(ListTableItem $item): string // phpcs:ignore
     {
@@ -204,10 +188,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "URL" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_url(ListTableItem $item): string // phpcs:ignore
     {
@@ -319,8 +299,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Process any actions like deleting etc.
-     *
-     * @return void
      */
     public function processActions(): void
     {
@@ -456,11 +434,6 @@ class ListTable extends \WP_List_Table
     }
 
 
-    /**
-     * @param string $order_by
-     *
-     * @return callable
-     */
     private static function getAscSortingMethod(string $order_by): callable
     {
         return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
@@ -475,11 +448,6 @@ class ListTable extends \WP_List_Table
     }
 
 
-    /**
-     * @param string $order_by
-     *
-     * @return callable
-     */
     private static function getDescSortingMethod(string $order_by): callable
     {
         return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
@@ -519,14 +487,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return HTML for specified row action link.
-     *
-     * @param string $action
-     * @param string $url
-     * @param string $request_variant
-     * @param string $class
-     * @param string $label
-     *
-     * @return string
      */
     private function renderRowAction(string $action, string $url, string $request_variant, string $class, string $label): string
     {

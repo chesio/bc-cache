@@ -304,9 +304,6 @@ class Plugin
      * Register cache flush hooks for public post types (including built-in ones).
      *
      * @action https://developer.wordpress.org/reference/hooks/registered_post_type/
-     *
-     * @param string $post_type
-     * @param \WP_Post_Type $post_type_object
      */
     public function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
     {
@@ -355,10 +352,6 @@ class Plugin
 
     /**
      * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
-     *
-     * @param string $data
-     *
-     * @return string
      */
     public function alterRobotsTxt(string $data): string
     {
@@ -525,11 +518,6 @@ class Plugin
 
     /**
      * Push $buffer to cache and return it on output.
-     *
-     * @param string $buffer
-     * @param int $phase
-     *
-     * @return string
      */
     public function handleOutputBuffer(string $buffer, int $phase): string
     {
@@ -611,11 +599,6 @@ class Plugin
 
     /**
      * @action https://developer.wordpress.org/reference/hooks/set_logged_in_cookie/
-     *
-     * @param string $logged_in_cookie
-     * @param int $expire
-     * @param int $expiration
-     * @param int $user_id
      */
     public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
     {
@@ -652,9 +635,6 @@ class Plugin
     }
 
 
-    /**
-     * @param bool $tear_down
-     */
     public function warmUp(bool $tear_down): void
     {
         // If not deactivating plugin instance, reset feeder and (re)activate crawler.
