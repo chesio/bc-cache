@@ -16,19 +16,13 @@ class Feeder
      */
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
-    private Core $cache;
-
-    private Lock $lock;
-
 
     /**
      * @param Core $cache
      * @param Lock $lock Lock to use to ensure atomicity of operations.
      */
-    public function __construct(Core $cache, Lock $lock)
+    public function __construct(private Core $cache, private Lock $lock)
     {
-        $this->cache = $cache;
-        $this->lock = $lock;
     }
 
 

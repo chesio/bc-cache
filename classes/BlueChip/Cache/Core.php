@@ -26,21 +26,6 @@ class Core
 
 
     /**
-     * @var string Absolute path to root cache directory
-     */
-    private string $cache_dir;
-
-    /**
-     * @var Info Cache information handler
-     */
-    private Info $cache_info;
-
-    /**
-     * @var Lock Flock wrapper for atomic cache reading/writing
-     */
-    private Lock $cache_lock;
-
-    /**
      * @var array|null Cached result of call to inspect() method
      */
     private ?array $inspection = null;
@@ -51,11 +36,8 @@ class Core
      * @param Info $cache_info Cache information (age, size) handler
      * @param Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, Info $cache_info, Lock $cache_lock)
+    public function __construct(private string $cache_dir, private Info $cache_info, private Lock $cache_lock)
     {
-        $this->cache_dir = $cache_dir;
-        $this->cache_info = $cache_info;
-        $this->cache_lock = $cache_lock;
     }
 
 

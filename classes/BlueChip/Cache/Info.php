@@ -33,18 +33,12 @@ class Info
      */
     private bool $is_dirty = false;
 
-    /**
-     * @var string Name of transient to store information as.
-     */
-    private string $transient_key;
-
 
     /**
      * @param string $transient_key Name of transient to store information as.
      */
-    public function __construct(string $transient_key)
+    public function __construct(private string $transient_key)
     {
-        $this->transient_key = $transient_key;
     }
 
 

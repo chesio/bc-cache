@@ -14,23 +14,14 @@ class Cli
      */
     private const UNKNOWN_VALUE = '???';
 
-    private Core $cache;
-
-    private ?Crawler $cache_crawler;
-
-    private ?Feeder $cache_feeder;
-
 
     /**
      * @param Core $cache
      * @param Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
      * @param Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
+    public function __construct(private Core $cache, private ?Crawler $cache_crawler, private ?Feeder $cache_feeder)
     {
-        $this->cache = $cache;
-        $this->cache_crawler = $cache_crawler;
-        $this->cache_feeder = $cache_feeder;
     }
 
 

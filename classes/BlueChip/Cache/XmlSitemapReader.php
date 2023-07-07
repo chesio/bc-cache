@@ -9,11 +9,6 @@ namespace BlueChip\Cache;
  */
 class XmlSitemapReader
 {
-    private string $robots_txt_url;
-
-    private string $default_sitemap_url;
-
-
     /**
      * @internal $robots_txt_url is parsed in order to determine URLs of available XML sitemaps.
      * If none are found, $default_sitemap_url is used as fallback.
@@ -21,10 +16,8 @@ class XmlSitemapReader
      * @param string $robots_txt_url
      * @param string $default_sitemap_url
      */
-    public function __construct(string $robots_txt_url, string $default_sitemap_url)
+    public function __construct(private string $robots_txt_url, private string $default_sitemap_url)
     {
-        $this->robots_txt_url = $robots_txt_url;
-        $this->default_sitemap_url = $default_sitemap_url;
     }
 
 
