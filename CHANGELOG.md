@@ -1,5 +1,9 @@
 # BC Cache Changelog
 
+## Upcoming version 3.3.0 (????-??-??)
+
+...
+
 ## Version 3.2.0 (2023-08-17)
 
 This release only changes required and supported versions of PHP and WordPress (see below).
