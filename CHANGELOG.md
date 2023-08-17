@@ -1,8 +1,12 @@
 # BC Cache Changelog
 
-## Upcoming version 3.2.0 (????-??-??)
+## Version 3.2.0 (2023-08-17)
 
-This release has been tested with WordPress 6.2 and 6.3.
+This release only changes required and supported versions of PHP and WordPress (see below).
+
+### Added
+
+* Plugin has been tested with WordPress 6.2 [#94](https://github.com/chesio/bc-cache/issues/94) and 6.3 [#95](https://github.com/chesio/bc-cache/issues/95).
 
 ### Changed
 
