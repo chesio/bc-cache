@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 class Core
@@ -26,36 +28,12 @@ class Core
 
 
     /**
-     * @var string Absolute path to root cache directory
-     */
-    private $cache_dir;
-
-    /**
-     * @var Info Cache information handler
-     */
-    private $cache_info;
-
-    /**
-     * @var Lock Flock wrapper for atomic cache reading/writing
-     */
-    private $cache_lock;
-
-    /**
-     * @var array|null Cached result of call to inspect() method
-     */
-    private $inspection = null;
-
-
-    /**
      * @param string $cache_dir Absolute path to root cache directory
      * @param Info $cache_info Cache information (age, size) handler
      * @param Lock $cache_lock Flock wrapper for atomic cache reading/writing
      */
-    public function __construct(string $cache_dir, Info $cache_info, Lock $cache_lock)
+    public function __construct(private string $cache_dir, private Info $cache_info, private Lock $cache_lock)
     {
-        $this->cache_dir = $cache_dir;
-        $this->cache_info = $cache_info;
-        $this->cache_lock = $cache_lock;
     }
 
 
@@ -70,8 +48,8 @@ class Core
             // If cache directory exists, make sure it is empty.
             try {
                 self::removeDirectory($this->cache_dir, true);
-            } catch (Exception $e) {
-                \trigger_error($e, E_USER_WARNING);
+            } catch (Exception $exception) {
+                \trigger_error((string) $exception, E_USER_WARNING);
                 return false;
             }
         } elseif (!wp_mkdir_p($this->cache_dir)) {
@@ -142,11 +120,11 @@ class Core
             $this->cache_info->reset();
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Clear information about cache size, it might be corrupted.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -174,9 +152,9 @@ class Core
         try {
             // Get directory for given URL.
             $path = $this->getPath($item->getUrl());
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         }
@@ -203,11 +181,11 @@ class Core
             $this->cache_info->decrementSize($bytes_deleted);
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // I/O error - clear information about cache size, it might be no longer valid.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -241,11 +219,11 @@ class Core
         try {
             // Make directory for given URL.
             $path = $this->makeDirectory($item->getUrl());
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Unlock cache for other operations.
             $this->cache_lock->release();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         }
@@ -264,11 +242,11 @@ class Core
             $this->cache_info->incrementSize($bytes_written);
             // :)
             return true;
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             // Clear information about cache size, it might be corrupted.
             $this->cache_info->unsetSize();
             // Trigger a warning and let WordPress handle it.
-            \trigger_error($e, E_USER_WARNING);
+            \trigger_error((string) $exception, E_USER_WARNING);
             // :(
             return false;
         } finally {
@@ -349,11 +327,6 @@ class Core
             return [];
         }
 
-        if ($this->inspection !== null) {
-            // Return memoized data.
-            return $this->inspection;
-        }
-
         // Wait for non-exclusive lock.
         if (!$this->cache_lock->acquire(false)) {
             // Non-exclusive lock could not be acquired.
@@ -371,9 +344,9 @@ class Core
         foreach ($cache_sizes as $id => $item) {
             try {
                 $url = $this->getUrl($item['path']);
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 // Trigger a warning and let WordPress handle it.
-                \trigger_error($e, E_USER_WARNING);
+                \trigger_error((string) $exception, E_USER_WARNING);
                 // Skip this item.
                 continue;
             }
@@ -386,12 +359,9 @@ class Core
                 $item['total_disk_size'],
                 $item['plain_size'],
                 $item['gzip_size'],
-                $item['htaccess_size']
+                $item['htaccess_size'],
             );
         }
-
-        // Memoize the state.
-        $this->inspection = $state;
 
         return $state;
     }
@@ -595,7 +565,7 @@ class Core
             $url_parts['host'],
             trailingslashit($url_path),
             // URL path ends with slash? Yes: treat as directory path. No: treat as file path.
-            \str_ends_with($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME
+            \str_ends_with($url_path, '/') ? self::DIRECTORY_PATH_DIRNAME : self::FILE_PATH_DIRNAME,
         ]);
 
         $normalized_path = self::normalizePath($path);
@@ -849,16 +819,12 @@ class Core
         // Sanitize headers.
         $headers = \array_filter(
             $headers,
-            function (string $header): bool {
-                return \str_contains($header, ':');
-            }
+            fn (string $header): bool => \str_contains($header, ':')
         );
 
         // Parse headers into name (type) and value parts.
         $headers = \array_map(
-            function (string $header): array {
-                return \array_map('trim', \explode(':', $header, 2));
-            },
+            fn (string $header): array => \array_map('trim', \explode(':', $header, 2)),
             $headers
         );
 

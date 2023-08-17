@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 class WarmUpQueue extends Serializable
@@ -12,12 +14,12 @@ class WarmUpQueue extends Serializable
     /**
      * @var Item[] List of items that have been processed already
      */
-    private $processed = [];
+    private array $processed = [];
 
     /**
      * @var Item[] LIFO queue with items to be processed yet
      */
-    private $waiting = [];
+    private array $waiting = [];
 
 
     /**
@@ -91,9 +93,6 @@ class WarmUpQueue extends Serializable
     }
 
 
-    /**
-     * @return array
-     */
     public function getStats(): array
     {
         return [

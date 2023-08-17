@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 /**
@@ -14,32 +16,14 @@ class Cli
      */
     private const UNKNOWN_VALUE = '???';
 
-    /**
-     * @var Core
-     */
-    private $cache;
-
-    /**
-     * @var Crawler|null
-     */
-    private $cache_crawler;
-
-    /**
-     * @var Feeder|null
-     */
-    private $cache_feeder;
-
 
     /**
      * @param Core $cache
      * @param Crawler|null $cache_crawler Null value signals that cache warm up is disabled.
      * @param Feeder|null $cache_feeder Null value signals that cache warm up is disabled.
      */
-    public function __construct(Core $cache, ?Crawler $cache_crawler, ?Feeder $cache_feeder)
+    public function __construct(private Core $cache, private ?Crawler $cache_crawler, private ?Feeder $cache_feeder)
     {
-        $this->cache = $cache;
-        $this->cache_crawler = $cache_crawler;
-        $this->cache_feeder = $cache_feeder;
     }
 
 
@@ -59,12 +43,10 @@ class Cli
     {
         if (empty($post_id = \intval($args[0]))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
-            return;
         }
 
         if (empty($url = get_permalink($post_id))) {
             \WP_CLI::error(\sprintf('No URL could be generated for post with ID "%d"', $post_id));
-            return;
         }
 
         // Use helper method to actually delete related cache entries.
@@ -126,7 +108,6 @@ class Cli
     {
         if (empty($url = \filter_var($args[0], FILTER_VALIDATE_URL))) {
             \WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));
-            return;
         }
 
         // Use helper method to actually remove related cache entries.
@@ -220,10 +201,12 @@ class Cli
             $columns_to_display = [];
             foreach ($args as $arg) {
                 if (\array_search($arg, $available_columns, true) === false) {
-                    \WP_CLI::error(sprintf('Unknown column key given: "%s". Exiting ...', $arg));
+                    \WP_CLI::error(\sprintf('Unknown column key given: "%s". Exiting ...', $arg));
                 }
 
-                $columns_to_display[] = $arg;
+                if (!\in_array($arg, $columns_to_display, true)) {
+                    $columns_to_display[] = $arg;
+                }
             }
         }
 
@@ -234,7 +217,7 @@ class Cli
         // Validate sort by value.
         if ($sort_by) {
             if (\array_search($sort_by, $available_columns, true) === false) {
-                \WP_CLI::error(sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
+                \WP_CLI::error(\sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
             }
         }
 
@@ -245,7 +228,9 @@ class Cli
             $columns_to_display = $available_columns;
             // ...but unset request variant if there is only single (default) variant configured.
             if (\count($request_variants) === 1) {
-                $columns_to_display = \array_diff($columns_to_display, ['request_variant']);
+                // Use array values, so $columns_to_display have subsequent indices.
+                // This seems to be necessary to have properly formatted table header.
+                $columns_to_display = \array_values(\array_diff($columns_to_display, ['request_variant']));
             }
         }
 
@@ -256,7 +241,7 @@ class Cli
         }
 
         // Prepare items.
-        $items = array_map(
+        $items = \array_map(
             function (ListTableItem $item) use ($plain, $request_variants): array {
                 $request_variant = $item->getRequestVariant();
                 $timestamp = $item->getTimestamp();
@@ -275,7 +260,7 @@ class Cli
 
         // Sort items?
         if ($sort_by) {
-            usort(
+            \usort(
                 $items,
                 function (array $a, array $b) use ($sort_by): int {
                     if ($a[$sort_by] < $b[$sort_by]) {

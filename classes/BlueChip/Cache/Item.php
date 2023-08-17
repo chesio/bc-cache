@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 /**
@@ -17,21 +19,9 @@ class Item extends Serializable
      */
     private const SEPARATOR = '#';
 
-    /**
-     * @var string
-     */
-    protected $url;
 
-    /**
-     * @var string
-     */
-    protected $request_variant;
-
-
-    public function __construct(string $url, string $request_variant)
+    public function __construct(protected string $url, protected string $request_variant)
     {
-        $this->url = $url;
-        $this->request_variant = $request_variant;
     }
 
 

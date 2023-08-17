@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 /**
@@ -16,25 +18,13 @@ class Feeder
      */
     private const TRANSIENT_CRAWLER_QUEUE = 'bc-cache/transient:crawler-queue';
 
-    /**
-     * @var Core
-     */
-    private $cache;
-
-    /**
-     * @var Lock
-     */
-    private $lock;
-
 
     /**
      * @param Core $cache
      * @param Lock $lock Lock to use to ensure atomicity of operations.
      */
-    public function __construct(Core $cache, Lock $lock)
+    public function __construct(private Core $cache, private Lock $lock)
     {
-        $this->cache = $cache;
-        $this->lock = $lock;
     }
 
 
@@ -248,9 +238,9 @@ class Feeder
 
             try {
                 $urls = $xml_sitemap_reader->getUrls();
-            } catch (Exception $e) {
+            } catch (Exception $exception) {
                 // Trigger a warning and let WordPress handle it.
-                \trigger_error($e, E_USER_WARNING);
+                \trigger_error((string) $exception, E_USER_WARNING);
                 // Sorry, no URLs available.
                 $urls = [];
             }

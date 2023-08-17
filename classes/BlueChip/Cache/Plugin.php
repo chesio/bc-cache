@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 class Plugin
@@ -104,45 +106,33 @@ class Plugin
     ];
 
 
-    /**
-     * @var string
-     */
-    private $plugin_filename;
+    private string $plugin_filename;
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Info
-     */
-    private $cache_info;
+    private Info $cache_info;
 
-    /**
-     * @var Lock
-     */
-    private $cache_lock;
+    private Lock $cache_lock;
 
     /**
      * @var Lock|null Null if cache warm up is disabled.
      */
-    private $feeder_lock;
+    private ?Lock $feeder_lock;
 
     /**
      * @var Crawler|null Null if cache warm up is disabled.
      */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
     /**
      * @var Feeder|null Null if cache warm up is disabled.
      */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
     /**
      * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
      */
-    private $cache_is_flushed = null;
+    private ?bool $cache_is_flushed = null;
 
 
     /**
@@ -296,9 +286,8 @@ class Plugin
             }
         } else {
             // Add action to catch output buffer.
-            // Use `send_headers` action from WordPress 6.1 on - see:
             // https://make.wordpress.org/core/2022/10/10/moving-the-send_headers-action-to-later-in-the-load/
-            add_action(is_wp_version_compatible('6.1') ? 'send_headers' : 'template_redirect', [$this, 'startOutputBuffering'], 0, 0);
+            add_action('send_headers', [$this, 'startOutputBuffering'], 0, 0);
         }
 
         if ($this->cache_crawler) {
@@ -315,9 +304,6 @@ class Plugin
      * Register cache flush hooks for public post types (including built-in ones).
      *
      * @action https://developer.wordpress.org/reference/hooks/registered_post_type/
-     *
-     * @param string $post_type
-     * @param \WP_Post_Type $post_type_object
      */
     public function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
     {
@@ -366,10 +352,6 @@ class Plugin
 
     /**
      * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
-     *
-     * @param string $data
-     *
-     * @return string
      */
     public function alterRobotsTxt(string $data): string
     {
@@ -498,9 +480,7 @@ class Plugin
      */
     public function flushCacheOnce(): void
     {
-        if ($this->cache_is_flushed === null) {
-            $this->cache_is_flushed = $this->cache->flush();
-        }
+        $this->cache_is_flushed ??= $this->cache->flush();
     }
 
 
@@ -538,11 +518,6 @@ class Plugin
 
     /**
      * Push $buffer to cache and return it on output.
-     *
-     * @param string $buffer
-     * @param int $phase
-     *
-     * @return string
      */
     public function handleOutputBuffer(string $buffer, int $phase): string
     {
@@ -624,11 +599,6 @@ class Plugin
 
     /**
      * @action https://developer.wordpress.org/reference/hooks/set_logged_in_cookie/
-     *
-     * @param string $logged_in_cookie
-     * @param int $expire
-     * @param int $expiration
-     * @param int $user_id
      */
     public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
     {
@@ -665,9 +635,6 @@ class Plugin
     }
 
 
-    /**
-     * @param bool $tear_down
-     */
     public function warmUp(bool $tear_down): void
     {
         // If not deactivating plugin instance, reset feeder and (re)activate crawler.

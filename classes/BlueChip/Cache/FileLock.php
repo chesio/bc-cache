@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 /**
@@ -12,23 +14,16 @@ namespace BlueChip\Cache;
 class FileLock implements Lock
 {
     /**
-     * @var string Absolute path to lock file.
-     */
-    private $file_name;
-
-    /**
      * @var resource|bool|null File handle if lock file has been opened successfully, false in case of failure, null if file has not been opened yet.
      */
-    private $file_handle;
+    private mixed $file_handle = null;
 
 
     /**
-     * @param string $file_name Lock file name (must be absolute path).
+     * @param string $file_name Absolute path to lock file.
      */
-    public function __construct(string $file_name)
+    public function __construct(private string $file_name)
     {
-        $this->file_name = $file_name;
-        $this->file_handle = null;
     }
 
 

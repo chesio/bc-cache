@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 /**
@@ -42,45 +44,36 @@ class ListTable extends \WP_List_Table
      */
     private const UNKNOWN_VALUE = '--';
 
-    /**
-     * @var Core
-     */
-    private $cache;
+    private Core $cache;
 
-    /**
-     * @var Crawler|null
-     */
-    private $cache_crawler;
+    private ?Crawler $cache_crawler;
 
-    /**
-     * @var Feeder|null
-     */
-    private $cache_feeder;
+    private ?Feeder $cache_feeder;
 
     /**
      * @var string[] List of known request variants: id => label
      */
-    private $request_variants = [];
+    private array $request_variants = [];
 
     /**
      * @var string Sorting direction (asc or desc)
      */
-    private $order = 'asc';
+    private string $order = 'asc';
 
     /**
      * @var string Sorting column
      */
-    private $order_by = '';
+    private string $order_by = '';
 
     /**
      * @var string Base URL of admin page (without any status-like query string parameters)
      */
-    private $url;
+    private string $url;
 
     /**
      * @var int|null Total size of all files (entries) reported in the list.
      */
-    private $cache_files_size = null;
+    private ?int $cache_files_size = null;
 
 
     /**
@@ -146,10 +139,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "ID" column (including row actions).
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_entry_id(ListTableItem $item): string // phpcs:ignore
     {
@@ -162,10 +151,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Request variant" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_request_variant(ListTableItem $item): string // phpcs:ignore
     {
@@ -175,10 +160,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Size" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_size(ListTableItem $item): string // phpcs:ignore
     {
@@ -193,10 +174,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "Created" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_timestamp(ListTableItem $item): string // phpcs:ignore
     {
@@ -211,10 +188,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return content for "URL" column.
-     *
-     * @param ListTableItem $item
-     *
-     * @return string
      */
     public function column_url(ListTableItem $item): string // phpcs:ignore
     {
@@ -304,7 +277,7 @@ class ListTable extends \WP_List_Table
             // Also calculate total cache files size.
             $this->cache_files_size = \array_sum(
                 \array_map(
-                    function (ListTableItem $item): int { return $item->getTotalDiskSize(); }, // phpcs:ignore
+                    fn (ListTableItem $item): int => $item->getTotalDiskSize(),
                     $state
                 )
             );
@@ -326,8 +299,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Process any actions like deleting etc.
-     *
-     * @return void
      */
     public function processActions(): void
     {
@@ -463,11 +434,6 @@ class ListTable extends \WP_List_Table
     }
 
 
-    /**
-     * @param string $order_by
-     *
-     * @return callable
-     */
     private static function getAscSortingMethod(string $order_by): callable
     {
         return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
@@ -482,11 +448,6 @@ class ListTable extends \WP_List_Table
     }
 
 
-    /**
-     * @param string $order_by
-     *
-     * @return callable
-     */
     private static function getDescSortingMethod(string $order_by): callable
     {
         return function (ListTableItem $a, ListTableItem $b) use ($order_by): int {
@@ -526,14 +487,6 @@ class ListTable extends \WP_List_Table
 
     /**
      * Return HTML for specified row action link.
-     *
-     * @param string $action
-     * @param string $url
-     * @param string $request_variant
-     * @param string $class
-     * @param string $label
-     *
-     * @return string
      */
     private function renderRowAction(string $action, string $url, string $request_variant, string $class, string $label): string
     {

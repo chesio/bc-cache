@@ -1,6 +1,22 @@
 # BC Cache Changelog
 
-## Upcoming version 3.1.0 (2023-01-04)
+## Version 3.2.0 (2023-08-17)
+
+This release only changes required and supported versions of PHP and WordPress (see below).
+
+### Added
+
+* Plugin has been tested with WordPress 6.2 [#94](https://github.com/chesio/bc-cache/issues/94) and 6.3 [#95](https://github.com/chesio/bc-cache/issues/95).
+
+### Changed
+
+* WordPress 6.1 or newer is now required [#96](https://github.com/chesio/bc-cache/issues/96).
+
+### Removed
+
+* Plugin no longer supports PHP 7 - PHP 8 is required now [#97](https://github.com/chesio/bc-cache/issues/97).
+
+## Version 3.1.0 (2023-01-04)
 
 ### Changed
 

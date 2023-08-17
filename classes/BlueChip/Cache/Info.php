@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlueChip\Cache;
 
 class Info
@@ -26,25 +28,19 @@ class Info
     /**
      * @var array Cache data (lazy loaded)
      */
-    private $data = [];
+    private array $data = [];
 
     /**
      * @var bool True if cache info has been changed via any of set*() methods, false otherwise.
      */
-    private $is_dirty = false;
-
-    /**
-     * @var string Name of transient to store information as.
-     */
-    private $transient_key;
+    private bool $is_dirty = false;
 
 
     /**
      * @param string $transient_key Name of transient to store information as.
      */
-    public function __construct(string $transient_key)
+    public function __construct(private string $transient_key)
     {
-        $this->transient_key = $transient_key;
     }
 
 
