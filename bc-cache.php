@@ -8,7 +8,7 @@
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
  * Requires PHP: 8.0
- * Requires WP: 6.1
+ * Requires at least: 6.1
  * Tested up to: 6.3
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
