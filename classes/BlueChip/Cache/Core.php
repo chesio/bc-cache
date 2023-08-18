@@ -555,6 +555,14 @@ class Core
     {
         $url_parts = \parse_url($url);
 
+        if (!\is_array($url_parts)) {
+            throw new Exception("Cannot parse URL {$url}");
+        }
+
+        if (!\array_key_exists('scheme', $url_parts) || !\array_key_exists('host', $url_parts)) {
+            throw new Exception("URL {$url} is missing scheme or host part!");
+        }
+
         $url_path = $url_parts['path'] ?? '';
 
         $path = \implode([

@@ -10,3 +10,6 @@ parameters:
     scanFiles:
         - tests/static-analysis/stubs/php-cli-tools.php
         - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+    ignoreErrors:
+        # We are fine with \WP_CLI\NoOp doing nothing.
+        - '#^Call to an undefined method cli\\progress\\Bar\|WP_CLI\\NoOp::#'

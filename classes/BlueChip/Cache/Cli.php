@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BlueChip\Cache;
 
+use WP_CLI;
+
 /**
  * Delete items from, flush or get size of BC Cache cache
  *
@@ -45,11 +47,11 @@ class Cli
     public function delete(array $args, array $assoc_args): void
     {
         if (empty($post_id = \intval($args[0]))) {
-            \WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
+            WP_CLI::error(\sprintf('"%s" is not a valid post ID!', $args[0]));
         }
 
         if (empty($url = get_permalink($post_id))) {
-            \WP_CLI::error(\sprintf('No URL could be generated for post with ID "%d"', $post_id));
+            WP_CLI::error(\sprintf('No URL could be generated for post with ID "%d"', $post_id));
         }
 
         // Use helper method to actually delete related cache entries.
@@ -65,12 +67,12 @@ class Cli
      */
     public function flush(array $args, array $assoc_args): void
     {
-        \WP_CLI::line('Flushing BC Cache cache ...');
+        WP_CLI::line('Flushing BC Cache cache ...');
 
         if ($this->cache->flush()) {
-            \WP_CLI::success('The cache has been flushed!');
+            WP_CLI::success('The cache has been flushed!');
         } else {
-            \WP_CLI::error('Failed to flush the cache!');
+            WP_CLI::error('Failed to flush the cache!');
         }
     }
 
@@ -94,9 +96,9 @@ class Cli
         $human_readable = $assoc_args['human-readable'] ?? false;
 
         if (\is_int($size_in_bytes = $this->cache->getSize(true))) {
-            \WP_CLI::line($human_readable ? size_format($size_in_bytes) : $size_in_bytes);
+            WP_CLI::line((string) ($human_readable ? size_format($size_in_bytes) : $size_in_bytes));
         } else {
-            \WP_CLI::error('Failed to determine cache size!');
+            WP_CLI::error('Failed to determine cache size!');
         }
     }
 
@@ -119,7 +121,7 @@ class Cli
     public function remove(array $args, array $assoc_args): void
     {
         if (empty($url = \filter_var($args[0], FILTER_VALIDATE_URL))) {
-            \WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));
+            WP_CLI::error(\sprintf('"%s" is not a valid URL!', $args[0]));
         }
 
         // Use helper method to actually remove related cache entries.
@@ -148,13 +150,13 @@ class Cli
                     }
                 }
 
-                \WP_CLI::success(
+                WP_CLI::success(
                     $post_id === null
                     ? \sprintf('Cache data for URL "%s" and request variant "%s" has been deleted!', $url, $request_variant_name)
                     : \sprintf('Cache data for post with ID %d and request variant "%s" has been deleted!', $post_id, $request_variant_name)
                 );
             } else {
-                \WP_CLI::error(
+                WP_CLI::error(
                     $post_id === null
                     ? \sprintf('Failed to delete cache data for URL "%s" and request variant "%s"!', $url, $request_variant_name)
                     : \sprintf('Failed to delete cache data for post with ID %d and request variant "%s"!', $post_id, $request_variant_name)
@@ -216,7 +218,7 @@ class Cli
             $columns_to_display = [];
             foreach ($args as $arg) {
                 if (\array_search($arg, $available_columns, true) === false) {
-                    \WP_CLI::error(\sprintf('Unknown column key given: "%s". Exiting ...', $arg));
+                    WP_CLI::error(\sprintf('Unknown column key given: "%s". Exiting ...', $arg));
                 }
 
                 if (!\in_array($arg, $columns_to_display, true)) {
@@ -232,7 +234,7 @@ class Cli
         // Validate sort by value.
         if ($sort_by) {
             if (\array_search($sort_by, $available_columns, true) === false) {
-                \WP_CLI::error(\sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
+                WP_CLI::error(\sprintf('Unknown column key given for --sort-by argument: "%s". Exiting ...', $sort_by));
             }
         }
 
@@ -252,7 +254,7 @@ class Cli
         $cache_items = $this->cache->inspect();
 
         if ($cache_items === null) {
-            \WP_CLI::error('Cache items could not be fetched due to I/O error. Exiting ...');
+            WP_CLI::error('Cache items could not be fetched due to I/O error. Exiting ...');
         }
 
         // Prepare items.
@@ -289,7 +291,7 @@ class Cli
             );
         }
 
-        \WP_CLI\Utils\format_items($format, $items, $columns_to_display);
+        WP_CLI\Utils\format_items($format, $items, $columns_to_display);
     }
 
 
@@ -304,24 +306,24 @@ class Cli
     public function warmUp(array $args, array $assoc_args): void
     {
         if (($this->cache_crawler === null) || ($this->cache_feeder === null)) {
-            \WP_CLI::error('Cache warm up is disabled. Exiting ...');
+            WP_CLI::error('Cache warm up is disabled. Exiting ...');
         }
 
         // Synchronize state of warm up queue with state of cache to get precise warm up queue size.
         if (!$this->cache_feeder->synchronize()) {
-            \WP_CLI::error('Synchronizing state of warm up queue with state of cache failed. Exiting ...');
+            WP_CLI::error('Synchronizing state of warm up queue with state of cache failed. Exiting ...');
         }
 
-        \WP_CLI::line('Warming up BC Cache cache ...');
+        WP_CLI::line('Warming up BC Cache cache ...');
 
         $warm_up_queue_size = $this->cache_feeder->getSize();
 
         if ($warm_up_queue_size === 0) {
-            \WP_CLI::success('Warm up queue is empty.');
+            WP_CLI::success('Warm up queue is empty.');
             return; // !
         }
 
-        $progress = \WP_CLI\Utils\make_progress_bar('Progress', $warm_up_queue_size);
+        $progress = WP_CLI\Utils\make_progress_bar('Progress', $warm_up_queue_size);
 
         while ($this->cache_crawler->step() !== null) {
             $progress->tick();
@@ -329,6 +331,6 @@ class Cli
 
         $progress->finish();
 
-        \WP_CLI::success('Cache warm up finished.');
+        WP_CLI::success('Cache warm up finished.');
     }
 }

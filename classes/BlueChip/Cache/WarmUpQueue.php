@@ -133,7 +133,7 @@ class WarmUpQueue extends Serializable
         // Remove item from waiting items list if present.
         $index = \array_search($item, $this->waiting, false);
         if ($index !== false) {
-            \array_splice($this->waiting, $index, 1);
+            \array_splice($this->waiting, (int) $index, 1); // PHPStan fails to recognize we are searching int-indexed array.
             $dirty = true; // !
         }
 
@@ -162,7 +162,7 @@ class WarmUpQueue extends Serializable
         // Remove item from processed items list if present.
         $index = \array_search($item, $this->processed, false);
         if ($index !== false) {
-            \array_splice($this->processed, $index, 1);
+            \array_splice($this->processed, (int) $index, 1); // PHPStan fails to recognize we are searching int-indexed array.
             $dirty = true; // !
         }
 

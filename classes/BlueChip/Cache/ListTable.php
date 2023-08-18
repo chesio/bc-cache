@@ -167,9 +167,9 @@ class ListTable extends WP_List_Table
     {
         return \sprintf(
             '%s | %s | %s',
-            esc_html(size_format($item->getTotalSize())),
-            esc_html(size_format($item->getPlainFileSize())),
-            esc_html(size_format($item->getGzipFileSize()))
+            esc_html(size_format($item->getTotalSize()) ?: self::UNKNOWN_VALUE),
+            esc_html(size_format($item->getPlainFileSize()) ?: self::UNKNOWN_VALUE),
+            esc_html(size_format($item->getGzipFileSize()) ?: self::UNKNOWN_VALUE)
         );
     }
 
@@ -317,12 +317,12 @@ class ListTable extends WP_List_Table
             }
 
             $request_variant = \filter_input(INPUT_GET, 'request_variant');
-            if (!isset($this->request_variants[$request_variant])) {
+            if (!\is_string($request_variant) || !\array_key_exists($request_variant, $this->request_variants)) {
                 return;
             }
 
             $nonce = \filter_input(INPUT_GET, self::NONCE_NAME);
-            if (!wp_verify_nonce($nonce, \sprintf('%s:%s', $action, $url))) {
+            if (!\is_string($nonce) || !wp_verify_nonce($nonce, \sprintf('%s:%s', $action, $url))) {
                 // Nonce check failed
                 return;
             }
@@ -359,7 +359,7 @@ class ListTable extends WP_List_Table
             );
 
             // Get URLs.
-            $urls = $sanitized['urls'];
+            $urls = $sanitized['urls'] ?? [];
 
             // Number of entries really deleted.
             $items_deleted = 0;
