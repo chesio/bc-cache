@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace BlueChip\Cache;
 
+use WP_List_Table;
+
 /**
  * @internal \WP_List_Table is not part of an official API, so it can change anytime.
  */
-class ListTable extends \WP_List_Table
+class ListTable extends WP_List_Table
 {
     /**
      * @var string Name of delete action
@@ -247,6 +249,8 @@ class ListTable extends \WP_List_Table
 
     /**
      * Output "no items" message.
+     *
+     * @return void
      */
     public function no_items() // phpcs:ignore
     {
@@ -256,6 +260,8 @@ class ListTable extends \WP_List_Table
 
     /**
      * Prepare items for table.
+     *
+     * @return void
      */
     public function prepare_items() // phpcs:ignore
     {

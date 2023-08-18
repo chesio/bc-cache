@@ -12,7 +12,7 @@ class Crawler
     private const CRON_JOB_HOOK = 'bc-cache/run-warm-up-crawler';
 
     /**
-     * @var array Default arguments for HTTP request made as part of cache warm up.
+     * @var array<string,int> Default arguments for HTTP request made as part of cache warm up.
      */
     private const DEFAULT_WARM_UP_REQUEST_ARGS = [
         'redirection' => 0, // Do not follow any redirects, they are not going to get cached anyway.

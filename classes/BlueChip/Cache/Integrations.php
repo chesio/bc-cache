@@ -9,7 +9,7 @@ namespace BlueChip\Cache;
  */
 abstract class Integrations
 {
-    public static function initialize()
+    public static function initialize(): void
     {
         // Integration with Autoptimize
         if (\defined('AUTOPTIMIZE_PLUGIN_VERSION')) {
@@ -24,9 +24,9 @@ abstract class Integrations
     /**
      * Add Autoptimize purge action to list of actions that trigger cache flush.
      *
-     * @param array $hooks
+     * @param array<string,int> $hooks
      *
-     * @return array
+     * @return array<string,int>
      */
     public static function flushOnAutoptimizePurge(array $hooks): array
     {

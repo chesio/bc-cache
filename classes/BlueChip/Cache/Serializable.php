@@ -21,6 +21,9 @@ abstract class Serializable
         return ['db_version' => static::DB_VERSION, 'data' => $this->deflate()];
     }
 
+    /**
+     * @param array{data:array<string,mixed>,db_version:int} $data
+     */
     public function __unserialize(array $data): void
     {
         if ($data['db_version'] === static::DB_VERSION) {
@@ -28,7 +31,13 @@ abstract class Serializable
         }
     }
 
+    /**
+     * @return array<string,mixed>
+     */
     abstract protected function deflate(): array;
 
-    abstract protected function inflate(array $data);
+    /**
+     * @param array<string,mixed> $data
+     */
+    abstract protected function inflate(array $data): void;
 }

@@ -104,7 +104,7 @@ class Feeder
 
 
     /**
-     * @return array Warm up queue statistics as: {'processed' => int, 'waiting' => int, 'total' => int}
+     * @return array{processed:int,waiting:int,total:int} Warm up queue statistics
      */
     public function getStats(): array
     {

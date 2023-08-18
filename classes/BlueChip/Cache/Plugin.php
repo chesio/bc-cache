@@ -47,7 +47,7 @@ class Plugin
     private const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
 
     /**
-     * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
+     * @var array<string,int> List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     private const FLUSH_CACHE_HOOKS = [
         // Core code changes
@@ -322,10 +322,10 @@ class Plugin
      * @action https://developer.wordpress.org/reference/hooks/registered_taxonomy/
      *
      * @param string $taxonomy
-     * @param array|string $object_type Object type or array of object types.
-     * @param array $taxonomy_object Public properties of \WP_Taxonomy class as array.
+     * @param array<int,string>|string $object_type Object type or array of object types.
+     * @param array<string,mixed> $taxonomy_object Public properties of \WP_Taxonomy class as array.
      */
-    public function registerTaxonomy(string $taxonomy, $object_type, array $taxonomy_object): void
+    public function registerTaxonomy(string $taxonomy, array|string $object_type, array $taxonomy_object): void
     {
         if (apply_filters(Hooks::FILTER_IS_PUBLIC_TAXONOMY, $taxonomy_object['public'], $taxonomy)) {
             // Flush cache when a term from public taxonomy is created, deleted or edited.

@@ -38,6 +38,9 @@ class Cli
      * ## EXAMPLES
      *
      *  wp bc-cache delete 123
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function delete(array $args, array $assoc_args): void
     {
@@ -56,6 +59,9 @@ class Cli
 
     /**
      * Flush entire cache.
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function flush(array $args, array $assoc_args): void
     {
@@ -78,6 +84,9 @@ class Cli
      * : Print size information like 1K, 2MB, 3GB etc.
      *
      * @subcommand size
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function getSize(array $args, array $assoc_args): void
     {
@@ -103,6 +112,9 @@ class Cli
      * ## EXAMPLES
      *
      *  wp bc-cache remove http://www.example.com/some/thing/
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function remove(array $args, array $assoc_args): void
     {
@@ -185,6 +197,9 @@ class Cli
      * ## EXAMPLES
      *
      *  wp bc-cache list url request-variant size
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function list(array $args, array $assoc_args): void
     {
@@ -282,6 +297,9 @@ class Cli
      * Warm up cache.
      *
      * @subcommand warm-up
+     *
+     * @param string[] $args
+     * @param array<string,string> $assoc_args
      */
     public function warmUp(array $args, array $assoc_args): void
     {

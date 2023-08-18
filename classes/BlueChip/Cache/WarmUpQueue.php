@@ -33,6 +33,8 @@ class WarmUpQueue extends Serializable
 
     /**
      * @internal Serialization helper.
+     *
+     * @return array{processed:Item[],waiting:Item[]}
      */
     protected function deflate(): array
     {
@@ -41,6 +43,8 @@ class WarmUpQueue extends Serializable
 
 
     /**
+     * @param array{processed:Item[],waiting:Item[]} $data
+     *
      * @internal Serialization helper.
      */
     public function inflate(array $data): void
@@ -93,6 +97,9 @@ class WarmUpQueue extends Serializable
     }
 
 
+    /**
+     * @return array{processed:int,waiting:int,total:int}
+     */
     public function getStats(): array
     {
         return [
