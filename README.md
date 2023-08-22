@@ -356,6 +356,17 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
 }, 10, 3);
 ```
 
+## WP-CLI commands
+
+You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up, get size information or even list all cache entries. BC Cache registers `bc-cache` command with following subcommands:
+
+* `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
+* `remove <url>` - deletes cache data (all request variants) of given URL
+* `flush` - flushes entire cache
+* `warm-up` - runs cache warm up
+* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
+* `list [<column>...] [--format=<format>] [--plain] [--sort-by=<column>]` - list cache entries, optionally in specified format or sorted
+
 ## Integration with 3rd-party plugins and tools
 
 ### Autoptimize
@@ -374,17 +385,6 @@ RewriteCond %{REQUEST_URI} (\.)(7z|...|git|gz|hg|...|zlib)$ [NC,OR]
 ```
 
 If you see 403 errors instead of cached pages, you have to either remove the `|gz` part from the `RewriteCond` line above or remove the line completely.
-
-## WP-CLI integration
-
-You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up, get size information or even list all cache entries. BC Cache registers `bc-cache` command with following subcommands:
-
-* `delete <post-id>` - deletes cache data (all request variants) of post/page with given ID
-* `remove <url>` - deletes cache data (all request variants) of given URL
-* `flush` - flushes entire cache
-* `warm-up` - runs cache warm up
-* `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
-* `list [<column>...] [--format=<format>] [--plain] [--sort-by=<column>]` - list cache entries, optionally in specified format or sorted
 
 ## Credits
 
