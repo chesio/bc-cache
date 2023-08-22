@@ -18,6 +18,22 @@ abstract class Integrations
             // Do not warn about missing page caching plugin ;-)
             add_filter('autoptimize_filter_main_show_pagecache_notice', '__return_false', 10, 0);
         }
+
+        // Integration with Cookie Notice
+        if (\class_exists('Cookie_Notice')) {
+            add_action('updated_option', [self::class, 'checkUpdatedOption'], 10, 1);
+        }
+    }
+
+
+    /**
+     * Flush cache when Cookie Notice options change.
+     */
+    public static function checkUpdatedOption(string $option): void
+    {
+        if ($option === 'cookie_notice_options') {
+            do_action(Hooks::ACTION_FLUSH_CACHE);
+        }
     }
 
 

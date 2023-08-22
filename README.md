@@ -356,11 +356,17 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
 }, 10, 3);
 ```
 
-## Autoptimize integration
+## Integration with 3rd-party plugins and tools
+
+### Autoptimize
 
 [Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
 
-## 7G firewall integration
+### Cookie Notice
+
+[Cookie Notice](https://wordpress.org/plugins/cookie-notice/) is a popular plugin to display a simple, customizable website banner helpful achieving compliance with certain cookie consent requirements. BC Cache automatically flushes its cache whenever Cookie Notice banner configuration is changed.
+
+### 7G firewall
 
 If you happen to have [7G firewall](https://perishablepress.com/7g-firewall/) by Jeff Starr installed on your website, you may have to alter the rule in `7G:[REQUEST URI]` section that prevents access to `.gz` files (note that the code snippet below has been shortened with `...` for better readability):
 ```.apacheconf

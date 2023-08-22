@@ -2,7 +2,9 @@
 
 ## Upcoming version 3.3.0 (????-??-??)
 
-...
+### Added
+
+* Cache is flushed automatically when [Cookie Notice](https://wordpress.org/plugins/cookie-notice/) plugin settings change [#99](https://github.com/chesio/bc-cache/issues/99).
 
 ## Version 3.2.0 (2023-08-17)
 
