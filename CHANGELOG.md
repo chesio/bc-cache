@@ -5,6 +5,7 @@
 ### Added
 
 * Cache is flushed automatically when [Cookie Notice](https://wordpress.org/plugins/cookie-notice/) plugin settings change [#99](https://github.com/chesio/bc-cache/issues/99).
+* Plugin has been tested with WordPress 6.4 [#101](https://github.com/chesio/bc-cache/issues/101)
 
 ## Version 3.2.0 (2023-08-17)
 
