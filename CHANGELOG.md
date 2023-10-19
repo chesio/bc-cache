@@ -2,9 +2,12 @@
 
 ## Upcoming version 3.3.0 (????-??-??)
 
+This release has been tested with upcoming PHP 8.3 and WordPress 6.4. This release drops official support for WordPress 6.1 and older.
+
 ### Added
 
 * Cache is flushed automatically when [Cookie Notice](https://wordpress.org/plugins/cookie-notice/) plugin settings change [#99](https://github.com/chesio/bc-cache/issues/99).
+* Plugin has been tested with PHP 8.3 [#100](https://github.com/chesio/bc-cache/issues/100)
 * Plugin has been tested with WordPress 6.4 [#101](https://github.com/chesio/bc-cache/issues/101)
 
 ### Changed
