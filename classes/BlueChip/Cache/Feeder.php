@@ -159,7 +159,7 @@ class Feeder
 
         $dirty = false; // Has queue state changed?
 
-        foreach ($this->cache->inspect() as $list_table_item) {
+        foreach ($this->cache->inspect() ?? [] as $list_table_item) {
             $dirty = $queue->pull($list_table_item->getItem()) || $dirty;
         }
 
