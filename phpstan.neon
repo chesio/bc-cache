@@ -1,7 +1,7 @@
 includes:
     - vendor/szepeviktor/phpstan-wordpress/extension.neon
 parameters:
-    level: 6
+    level: 7
     paths:
         - classes/
     bootstrapFiles:
@@ -10,3 +10,6 @@ parameters:
     scanFiles:
         - tests/static-analysis/stubs/php-cli-tools.php
         - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+    ignoreErrors:
+        # The wp-cli/php-cli-tools package is not available during static analysis.
+        - '#^Call to an undefined method cli\\progress\\Bar\|WP_CLI\\NoOp::(tick|finish)\(\)\.#'
