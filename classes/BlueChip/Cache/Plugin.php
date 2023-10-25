@@ -114,20 +114,17 @@ class Plugin
 
     private Lock $cache_lock;
 
-    /**
-     * @var Lock|null Null if cache warm up is disabled.
-     */
-    private ?Lock $feeder_lock;
+    private Lock $feeder_lock;
 
     /**
-     * @var Crawler|null Null if cache warm up is disabled.
+     * @var Crawler|null Initialized only if cache warm up is enabled.
      */
-    private ?Crawler $cache_crawler;
+    private ?Crawler $cache_crawler = null;
 
     /**
-     * @var Feeder|null Null if cache warm up is disabled.
+     * @var Feeder|null Initialized only if cache warm up is enabled.
      */
-    private ?Feeder $cache_feeder;
+    private ?Feeder $cache_feeder = null;
 
     /**
      * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
@@ -156,9 +153,7 @@ class Plugin
         }
 
         // Note: feeder lock has to be set up before cache feeder is set up.
-        if ($this->feeder_lock) {
-            $this->feeder_lock->setUp();
-        }
+        $this->feeder_lock->setUp();
         if ($this->cache_feeder) {
             $this->cache_feeder->setUp();
         }
@@ -183,9 +178,7 @@ class Plugin
         if ($this->cache_feeder) {
             $this->cache_feeder->tearDown();
         }
-        if ($this->feeder_lock) {
-            $this->feeder_lock->tearDown();
-        }
+        $this->feeder_lock->tearDown();
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
@@ -203,15 +196,17 @@ class Plugin
 
         // Initialize locks as either proper file locks or dummy locks.
         $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_FILE_LOCK_FILENAME) : new DummyLock();
-        $this->feeder_lock = $warm_up_enabled
-            ? ($file_locking_enabled ? new FileLock(self::FEEDER_FILE_LOCK_FILENAME) : new DummyLock())
-            : null
+        $this->feeder_lock = ($warm_up_enabled && $file_locking_enabled)
+            ? new FileLock(self::FEEDER_FILE_LOCK_FILENAME)
+            : new DummyLock()
         ;
 
         // Initialize core module and optional features.
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
-        $this->cache_feeder = $warm_up_enabled ? new Feeder($this->cache, $this->feeder_lock) : null;
-        $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache_feeder) : null;
+        if ($warm_up_enabled) {
+            $this->cache_feeder = new Feeder($this->cache, $this->feeder_lock);
+            $this->cache_crawler = new Crawler($this->cache_feeder);
+        }
     }
 
 
