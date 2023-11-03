@@ -165,7 +165,7 @@ Following filters are necessary to set up [request variants](#request-variants):
 
 Following filters can be used to tweak [warming up of cache](#cache-warm-up):
 
-* `bc-cache/filter:cache-warm-up-initial-url-list` - filters list of initial URLs to be included in warm up. This filter is used to shortcut default processing: if it returns an array (even empty), no URLs are read from core XML sitemap providers.
+* `bc-cache/filter:cache-warm-up-initial-url-list` - filters list of initial URLs to be included in warm up. This filter is used to shortcut default processing: if it returns an array (even empty), no URLs are read from XML sitemap(s).
 * `bc-cache/filter:cache-warm-up-final-url-list` - filters the final list of URLs to be included in warm up.
 * `bc-cache/filter:cache-warm-up-invocation-delay` - filters the time (in seconds) between cache flush and warm up invocation.
 * `bc-cache/filter:cache-warm-up-run-timeout` - sets the time (in seconds) warm up crawler is allowed to run within single WP-Cron invocation. The value cannot be larger than value of `WP_CRON_LOCK_TIMEOUT` constant. Note that crawler stops only after this limit is reached. This means for example that even if the timeout is set to `0`, there is one HTTP request sent.
