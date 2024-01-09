@@ -154,7 +154,7 @@ This release also contains some breaking changes:
 Other notable changes in this release:
 
 * The `_gl` query string tracking parameter does not interfere with caching [#53](https://github.com/chesio/bc-cache/issues/53). Note that `.htaccess` file should be updated accordingly to make full use of this feature.
-* On WordPress 5.8 and newer the plugin cannot be accidentally overriden from WordPress.org Plugins Directory [#51](https://github.com/chesio/bc-cache/issues/51).
+* On WordPress 5.8 and newer the plugin cannot be accidentally overridden from WordPress.org Plugins Directory [#51](https://github.com/chesio/bc-cache/issues/51).
 
 Some bugs have been fixed too:
 
