@@ -145,7 +145,7 @@ class Feeder
     /**
      * Synchronise warm up queue state with cache state.
      *
-     * @return bool True if sync has been successfull, false otherwise.
+     * @return bool True if sync has been successful, false otherwise.
      */
     public function synchronize(): bool
     {

@@ -12,7 +12,7 @@ abstract class Serializable
     /**
      * @var int
      *
-     * @internal Should be overriden in child classes to non-zero value and incremented on every class properties change.
+     * @internal Should be overridden in child classes to non-zero value and incremented on every class properties change.
      */
     protected const DB_VERSION = 0;
 

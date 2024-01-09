@@ -19,7 +19,7 @@ BC Cache can cache not only HTML pages, but [core XML sitemaps](https://make.wor
 
 * BC Cache has not been tested on WordPress multisite installation.
 * BC Cache has not been tested on Windows servers.
-* BC Cache does not support [content negotation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation) via `Accept` header.
+* BC Cache does not support [content negotiation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation) via `Accept` header.
 
 ## Installation
 
@@ -241,7 +241,7 @@ A response to HTTP(S) request is **not** cached by BC Cache if **any** of the co
 7. `DONOTCACHEPAGE` constant is set and evaluates to true. This constant is for example [automatically set](https://docs.woocommerce.com/document/configuring-caching-plugins/#section-1) by WooCommerce on certain pages.
 8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
-**Important!** Cache exclusion rules are essentialy defined in two places:
+**Important!** Cache exclusion rules are essentially defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
