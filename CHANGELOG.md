@@ -2,7 +2,7 @@
 
 ## Upcoming version 3.3.0 (????-??-??)
 
-This release changes required and supported versions of PHP and WordPress (see below).
+PHP 8.1 and WordPress 6.2 are now required.
 
 ### Added
 
@@ -12,7 +12,8 @@ This release changes required and supported versions of PHP and WordPress (see b
 
 ### Changed
 
-* WordPress 6.2 or newer is now required [#102](https://github.com/chesio/bc-cache/issues/102).
+* PHP 8.1 or newer is required [#103](https://github.com/chesio/bc-cache/issues/103).
+* WordPress 6.2 or newer is required [#102](https://github.com/chesio/bc-cache/issues/102).
 
 ## Version 3.2.0 (2023-08-17)
 
