@@ -99,7 +99,7 @@ jobs:
 
       - name: "Raise constraint for antecedent/patchwork"
         if: "${{ matrix.dependencies == 'lowest' }}"
-        run: "composer require --dev --prefer-lowest --update-with-all-dependencies 'antecedent/patchwork:^2.0.8'"
+        run: "composer require --dev --prefer-lowest --update-with-all-dependencies 'antecedent/patchwork:^2.1.26'"
 
       - name: "Execute unit tests"
         run: "composer run-script unit-tests"

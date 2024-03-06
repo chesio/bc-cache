@@ -4,8 +4,10 @@ namespace BlueChip\Cache\Tests\Unit\Cases\Core;
 
 use BlueChip\Cache\Core;
 use BlueChip\Cache\Exception;
+use BlueChip\Cache\Tests\Unit\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
-class PathNormalizationTest extends \BlueChip\Cache\Tests\Unit\TestCase
+final class PathNormalizationTest extends TestCase
 {
     public function testEmptyPath()
     {
@@ -21,7 +23,7 @@ class PathNormalizationTest extends \BlueChip\Cache\Tests\Unit\TestCase
     }
 
 
-    public function providePathsData(): array
+    public static function providePathsData(): array
     {
         // Format: raw path, normalized path
         return [
@@ -38,9 +40,7 @@ class PathNormalizationTest extends \BlueChip\Cache\Tests\Unit\TestCase
     }
 
 
-    /**
-     * @dataProvider providePathsData
-     */
+    #[DataProvider('providePathsData')]
     public function testPathNormalization(string $raw_path, string $normalized_path): void
     {
         $this->assertSame(
