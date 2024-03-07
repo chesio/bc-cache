@@ -7,6 +7,18 @@ namespace BlueChip\Cache;
 abstract class Utils
 {
     /**
+     * @return bool True if current user can explicitly flush the cache, false otherwise.
+     */
+    public static function canUserFlushCache(): bool
+    {
+        return apply_filters(
+            Hooks::FILTER_USER_CAN_FLUSH_CACHE,
+            current_user_can('manage_options')
+        );
+    }
+
+
+    /**
      * @return string URL of current request.
      */
     public static function getRequestUrl(): string

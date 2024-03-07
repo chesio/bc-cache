@@ -204,7 +204,7 @@ class ListTable extends WP_List_Table
     {
         $actions = [];
 
-        if (Plugin::canUserFlushCache()) {
+        if (Utils::canUserFlushCache()) {
             $actions[self::BULK_ACTION_DELETE] = __('Delete', 'bc-cache');
         }
 
@@ -327,7 +327,7 @@ class ListTable extends WP_List_Table
                 return;
             }
 
-            if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
+            if (($action === self::ACTION_DELETE) && Utils::canUserFlushCache()) {
                 $cache_item = new Item($url, $request_variant);
 
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
@@ -352,7 +352,7 @@ class ListTable extends WP_List_Table
         }
 
         // Bulk delete?
-        if ((self::BULK_ACTION_DELETE === $this->current_action()) && Plugin::canUserFlushCache() && isset($_POST['urls']) && \is_array($_POST['urls'])) {
+        if ((self::BULK_ACTION_DELETE === $this->current_action()) && Utils::canUserFlushCache() && isset($_POST['urls']) && \is_array($_POST['urls'])) {
             // Sanitize.
             $sanitized = \array_filter(
                 \filter_input_array(INPUT_POST, ['urls' => ['filter' => FILTER_VALIDATE_URL, 'flags' => FILTER_REQUIRE_ARRAY]])
@@ -477,7 +477,7 @@ class ListTable extends WP_List_Table
     {
         $actions = [];
 
-        if (Plugin::canUserFlushCache()) {
+        if (Utils::canUserFlushCache()) {
             $actions[self::ACTION_DELETE] = $this->renderRowAction(
                 self::ACTION_DELETE,
                 $item->getUrl(),

@@ -266,7 +266,7 @@ class Plugin
         add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
 
         // Add flush icon to admin bar.
-        if (is_admin_bar_showing() && self::canUserFlushCache()) {
+        if (is_admin_bar_showing() && Utils::canUserFlushCache()) {
             add_action('admin_bar_init', [$this, 'enqueueFlushIconAssets'], 10, 0);
             add_action('admin_bar_menu', [$this, 'addFlushIcon'], 90, 1);
         }
@@ -275,7 +275,7 @@ class Plugin
             // Initialize cache viewer.
             (new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder))->init();
 
-            if (self::canUserFlushCache()) {
+            if (Utils::canUserFlushCache()) {
                 add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
                 add_action('rightnow_end', [$this, 'enqueueDashboardAssets'], 10, 0);
             }
@@ -490,7 +490,7 @@ class Plugin
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
-        if (self::canUserFlushCache() && $this->cache->flush()) {
+        if (Utils::canUserFlushCache() && $this->cache->flush()) {
             wp_send_json_success();
         } else {
             wp_send_json_error();
@@ -555,18 +555,6 @@ class Plugin
         }
 
         return $buffer;
-    }
-
-
-    /**
-     * @return bool True if current user can explicitly flush the cache, false otherwise.
-     */
-    public static function canUserFlushCache(): bool
-    {
-        return apply_filters(
-            Hooks::FILTER_USER_CAN_FLUSH_CACHE,
-            current_user_can('manage_options')
-        );
     }
 
 
