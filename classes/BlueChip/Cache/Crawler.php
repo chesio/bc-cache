@@ -89,7 +89,7 @@ class Crawler
      */
     public function init(): void
     {
-        add_action(self::CRON_JOB_HOOK, [$this, 'runCronJob'], 10, 0);
+        add_action(self::CRON_JOB_HOOK, $this->runCronJob(...), 10, 0);
     }
 
 
@@ -98,7 +98,7 @@ class Crawler
      *
      * @internal This method is hooked to WP-Cron.
      */
-    public function runCronJob(): void
+    private function runCronJob(): void
     {
         // A single warm up run must not run (much) longer than single WP-Cron run is allowed/expected to take, therefore:
         $now = \microtime(true);
