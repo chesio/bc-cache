@@ -3,9 +3,10 @@
 namespace BlueChip\Cache\Tests\Unit\Cases\WarmUpQueue;
 
 use BlueChip\Cache\Item;
+use BlueChip\Cache\Tests\Unit\TestCase;
 use BlueChip\Cache\WarmUpQueue;
 
-class PushPullFetchTest extends \BlueChip\Cache\Tests\Unit\TestCase
+final class PushPullFetchTest extends TestCase
 {
     public function testWarmUpQueue()
     {

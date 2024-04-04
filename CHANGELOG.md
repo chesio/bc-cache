@@ -1,5 +1,20 @@
 # BC Cache Changelog
 
+## Version 3.3.0 (2024-04-04)
+
+PHP 8.1 and WordPress 6.2 are now required.
+
+### Added
+
+* Cache is flushed automatically when [Cookie Notice](https://wordpress.org/plugins/cookie-notice/) plugin settings change [#99](https://github.com/chesio/bc-cache/issues/99).
+* Plugin has been tested with PHP 8.3 [#100](https://github.com/chesio/bc-cache/issues/100)
+* Plugin has been tested with WordPress 6.4 [#101](https://github.com/chesio/bc-cache/issues/101) and 6.5 [#106](https://github.com/chesio/bc-cache/issues/106).
+
+### Changed
+
+* PHP 8.1 or newer is required [#103](https://github.com/chesio/bc-cache/issues/103).
+* WordPress 6.2 or newer is required [#102](https://github.com/chesio/bc-cache/issues/102).
+
 ## Version 3.2.0 (2023-08-17)
 
 This release only changes required and supported versions of PHP and WordPress (see below).
@@ -140,7 +155,7 @@ This release also contains some breaking changes:
 Other notable changes in this release:
 
 * The `_gl` query string tracking parameter does not interfere with caching [#53](https://github.com/chesio/bc-cache/issues/53). Note that `.htaccess` file should be updated accordingly to make full use of this feature.
-* On WordPress 5.8 and newer the plugin cannot be accidentally overriden from WordPress.org Plugins Directory [#51](https://github.com/chesio/bc-cache/issues/51).
+* On WordPress 5.8 and newer the plugin cannot be accidentally overridden from WordPress.org Plugins Directory [#51](https://github.com/chesio/bc-cache/issues/51).
 
 Some bugs have been fixed too:
 

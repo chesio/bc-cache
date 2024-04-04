@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace BlueChip\Cache;
 
+use WP_List_Table;
+
 /**
  * @internal \WP_List_Table is not part of an official API, so it can change anytime.
  */
-class ListTable extends \WP_List_Table
+class ListTable extends WP_List_Table
 {
     /**
      * @var string Name of delete action
@@ -165,9 +167,9 @@ class ListTable extends \WP_List_Table
     {
         return \sprintf(
             '%s | %s | %s',
-            esc_html(size_format($item->getTotalSize())),
-            esc_html(size_format($item->getPlainFileSize())),
-            esc_html(size_format($item->getGzipFileSize()))
+            esc_html(size_format($item->getTotalSize()) ?: self::UNKNOWN_VALUE),
+            esc_html(size_format($item->getPlainFileSize()) ?: self::UNKNOWN_VALUE),
+            esc_html(size_format($item->getGzipFileSize()) ?: self::UNKNOWN_VALUE)
         );
     }
 
@@ -202,7 +204,7 @@ class ListTable extends \WP_List_Table
     {
         $actions = [];
 
-        if (Plugin::canUserFlushCache()) {
+        if (Utils::canUserFlushCache()) {
             $actions[self::BULK_ACTION_DELETE] = __('Delete', 'bc-cache');
         }
 
@@ -247,6 +249,8 @@ class ListTable extends \WP_List_Table
 
     /**
      * Output "no items" message.
+     *
+     * @return void
      */
     public function no_items() // phpcs:ignore
     {
@@ -256,6 +260,8 @@ class ListTable extends \WP_List_Table
 
     /**
      * Prepare items for table.
+     *
+     * @return void
      */
     public function prepare_items() // phpcs:ignore
     {
@@ -311,17 +317,17 @@ class ListTable extends \WP_List_Table
             }
 
             $request_variant = \filter_input(INPUT_GET, 'request_variant');
-            if (!isset($this->request_variants[$request_variant])) {
+            if (!\is_string($request_variant) || !\array_key_exists($request_variant, $this->request_variants)) {
                 return;
             }
 
             $nonce = \filter_input(INPUT_GET, self::NONCE_NAME);
-            if (!wp_verify_nonce($nonce, \sprintf('%s:%s', $action, $url))) {
+            if (!\is_string($nonce) || !wp_verify_nonce($nonce, \sprintf('%s:%s', $action, $url))) {
                 // Nonce check failed
                 return;
             }
 
-            if (($action === self::ACTION_DELETE) && Plugin::canUserFlushCache()) {
+            if (($action === self::ACTION_DELETE) && Utils::canUserFlushCache()) {
                 $cache_item = new Item($url, $request_variant);
 
                 // Attempt to delete URL from cache and set proper query argument for notice based on return value.
@@ -346,14 +352,14 @@ class ListTable extends \WP_List_Table
         }
 
         // Bulk delete?
-        if ((self::BULK_ACTION_DELETE === $this->current_action()) && Plugin::canUserFlushCache() && isset($_POST['urls']) && \is_array($_POST['urls'])) {
+        if ((self::BULK_ACTION_DELETE === $this->current_action()) && Utils::canUserFlushCache() && isset($_POST['urls']) && \is_array($_POST['urls'])) {
             // Sanitize.
             $sanitized = \array_filter(
                 \filter_input_array(INPUT_POST, ['urls' => ['filter' => FILTER_VALIDATE_URL, 'flags' => FILTER_REQUIRE_ARRAY]])
             );
 
             // Get URLs.
-            $urls = $sanitized['urls'];
+            $urls = $sanitized['urls'] ?? [];
 
             // Number of entries really deleted.
             $items_deleted = 0;
@@ -471,7 +477,7 @@ class ListTable extends \WP_List_Table
     {
         $actions = [];
 
-        if (Plugin::canUserFlushCache()) {
+        if (Utils::canUserFlushCache()) {
             $actions[self::ACTION_DELETE] = $this->renderRowAction(
                 self::ACTION_DELETE,
                 $item->getUrl(),

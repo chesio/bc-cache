@@ -5,11 +5,13 @@ namespace BlueChip\Cache\Tests\Unit\Cases\Core;
 use BlueChip\Cache\Core;
 use BlueChip\Cache\Info;
 use BlueChip\Cache\Lock;
+use BlueChip\Cache\Tests\Unit\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * Class to test Core::getPath() and Core::getUrl() methods.
  */
-class GetPathUrlTest extends \BlueChip\Cache\Tests\Unit\TestCase
+final class GetPathUrlTest extends TestCase
 {
     /**
      * @var \BlueChip\Cache\Core
@@ -25,7 +27,7 @@ class GetPathUrlTest extends \BlueChip\Cache\Tests\Unit\TestCase
     }
 
 
-    public function provideUrlPathsData(): array
+    public static function provideUrlPathsData(): array
     {
         // Format: URL, path
         return [
@@ -39,9 +41,7 @@ class GetPathUrlTest extends \BlueChip\Cache\Tests\Unit\TestCase
     }
 
 
-    /**
-     * @dataProvider provideUrlPathsData
-     */
+    #[DataProvider('provideUrlPathsData')]
     public function testGetPath(string $url, string $path): void
     {
         $this->assertSame(
@@ -51,9 +51,7 @@ class GetPathUrlTest extends \BlueChip\Cache\Tests\Unit\TestCase
     }
 
 
-    /**
-     * @dataProvider provideUrlPathsData
-     */
+    #[DataProvider('provideUrlPathsData')]
     public function testGetUrl(string $url, string $path): void
     {
         $this->assertSame(

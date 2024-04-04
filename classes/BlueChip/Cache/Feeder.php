@@ -104,7 +104,7 @@ class Feeder
 
 
     /**
-     * @return array Warm up queue statistics as: {'processed' => int, 'waiting' => int, 'total' => int}
+     * @return array{processed:int,waiting:int,total:int} Warm up queue statistics
      */
     public function getStats(): array
     {
@@ -145,7 +145,7 @@ class Feeder
     /**
      * Synchronise warm up queue state with cache state.
      *
-     * @return bool True if sync has been successfull, false otherwise.
+     * @return bool True if sync has been successful, false otherwise.
      */
     public function synchronize(): bool
     {
@@ -159,7 +159,7 @@ class Feeder
 
         $dirty = false; // Has queue state changed?
 
-        foreach ($this->cache->inspect() as $list_table_item) {
+        foreach ($this->cache->inspect() ?? [] as $list_table_item) {
             $dirty = $queue->pull($list_table_item->getItem()) || $dirty;
         }
 

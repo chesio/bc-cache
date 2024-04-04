@@ -12,14 +12,14 @@ BC Cache can cache not only HTML pages, but [core XML sitemaps](https://make.wor
 ## Requirements
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://www.php.net/) 8.0 or newer
-* [WordPress](https://wordpress.org/) 6.1 or newer with [pretty permalinks](https://codex.wordpress.org/Using_Permalinks) on
+* [PHP](https://www.php.net/) 8.1 or newer
+* [WordPress](https://wordpress.org/) 6.2 or newer with [pretty permalinks](https://wordpress.org/documentation/article/customize-permalinks/#pretty-permalinks) on
 
 ## Limitations
 
 * BC Cache has not been tested on WordPress multisite installation.
 * BC Cache has not been tested on Windows servers.
-* BC Cache does not support [content negotation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation) via `Accept` header.
+* BC Cache does not support [content negotiation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation) via `Accept` header.
 
 ## Installation
 
@@ -165,7 +165,7 @@ Following filters are necessary to set up [request variants](#request-variants):
 
 Following filters can be used to tweak [warming up of cache](#cache-warm-up):
 
-* `bc-cache/filter:cache-warm-up-initial-url-list` - filters list of initial URLs to be included in warm up. This filter is used to shortcut default processing: if it returns an array (even empty), no URLs are read from core XML sitemap providers.
+* `bc-cache/filter:cache-warm-up-initial-url-list` - filters list of initial URLs to be included in warm up. This filter is used to shortcut default processing: if it returns an array (even empty), no URLs are read from XML sitemap(s).
 * `bc-cache/filter:cache-warm-up-final-url-list` - filters the final list of URLs to be included in warm up.
 * `bc-cache/filter:cache-warm-up-invocation-delay` - filters the time (in seconds) between cache flush and warm up invocation.
 * `bc-cache/filter:cache-warm-up-run-timeout` - sets the time (in seconds) warm up crawler is allowed to run within single WP-Cron invocation. The value cannot be larger than value of `WP_CRON_LOCK_TIMEOUT` constant. Note that crawler stops only after this limit is reached. This means for example that even if the timeout is set to `0`, there is one HTTP request sent.
@@ -241,7 +241,7 @@ A response to HTTP(S) request is **not** cached by BC Cache if **any** of the co
 7. `DONOTCACHEPAGE` constant is set and evaluates to true. This constant is for example [automatically set](https://docs.woocommerce.com/document/configuring-caching-plugins/#section-1) by WooCommerce on certain pages.
 8. Return value of `bc-cache/filter:skip-cache` filter evaluates to true.
 
-**Important!** Cache exclusion rules are essentialy defined in two places:
+**Important!** Cache exclusion rules are essentially defined in two places:
 1. In PHP code (including `bc-cache/filter:skip-cache` filter), the rules are used to determine whether current HTTP(S) request should be *written* to cache.
 1. In `.htaccess` file, the rules are used to determine whether current HTTP(S) request should be *served* from cache.
 
@@ -356,20 +356,7 @@ add_filter('bc-cache/filter:cache-warm-up-request-arguments', function (array $a
 }, 10, 3);
 ```
 
-## Autoptimize integration
-
-[Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
-
-## 7G firewall integration
-
-If you happen to have [7G firewall](https://perishablepress.com/7g-firewall/) by Jeff Starr installed on your website, you may have to alter the rule in `7G:[REQUEST URI]` section that prevents access to `.gz` files (note that the code snippet below has been shortened with `...` for better readability):
-```.apacheconf
-RewriteCond %{REQUEST_URI} (\.)(7z|...|git|gz|hg|...|zlib)$ [NC,OR]
-```
-
-If you see 403 errors instead of cached pages, you have to either remove the `|gz` part from the `RewriteCond` line above or remove the line completely.
-
-## WP-CLI integration
+## WP-CLI commands
 
 You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form cache, flush entire cache, run cache warm up, get size information or even list all cache entries. BC Cache registers `bc-cache` command with following subcommands:
 
@@ -379,6 +366,25 @@ You might use [WP-CLI](https://wp-cli.org/) to delete specific posts/pages form 
 * `warm-up` - runs cache warm up
 * `size [--human-readable]` - retrieves cache directory apparent size, optionally in human readable format
 * `list [<column>...] [--format=<format>] [--plain] [--sort-by=<column>]` - list cache entries, optionally in specified format or sorted
+
+## Integration with 3rd-party plugins and tools
+
+### Autoptimize
+
+[Autoptimize](https://wordpress.org/plugins/autoptimize/) is a very popular plugin to optimize script and styles by aggregation, minification, caching etc. BC Cache automatically flushes its cache whenever Autoptimize cache is purged.
+
+### Cookie Notice
+
+[Cookie Notice](https://wordpress.org/plugins/cookie-notice/) is a popular plugin to display a simple, customizable website banner helpful achieving compliance with certain cookie consent requirements. BC Cache automatically flushes its cache whenever Cookie Notice banner configuration is changed.
+
+### 7G firewall
+
+If you happen to have [7G firewall](https://perishablepress.com/7g-firewall/) by Jeff Starr installed on your website, you may have to alter the rule in `7G:[REQUEST URI]` section that prevents access to `.gz` files (note that the code snippet below has been shortened with `...` for better readability):
+```.apacheconf
+RewriteCond %{REQUEST_URI} (\.)(7z|...|git|gz|hg|...|zlib)$ [NC,OR]
+```
+
+If you see 403 errors instead of cached pages, you have to either remove the `|gz` part from the `RewriteCond` line above or remove the line completely.
 
 ## Credits
 

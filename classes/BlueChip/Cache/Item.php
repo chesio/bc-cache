@@ -27,6 +27,8 @@ class Item extends Serializable
 
     /**
      * @internal Serialization helper.
+     *
+     * @return array{request_variant:string,url:string}
      */
     protected function deflate(): array
     {
@@ -36,6 +38,8 @@ class Item extends Serializable
 
     /**
      * @internal Serialization helper.
+     *
+     * @param array{request_variant:string,url:string} $data
      */
     public function inflate(array $data): void
     {

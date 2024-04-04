@@ -17,7 +17,7 @@ class Info
     private const CACHE_SIZE_KEY = 'cache-size';
 
     /**
-     * @var array
+     * @var array<string,null>
      */
     private const DEFAULT_DATA = [
         self::CACHE_AGE_KEY => null,
@@ -26,7 +26,7 @@ class Info
 
 
     /**
-     * @var array Cache data (lazy loaded)
+     * @var array<string,?int> Cache data (lazy loaded)
      */
     private array $data = [];
 

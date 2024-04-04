@@ -47,7 +47,7 @@ class Plugin
     private const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
 
     /**
-     * @var array List of default actions that trigger cache flushing including priority with which the flush method is hooked.
+     * @var array<string,int> List of default actions that trigger cache flushing including priority with which the flush method is hooked.
      */
     private const FLUSH_CACHE_HOOKS = [
         // Core code changes
@@ -114,20 +114,22 @@ class Plugin
 
     private Lock $cache_lock;
 
-    /**
-     * @var Lock|null Null if cache warm up is disabled.
-     */
-    private ?Lock $feeder_lock;
+    private Lock $feeder_lock;
 
     /**
-     * @var Crawler|null Null if cache warm up is disabled.
+     * @var Crawler|null Crawler instance if cache warm up is enabled, null otherwise.
      */
-    private ?Crawler $cache_crawler;
+    private ?Crawler $cache_crawler = null;
 
     /**
-     * @var Feeder|null Null if cache warm up is disabled.
+     * @var Feeder|null Feeder instance if cache warm up is enabled, null otherwise.
      */
-    private ?Feeder $cache_feeder;
+    private ?Feeder $cache_feeder = null;
+
+    /**
+     * @var Viewer Viewer instance (initialized only in admin context).
+     */
+    private Viewer $cache_viewer;
 
     /**
      * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
@@ -156,9 +158,7 @@ class Plugin
         }
 
         // Note: feeder lock has to be set up before cache feeder is set up.
-        if ($this->feeder_lock) {
-            $this->feeder_lock->setUp();
-        }
+        $this->feeder_lock->setUp();
         if ($this->cache_feeder) {
             $this->cache_feeder->setUp();
         }
@@ -183,9 +183,7 @@ class Plugin
         if ($this->cache_feeder) {
             $this->cache_feeder->tearDown();
         }
-        if ($this->feeder_lock) {
-            $this->feeder_lock->tearDown();
-        }
+        $this->feeder_lock->tearDown();
         $this->cache_info->tearDown();
         $this->cache_lock->tearDown();
     }
@@ -203,15 +201,17 @@ class Plugin
 
         // Initialize locks as either proper file locks or dummy locks.
         $this->cache_lock = $file_locking_enabled ? new FileLock(self::CACHE_FILE_LOCK_FILENAME) : new DummyLock();
-        $this->feeder_lock = $warm_up_enabled
-            ? ($file_locking_enabled ? new FileLock(self::FEEDER_FILE_LOCK_FILENAME) : new DummyLock())
-            : null
+        $this->feeder_lock = ($warm_up_enabled && $file_locking_enabled)
+            ? new FileLock(self::FEEDER_FILE_LOCK_FILENAME)
+            : new DummyLock()
         ;
 
         // Initialize core module and optional features.
         $this->cache = new Core(self::CACHE_DIR, $this->cache_info, $this->cache_lock);
-        $this->cache_feeder = $warm_up_enabled ? new Feeder($this->cache, $this->feeder_lock) : null;
-        $this->cache_crawler = $warm_up_enabled ? new Crawler($this->cache_feeder) : null;
+        if ($warm_up_enabled) {
+            $this->cache_feeder = new Feeder($this->cache, $this->feeder_lock);
+            $this->cache_crawler = new Crawler($this->cache_feeder);
+        }
     }
 
 
@@ -223,10 +223,10 @@ class Plugin
     public function load(): void
     {
         // Register initialization method.
-        add_action('init', [$this, 'init'], 10, 0);
+        add_action('init', $this->init(...), 10, 0);
 
         // Register method handling AJAX call from admin bar icon (or elsewhere).
-        add_action('wp_ajax_bc_cache_flush_cache', [$this, 'processFlushRequest'], 10, 0);
+        add_action('wp_ajax_bc_cache_flush_cache', $this->processFlushRequest(...), 10, 0);
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
@@ -237,15 +237,15 @@ class Plugin
         });
 
         // Activate features that must be explicitly supported by active theme.
-        add_action('after_setup_theme', [$this, 'activateThemeFeatures'], 20, 0);
+        add_action('after_setup_theme', $this->activateThemeFeatures(...), 20, 0);
 
         // Listen for registration of (public) post types.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
-        add_action('registered_post_type', [$this, 'registerPostType'], 10, 2);
+        add_action('registered_post_type', $this->registerPostType(...), 10, 2);
 
         // Listen for registration of (public) taxonomies.
         // They may (in fact should) happen as late as in init hook, therefore special handling is required.
-        add_action('registered_taxonomy', [$this, 'registerTaxonomy'], 10, 3);
+        add_action('registered_taxonomy', $this->registerTaxonomy(...), 10, 3);
     }
 
 
@@ -254,40 +254,41 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/init/
      */
-    public function init(): void
+    private function init(): void
     {
         // Activate integrations with 3rd party plugins - must be done early in this method!
         Integrations::initialize();
 
         // Add Disallow section to robots.txt.
-        add_filter('robots_txt', [$this, 'alterRobotsTxt'], 10, 1);
+        add_filter('robots_txt', $this->alterRobotsTxt(...), 10, 1);
 
         // Add actions to flush entire cache.
         foreach (apply_filters(Hooks::FILTER_FLUSH_HOOKS, self::FLUSH_CACHE_HOOKS) as $hook => $priority) {
-            add_action($hook, [$this, 'flushCacheOnce'], $priority, 0);
+            add_action($hook, $this->flushCacheOnce(...), $priority, 0);
         }
 
         // Add action to flush entire cache manually with do_action().
-        add_action(Hooks::ACTION_FLUSH_CACHE, [$this, 'flushCacheOnce'], 10, 0);
+        add_action(Hooks::ACTION_FLUSH_CACHE, $this->flushCacheOnce(...), 10, 0);
 
         // Add flush icon to admin bar.
-        if (is_admin_bar_showing() && self::canUserFlushCache()) {
-            add_action('admin_bar_init', [$this, 'enqueueFlushIconAssets'], 10, 0);
-            add_action('admin_bar_menu', [$this, 'addFlushIcon'], 90, 1);
+        if (is_admin_bar_showing() && Utils::canUserFlushCache()) {
+            add_action('admin_bar_init', $this->enqueueFlushIconAssets(...), 10, 0);
+            add_action('admin_bar_menu', $this->addFlushIcon(...), 90, 1);
         }
 
         if (is_admin()) {
             // Initialize cache viewer.
-            (new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder))->init();
+            $this->cache_viewer = new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder);
+            $this->cache_viewer->init();
 
-            if (self::canUserFlushCache()) {
-                add_filter('dashboard_glance_items', [$this, 'addDashboardInfo'], 10, 1);
-                add_action('rightnow_end', [$this, 'enqueueDashboardAssets'], 10, 0);
+            if (Utils::canUserFlushCache()) {
+                add_filter('dashboard_glance_items', $this->addDashboardInfo(...), 10, 1);
+                add_action('rightnow_end', $this->enqueueDashboardAssets(...), 10, 0);
             }
         } else {
             // Add action to catch output buffer.
             // https://make.wordpress.org/core/2022/10/10/moving-the-send_headers-action-to-later-in-the-load/
-            add_action('send_headers', [$this, 'startOutputBuffering'], 0, 0);
+            add_action('send_headers', $this->startOutputBuffering(...), 0, 0);
         }
 
         if ($this->cache_crawler) {
@@ -295,7 +296,7 @@ class Plugin
             $this->cache_crawler->init();
 
             // Cache has been flushed so (maybe) warm it up again?
-            add_action(Hooks::ACTION_CACHE_FLUSHED, [$this, 'warmUp'], 10, 1);
+            add_action(Hooks::ACTION_CACHE_FLUSHED, $this->warmUp(...), 10, 1);
         }
     }
 
@@ -305,13 +306,13 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/registered_post_type/
      */
-    public function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
+    private function registerPostType(string $post_type, \WP_Post_Type $post_type_object): void
     {
         if (apply_filters(Hooks::FILTER_IS_PUBLIC_POST_TYPE, $post_type_object->public, $post_type)) {
             // Flush cache when a public post type is published (created or edited) or trashed.
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
-            add_action("publish_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
-            add_action("trash_{$post_type}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("publish_{$post_type}", $this->flushCacheOnce(...), 10, 0);
+            add_action("trash_{$post_type}", $this->flushCacheOnce(...), 10, 0);
         }
     }
 
@@ -322,17 +323,17 @@ class Plugin
      * @action https://developer.wordpress.org/reference/hooks/registered_taxonomy/
      *
      * @param string $taxonomy
-     * @param array|string $object_type Object type or array of object types.
-     * @param array $taxonomy_object Public properties of \WP_Taxonomy class as array.
+     * @param array<int,string>|string $object_type Object type or array of object types.
+     * @param array<string,mixed> $taxonomy_object Public properties of \WP_Taxonomy class as array.
      */
-    public function registerTaxonomy(string $taxonomy, $object_type, array $taxonomy_object): void
+    private function registerTaxonomy(string $taxonomy, array|string $object_type, array $taxonomy_object): void
     {
         if (apply_filters(Hooks::FILTER_IS_PUBLIC_TAXONOMY, $taxonomy_object['public'], $taxonomy)) {
             // Flush cache when a term from public taxonomy is created, deleted or edited.
             // https://developer.wordpress.org/reference/hooks/new_status_post-post_type/
-            add_action("create_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
-            add_action("delete_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
-            add_action("edited_{$taxonomy}", [$this, 'flushCacheOnce'], 10, 0);
+            add_action("create_{$taxonomy}", $this->flushCacheOnce(...), 10, 0);
+            add_action("delete_{$taxonomy}", $this->flushCacheOnce(...), 10, 0);
+            add_action("edited_{$taxonomy}", $this->flushCacheOnce(...), 10, 0);
         }
     }
 
@@ -340,12 +341,12 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/after_setup_theme/
      */
-    public function activateThemeFeatures(): void
+    private function activateThemeFeatures(): void
     {
         if (current_theme_supports('bc-cache', ThemeFeatures::CACHING_FOR_FRONTEND_USERS)) {
             // Allow special cookie to be set for front-end users to enable serving of cached content to them.
-            add_action('set_logged_in_cookie', [$this, 'setFrontendUserCookie'], 10, 4);
-            add_action('clear_auth_cookie', [$this, 'clearFrontendUserCookie'], 10, 0);
+            add_action('set_logged_in_cookie', $this->setFrontendUserCookie(...), 10, 4);
+            add_action('clear_auth_cookie', $this->clearFrontendUserCookie(...), 10, 0);
         }
     }
 
@@ -353,7 +354,7 @@ class Plugin
     /**
      * @filter https://developer.wordpress.org/reference/hooks/robots_txt/
      */
-    public function alterRobotsTxt(string $data): string
+    private function alterRobotsTxt(string $data): string
     {
         // Get path component of cache directory URL.
         $path = \parse_url(self::CACHE_URL, PHP_URL_PATH);
@@ -368,7 +369,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
      */
-    public function enqueueFlushIconAssets(): void
+    private function enqueueFlushIconAssets(): void
     {
         wp_enqueue_style(
             'bc-cache-toolbar',
@@ -403,7 +404,7 @@ class Plugin
      *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
-    public function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
+    private function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
     {
         $wp_admin_bar->add_node([
             'id'     => 'bc-cache',
@@ -425,7 +426,7 @@ class Plugin
      *
      * @return string[]
      */
-    public function addDashboardInfo(array $items): array
+    private function addDashboardInfo(array $items): array
     {
         $size = $this->cache->getSize();
 
@@ -446,7 +447,7 @@ class Plugin
         $label = '<span id="bc-cache-size">' . esc_html($cache_size) . '</span>';
 
         // Wrap icon and label in a link to cache viewer.
-        $items[] = '<a class="bc-cache-size" href="' . Viewer::getUrl() . '">' . $icon . ' ' . $label . '</a>';
+        $items[] = '<a class="bc-cache-size" href="' . $this->cache_viewer->getUrl() . '">' . $icon . ' ' . $label . '</a>';
 
         return $items;
     }
@@ -457,7 +458,7 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/admin_print_footer_scripts/
      */
-    public function printDashboardStyles(): void
+    private function printDashboardStyles(): void
     {
         echo '<style>#dashboard_right_now li .bc-cache-size:before { content: ""; display: none; }</style>';
     }
@@ -466,10 +467,10 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/rightnow_end/
      */
-    public function enqueueDashboardAssets(): void
+    private function enqueueDashboardAssets(): void
     {
         // Print the styles in the footer.
-        add_action('admin_print_footer_scripts', [$this, 'printDashboardStyles'], 10, 0);
+        add_action('admin_print_footer_scripts', $this->printDashboardStyles(...), 10, 0);
     }
 
 
@@ -478,7 +479,7 @@ class Plugin
      *
      * @see Core::flush()
      */
-    public function flushCacheOnce(): void
+    private function flushCacheOnce(): void
     {
         $this->cache_is_flushed ??= $this->cache->flush();
     }
@@ -487,15 +488,15 @@ class Plugin
     /**
      * Process AJAX flush request.
      *
-     * @internal Should be executed in context of AJAX request only.
+     * @internal Is executed in context of AJAX request.
      */
-    public function processFlushRequest(): void
+    private function processFlushRequest(): void
     {
         // Check AJAX referer - die if invalid.
         check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
 
         // TODO: in case of failure, indicate whether it's been access rights or I/O error.
-        if (self::canUserFlushCache() && $this->cache->flush()) {
+        if (Utils::canUserFlushCache() && $this->cache->flush()) {
             wp_send_json_success();
         } else {
             wp_send_json_error();
@@ -508,10 +509,10 @@ class Plugin
      *
      * @action https://developer.wordpress.org/reference/hooks/template_redirect/
      */
-    public function startOutputBuffering(): void
+    private function startOutputBuffering(): void
     {
         if (!self::skipCache()) {
-            \ob_start([$this, 'handleOutputBuffer']);
+            \ob_start($this->handleOutputBuffer(...));
         }
     }
 
@@ -519,7 +520,7 @@ class Plugin
     /**
      * Push $buffer to cache and return it on output.
      */
-    public function handleOutputBuffer(string $buffer, int $phase): string
+    private function handleOutputBuffer(string $buffer, int $phase): string
     {
         // If this is the final output buffering operation and buffer is not empty, write buffer contents to cache.
         if (($phase & PHP_OUTPUT_HANDLER_FINAL) && ($buffer !== '')) {
@@ -564,18 +565,6 @@ class Plugin
 
 
     /**
-     * @return bool True if current user can explicitly flush the cache, false otherwise.
-     */
-    public static function canUserFlushCache(): bool
-    {
-        return apply_filters(
-            Hooks::FILTER_USER_CAN_FLUSH_CACHE,
-            current_user_can('manage_options')
-        );
-    }
-
-
-    /**
      * Get cache signature (by default embedded in HTML comment).
      *
      * @param string $cache_timestamp Timestamp of cache creation
@@ -600,7 +589,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/set_logged_in_cookie/
      */
-    public function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
+    private function setFrontendUserCookie(string $logged_in_cookie, int $expire, int $expiration, int $user_id): void
     {
         if (($user = get_user_by('id', $user_id)) === false) {
             return;
@@ -623,7 +612,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/clear_auth_cookie/
      */
-    public function clearFrontendUserCookie(): void
+    private function clearFrontendUserCookie(): void
     {
         \setcookie(
             apply_filters(Hooks::FILTER_FRONTEND_USER_COOKIE_NAME, self::FRONTEND_USER_COOKIE_NAME),
@@ -635,7 +624,7 @@ class Plugin
     }
 
 
-    public function warmUp(bool $tear_down): void
+    private function warmUp(bool $tear_down): void
     {
         // If not deactivating plugin instance, reset feeder and (re)activate crawler.
         if (!$tear_down && $this->cache_feeder && $this->cache_crawler) {

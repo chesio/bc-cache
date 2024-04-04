@@ -2,9 +2,10 @@
 
 namespace BlueChip\Cache\Tests\Unit\Cases\XmlSitemapReader;
 
+use BlueChip\Cache\Tests\Unit\TestCase;
 use BlueChip\Cache\XmlSitemapReader;
 
-class XmlSitemapTest extends \BlueChip\Cache\Tests\Unit\TestCase
+final class XmlSitemapTest extends TestCase
 {
     private const SITEMAP_URLS = [
         'http://www.example.com/',

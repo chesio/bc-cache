@@ -417,7 +417,7 @@ class Core
      * @param string $dirname
      * @param string[] $request_variants
      *
-     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `total_disk_size`, `plain_size`, `gzip_size` and `htaccess_size`.
+     * @return array<string,array{path:string,request_variant:string,total_disk_size:int,plain_size:int,gzip_size:int,htaccess_size:int}> List of cache entries
      *
      * @throws Exception When $dirname is not a directory.
      */
@@ -460,7 +460,7 @@ class Core
      * @param string $dirname Path to cache entry directory (must end either with "/@dir" or "/@file").
      * @param string[] $request_variants
      *
-     * @return array[] List of cache entries with following data: `path` (dirname), `request_variant`, `total_disk_size`, `plain_size`, `gzip_size` and `htaccess_size`.
+     * @return array<string,array{path:string,request_variant:string,total_disk_size:int,plain_size:int,gzip_size:int,htaccess_size:int}> List of cache entries.
      *
      * @throws Exception
      */
@@ -554,6 +554,14 @@ class Core
     private function getPath(string $url): string
     {
         $url_parts = \parse_url($url);
+
+        if (!\is_array($url_parts)) {
+            throw new Exception("Cannot parse URL {$url}");
+        }
+
+        if (!\array_key_exists('scheme', $url_parts) || !\array_key_exists('host', $url_parts)) {
+            throw new Exception("URL {$url} is missing scheme or host part!");
+        }
 
         $url_path = $url_parts['path'] ?? '';
 

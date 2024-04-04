@@ -33,6 +33,8 @@ class WarmUpQueue extends Serializable
 
     /**
      * @internal Serialization helper.
+     *
+     * @return array{processed:Item[],waiting:Item[]}
      */
     protected function deflate(): array
     {
@@ -41,6 +43,8 @@ class WarmUpQueue extends Serializable
 
 
     /**
+     * @param array{processed:Item[],waiting:Item[]} $data
+     *
      * @internal Serialization helper.
      */
     public function inflate(array $data): void
@@ -93,6 +97,9 @@ class WarmUpQueue extends Serializable
     }
 
 
+    /**
+     * @return array{processed:int,waiting:int,total:int}
+     */
     public function getStats(): array
     {
         return [
@@ -126,7 +133,7 @@ class WarmUpQueue extends Serializable
         // Remove item from waiting items list if present.
         $index = \array_search($item, $this->waiting, false);
         if ($index !== false) {
-            \array_splice($this->waiting, $index, 1);
+            \array_splice($this->waiting, (int) $index, 1); // PHPStan fails to recognize we are searching int-indexed array.
             $dirty = true; // !
         }
 
@@ -155,7 +162,7 @@ class WarmUpQueue extends Serializable
         // Remove item from processed items list if present.
         $index = \array_search($item, $this->processed, false);
         if ($index !== false) {
-            \array_splice($this->processed, $index, 1);
+            \array_splice($this->processed, (int) $index, 1); // PHPStan fails to recognize we are searching int-indexed array.
             $dirty = true; // !
         }
 

@@ -44,7 +44,16 @@ class Viewer
      */
     public function init(): void
     {
-        add_action('admin_menu', [$this, 'addAdminPage']);
+        add_action('admin_menu', $this->addAdminPage(...));
+    }
+
+
+    /**
+     * @return string URL of viewer page.
+     */
+    public function getUrl(): string
+    {
+        return add_query_arg('page', self::ADMIN_PAGE_SLUG, admin_url('tools.php'));
     }
 
 
@@ -55,32 +64,23 @@ class Viewer
      *
      * @param string $page_hook
      */
-    public function setPageHook(string $page_hook): void
+    private function setPageHook(string $page_hook): void
     {
-        add_action('load-' . $page_hook, [$this, 'loadPage']);
-    }
-
-
-    /**
-     * @return string URL of viewer page.
-     */
-    public static function getUrl(): string
-    {
-        return add_query_arg('page', self::ADMIN_PAGE_SLUG, admin_url('tools.php'));
+        add_action('load-' . $page_hook, $this->loadPage(...));
     }
 
 
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_menu/
      */
-    public function addAdminPage(): void
+    private function addAdminPage(): void
     {
         $page_hook = add_management_page(
             __('BC Cache Viewer', 'bc-cache'),
             __('Cache Viewer', 'bc-cache'),
             self::REQUIRED_CAPABILITY,
             self::ADMIN_PAGE_SLUG,
-            [$this, 'renderAdminPage']
+            $this->renderAdminPage(...)
         );
 
         if ($page_hook) {
@@ -96,11 +96,11 @@ class Viewer
      *
      * @action https://developer.wordpress.org/reference/hooks/load-page_hook/
      */
-    public function loadPage(): void
+    private function loadPage(): void
     {
         $this->processActions();
 
-        $this->list_table = new ListTable($this->cache, $this->cache_crawler, $this->cache_feeder, self::getUrl());
+        $this->list_table = new ListTable($this->cache, $this->cache_crawler, $this->cache_feeder, $this->getUrl());
         $this->list_table->processActions(); // may trigger wp_redirect()
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
@@ -112,7 +112,7 @@ class Viewer
     /**
      * Process any actions according to POST-ed data.
      */
-    public function processActions(): void
+    private function processActions(): void
     {
         $nonce = \filter_input(INPUT_POST, self::NONCE_NAME);
         if (empty($nonce)) {
@@ -142,7 +142,7 @@ class Viewer
     }
 
 
-    public function renderAdminPage(): void
+    private function renderAdminPage(): void
     {
         echo '<div class="wrap">';
 
