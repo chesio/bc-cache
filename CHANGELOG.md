@@ -1,6 +1,6 @@
 # BC Cache Changelog
 
-## Upcoming version 3.3.0 (????-??-??)
+## Version 3.3.0 (2024-04-04)
 
 PHP 8.1 and WordPress 6.2 are now required.
 
