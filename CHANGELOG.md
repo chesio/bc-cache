@@ -2,6 +2,10 @@
 
 ## Version 3.3.1 (????-??-??)
 
+### Fixed
+
+* When deleting cache item (URL + request variant), corresponding `.htaccess` file and cache entry directory is only deleted if there are no other cache items (ie. other request variants for given URL) saved in the cache entry directory [#109](https://github.com/chesio/bc-cache/issues/109).
+
 ## Version 3.3.0 (2024-04-04)
 
 PHP 8.1 and WordPress 6.2 are now required.
