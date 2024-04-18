@@ -78,7 +78,7 @@ class Core
 
 
     /**
-     * @return string[] Filtered list of request variants.
+     * @return array<string,string> Filtered list of request variants.
      */
     public function getRequestVariants(): array
     {
