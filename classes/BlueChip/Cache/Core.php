@@ -78,7 +78,7 @@ class Core
 
 
     /**
-     * @return string[] Filtered list of request variants.
+     * @return array<string,string> Filtered list of request variants.
      */
     public function getRequestVariants(): array
     {
@@ -170,13 +170,22 @@ class Core
             return false;
         }
 
+        // There can be more request variants cached for this URL, so we have to treat carefully.
+        $request_variant = $item->getRequestVariant();
+        $other_request_variants = \array_diff(\array_keys($this->getRequestVariants()), [$request_variant]);
+
         try {
+            // Attempt to delete cache files.
             $bytes_deleted
-                = self::deleteFile(self::getPlainFilename($path, $item->getRequestVariant()))
-                + self::deleteFile(self::getGzipFilename($path, $item->getRequestVariant()))
-                + self::deleteFile(self::getHtaccessFilename($path))
+                = self::deleteFile(self::getPlainFilename($path, $request_variant))
+                + self::deleteFile(self::getGzipFilename($path, $request_variant))
             ;
-            \rmdir($path);
+            // If there are no other request variants defined or they have no entries for this URL...
+            if (($other_request_variants === []) || (self::getCacheEntrySizes($path, $other_request_variants) === [])) {
+                // ...proceed to delete .htaccess file and the whole directory.
+                $bytes_deleted += self::deleteFile(self::getHtaccessFilename($path));
+                \rmdir($path);
+            }
             // Update cache size.
             $this->cache_info->decrementSize($bytes_deleted);
             // :)
@@ -228,16 +237,24 @@ class Core
             return false;
         }
 
+        // There can be more request variants cached for this URL, so we have to treat carefully.
+        $request_variant = $item->getRequestVariant();
+        $other_request_variants = \array_diff(\array_keys($this->getRequestVariants()), [$request_variant]);
+
         try {
             // Write cache date to disk, get number of bytes written.
-            $bytes_written = self::writeFile(self::getPlainFilename($path, $item->getRequestVariant()), $data);
+            $bytes_written = self::writeFile(self::getPlainFilename($path, $request_variant), $data);
             if (($gzip = \gzencode($data, 9)) !== false) {
-                $bytes_written += self::writeFile(self::getGzipFilename($path, $item->getRequestVariant()), $gzip);
+                $bytes_written += self::writeFile(self::getGzipFilename($path, $request_variant), $gzip);
             }
-            $bytes_written += self::writeFile(
-                self::getHtaccessFilename($path),
-                self::prepareHtaccessFile($headers)
-            );
+            // If there are no other request variants defined or they have no entries for this URL...
+            if (($other_request_variants === []) || (self::getCacheEntrySizes($path, $other_request_variants) === [])) {
+                // ...proceed to create new .htaccess file.
+                $bytes_written += self::writeFile(
+                    self::getHtaccessFilename($path),
+                    self::prepareHtaccessFile($headers)
+                );
+            }
             // Increment cache size.
             $this->cache_info->incrementSize($bytes_written);
             // :)
