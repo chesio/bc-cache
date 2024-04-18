@@ -105,6 +105,8 @@ class Viewer
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
 
+        $this->enqueueViewerStyles();
+
         $this->checkCacheSize();
     }
 
@@ -139,6 +141,19 @@ class Viewer
                 );
             }
         }
+    }
+
+
+    private function enqueueViewerStyles()
+    {
+        // Print the styles in the footer.
+        add_action('admin_print_footer_scripts', $this->printViewerStyles(...), 10, 0);
+    }
+
+
+    private function printViewerStyles()
+    {
+        echo '<style>.column-request_variant, .column-timestamp, .column-gzip_file_size, .column-plain_file_size, .column-total_size { width: 10%; }</style>';
     }
 
 

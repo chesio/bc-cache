@@ -161,16 +161,29 @@ class ListTable extends WP_List_Table
 
 
     /**
-     * Return content for "Size" column.
+     * Return content for "Gzip file size" column.
      */
-    public function column_size(ListTableItem $item): string // phpcs:ignore
+    public function column_gzip_file_size(ListTableItem $item): string // phpcs:ignore
     {
-        return \sprintf(
-            '%s | %s | %s',
-            esc_html(size_format($item->getTotalSize()) ?: self::UNKNOWN_VALUE),
-            esc_html(size_format($item->getPlainFileSize()) ?: self::UNKNOWN_VALUE),
-            esc_html(size_format($item->getGzipFileSize()) ?: self::UNKNOWN_VALUE)
-        );
+        return esc_html(size_format($item->getGzipFileSize()) ?: self::UNKNOWN_VALUE);
+    }
+
+
+    /**
+     * Return content for "Plain file size" column.
+     */
+    public function column_plain_file_size(ListTableItem $item): string // phpcs:ignore
+    {
+        return esc_html(size_format($item->getPlainFileSize()) ?: self::UNKNOWN_VALUE);
+    }
+
+
+    /**
+     * Return content for "Total size" column.
+     */
+    public function column_total_size(ListTableItem $item): string // phpcs:ignore
+    {
+        return esc_html(size_format($item->getTotalSize()) ?: self::UNKNOWN_VALUE);
     }
 
 
@@ -225,7 +238,9 @@ class ListTable extends WP_List_Table
             'url' => __('URL', 'bc-cache'),
             'request_variant' => __('Request variant', 'bc-cache'),
             'timestamp' => __('Created', 'bc-cache'),
-            'size' => __('Size: total | plain | gzipped', 'bc-cache'),
+            'gzip_file_size' => __('Gzip file size', 'bc-cache'),
+            'plain_file_size' => __('Plain file size', 'bc-cache'),
+            'total_size' => __('Total size', 'bc-cache'),
         ];
     }
 
@@ -242,7 +257,9 @@ class ListTable extends WP_List_Table
             'entry_id' => 'entry_id',
             'url' => 'url',
             'timestamp' => 'timestamp',
-            'size' => 'total_size',
+            'gzip_file_size' => 'gzip_file_size',
+            'plain_file_size' => 'plain_file_size',
+            'total_size' => 'total_size',
         ];
     }
 
