@@ -144,14 +144,14 @@ class Viewer
     }
 
 
-    private function enqueueViewerStyles()
+    private function enqueueViewerStyles(): void
     {
         // Print the styles in the footer.
         add_action('admin_print_footer_scripts', $this->printViewerStyles(...), 10, 0);
     }
 
 
-    private function printViewerStyles()
+    private function printViewerStyles(): void
     {
         echo '<style>.column-request_variant, .column-timestamp, .column-gzip_file_size, .column-plain_file_size, .column-total_size { width: 10%; }</style>';
     }
