@@ -1,6 +1,6 @@
 # BC Cache Changelog
 
-## Version 3.3.1 (????-??-??)
+## Version 3.3.1 (2024-04-18)
 
 ### Fixed
 
