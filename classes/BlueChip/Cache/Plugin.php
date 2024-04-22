@@ -446,8 +446,12 @@ class Plugin
         // Label has ID, so we can target (update) it via JavaScript.
         $label = '<span id="bc-cache-size">' . esc_html($cache_size) . '</span>';
 
-        // Wrap icon and label in a link to cache viewer.
-        $items[] = '<a class="bc-cache-size" href="' . $this->cache_viewer->getUrl() . '">' . $icon . ' ' . $label . '</a>';
+        // Wrap icon and label in a link to Cache Viewer if user can access it.
+        if (current_user_can(Viewer::REQUIRED_CAPABILITY)) {
+            $items[] = '<a class="bc-cache-size" href="' . $this->cache_viewer->getUrl() . '">' . $icon . ' ' . $label . '</a>';
+        } else {
+            $items[] = '<span class="bc-cache-size">' . $icon . ' ' . $label . '</span>';
+        }
 
         return $items;
     }
