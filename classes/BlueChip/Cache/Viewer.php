@@ -14,7 +14,7 @@ class Viewer
     /**
      * @var string Capability required to view cache viewer
      */
-    private const REQUIRED_CAPABILITY = 'manage_options';
+    public const REQUIRED_CAPABILITY = 'manage_options';
 
     /**
      * @var string Name of nonce used for any custom actions on admin pages

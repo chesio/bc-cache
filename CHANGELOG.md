@@ -4,6 +4,12 @@
 
 ...
 
+## Version 3.3.2 (2024-04-22)
+
+### Fixed
+
+* Display link to Cache Viewer in dashboard widget only if user can actually access Cache Viewer [#110](https://github.com/chesio/bc-cache/issues/110).
+
 ## Version 3.3.1 (2024-04-18)
 
 ### Fixed
