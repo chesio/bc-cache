@@ -13,7 +13,7 @@ abstract class Utils
     {
         return apply_filters(
             Hooks::FILTER_USER_CAN_FLUSH_CACHE,
-            current_user_can('manage_options')
+            current_user_can(Viewer::REQUIRED_CAPABILITY) // By default all users that can access Cache Viewer, can flush the cache as well.
         );
     }
 
