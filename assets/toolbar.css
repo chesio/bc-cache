@@ -9,10 +9,7 @@
     cursor: inherit;
     position: relative;
 }
-#wp-admin-bar-bc-cache .ab-icon {
-    margin:0 !important;
-}
-#wp-admin-bar-bc-cache .ab-icon:before {
+#wp-admin-bar-bc-cache .ab-icon::before {
     content: "\f182";
     top: 2px;
     margin: 0;
@@ -31,14 +28,14 @@
 
     position: absolute;
     left: 50%; top: 50%;
-    margin-left: -8px; margin-top: -8px;
+    margin-left: -8px; margin-top: -5px;
 }
 
 #wp-admin-bar-bc-cache.bc-cache-is-working {
     cursor: default;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-is-working .ab-icon {
+#wp-admin-bar-bc-cache.bc-cache-is-working .ab-icon::before {
     opacity: 0;
 }
 

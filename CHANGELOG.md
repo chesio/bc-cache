@@ -2,7 +2,9 @@
 
 ## Upcoming version 3.4.0 (????-??-??)
 
-...
+### Changed
+
+* Button to flush the cache is now placed in site-related menu (left side of admin bar) and has a text label [#112](https://github.com/chesio/bc-cache/issues/112). This should improve UI/UX.
 
 ## Version 3.3.2 (2024-04-22)
 

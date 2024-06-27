@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BlueChip\Cache;
 
+use function WP_CLI\Utils\wp_version_compare;
+
 class Plugin
 {
     /**
@@ -273,7 +275,7 @@ class Plugin
         // Add flush icon to admin bar.
         if (is_admin_bar_showing() && Utils::canUserFlushCache()) {
             add_action('admin_bar_init', $this->enqueueFlushIconAssets(...), 10, 0);
-            add_action('admin_bar_menu', $this->addFlushIcon(...), 90, 1);
+            add_action('admin_bar_menu', $this->addFlushIcon(...), 110, 1);
         }
 
         if (is_admin()) {
@@ -408,10 +410,10 @@ class Plugin
     {
         $wp_admin_bar->add_node([
             'id'     => 'bc-cache',
-            'parent' => 'top-secondary',
-            'title'  => '<span class="ab-icon dashicons"></span><span class="bc-cache-spinner"></span>',
+            // 'parent' => 'top-secondary',
+            'title'  => '<span class="ab-icon dashicons"><span class="bc-cache-spinner"></span></span><span class="ab-label">' . __('Clear HTML cache', 'bc-cache') . '</span>',
             'meta'   => [
-                'title' => __('Flush the cache', 'bc-cache'),
+                'title' => __('Clear HTML cache', 'bc-cache'),
             ],
         ]);
     }
