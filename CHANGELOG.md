@@ -2,8 +2,11 @@
 
 ## Upcoming version 3.4.0 (????-??-??)
 
+This release has been tested with PHP 8.4.
+
 ### Added
 
+* Plugin has been tested with PHP 8.4 [#114](https://github.com/chesio/bc-security/issues/114).
 * Plugin has been tested with WordPress 6.6 [#111](https://github.com/chesio/bc-cache/issues/111).
 
 ### Changed
