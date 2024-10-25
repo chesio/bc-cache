@@ -38,6 +38,7 @@
 
 #wp-admin-bar-bc-cache-stats table td,
 #wp-admin-bar-bc-cache-stats table th {
+    border: 0;
     padding: 0.25em 0.5em;
 }
 
