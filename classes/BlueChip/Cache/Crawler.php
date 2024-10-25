@@ -93,6 +93,22 @@ class Crawler
     }
 
 
+    public function getState(): CrawlingState
+    {
+        if ($this->cache_feeder->getSize() === 0) {
+            return CrawlingState::FINISHED;
+        }
+
+        $timestamp = $this->getNextScheduled();
+
+        if ($timestamp === null) {
+            return CrawlingState::STALLED;
+        }
+
+        return ($timestamp <= \time()) ? CrawlingState::RUNNING : CrawlingState::SCHEDULED;
+    }
+
+
     /**
      * Run cache warm up.
      *

@@ -8,10 +8,11 @@ This release has been tested with PHP 8.4.
 
 * Plugin has been tested with PHP 8.4 [#114](https://github.com/chesio/bc-security/issues/114).
 * Plugin has been tested with WordPress 6.6 [#111](https://github.com/chesio/bc-cache/issues/111) and 6.7 [#113](https://github.com/chesio/bc-cache/issues/113).
+* There is a new admin bar menu item that is linked to cache viewer and has a submenu that displays warm-up status, cache stats and features clear caches button [#115](https://github.com/chesio/bc-cache/issues/115).
 
 ### Changed
 
-* Button to flush the cache is now placed in site-related menu (left side of admin bar) and has a text label [#112](https://github.com/chesio/bc-cache/issues/112). This should improve UI/UX.
+* Button to flush the cache has been removed from user-related toolbar menu (right side of admin bar) [#112](https://github.com/chesio/bc-cache/issues/112) and is now available in newly added site-related toolbar menu (left side of admin bar).
 
 ## Version 3.3.2 (2024-04-22)
 

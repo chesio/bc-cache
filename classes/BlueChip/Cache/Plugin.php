@@ -272,10 +272,10 @@ class Plugin
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, $this->flushCacheOnce(...), 10, 0);
 
-        // Add flush icon to admin bar.
-        if (is_admin_bar_showing() && Utils::canUserFlushCache()) {
-            add_action('admin_bar_init', $this->enqueueFlushIconAssets(...), 10, 0);
-            add_action('admin_bar_menu', $this->addFlushIcon(...), 110, 1);
+        // Add toolbar to admin bar.
+        if (is_admin_bar_showing()) {
+            add_action('admin_bar_init', $this->enqueueToolbarAssets(...), 10, 0);
+            add_action('admin_bar_menu', $this->addToolbar(...), 110, 1);
         }
 
         if (is_admin()) {
@@ -371,7 +371,7 @@ class Plugin
     /**
      * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
      */
-    private function enqueueFlushIconAssets(): void
+    private function enqueueToolbarAssets(): void
     {
         wp_enqueue_style(
             'bc-cache-toolbar',
@@ -381,23 +381,28 @@ class Plugin
             'all'
         );
 
-        wp_enqueue_script(
-            'bc-cache-toolbar',
-            plugins_url('assets/toolbar.js', $this->plugin_filename),
-            ['jquery'],
-            '20190731',
-            true
-        );
+        if (Utils::canUserFlushCache()) {
+            wp_enqueue_script(
+                'bc-cache-toolbar',
+                plugins_url('assets/toolbar.js', $this->plugin_filename),
+                ['jquery'],
+                '20190731',
+                true
+            );
 
-        wp_localize_script(
-            'bc-cache-toolbar',
-            'bc_cache_ajax_object',
-            [
-                'ajaxurl' => admin_url('admin-ajax.php'), // necessary for the AJAX work properly on the frontend
-                'nonce' => wp_create_nonce(self::NONCE_FLUSH_CACHE_REQUEST),
-                'empty_cache_text' => __('Empty cache', 'bc-cache'),
-            ]
-        );
+            wp_localize_script(
+                'bc-cache-toolbar',
+                'bc_cache_ajax_object',
+                [
+                    'ajaxurl' => admin_url('admin-ajax.php'), // necessary for the AJAX work properly on the frontend
+                    'nonce' => wp_create_nonce(self::NONCE_FLUSH_CACHE_REQUEST),
+                    'empty_cache_text' => __('Empty cache', 'bc-cache'),
+                    'warm_up_reset_text' => __('Warm-up status unavailable.', 'bc-cache'),
+                    'zero_age_text' => human_time_diff(\time()),
+                    'zero_size_text' => size_format(0),
+                ]
+            );
+        }
     }
 
 
@@ -406,16 +411,81 @@ class Plugin
      *
      * @param \WP_Admin_Bar $wp_admin_bar
      */
-    private function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
+    private function addToolbar(\WP_Admin_Bar $wp_admin_bar): void
     {
+        $size = $this->cache->getSize();
+        $cache_size = \is_int($size) ? (string)size_format($size) : __('unknown', 'bc-cache');
+
+        $age = $this->cache->getAge();
+        $cache_age = \is_int($age) ? human_time_diff($age) : __('unknown', 'bc-cache');
+
+        // If warm-up is enabled, add info about warm-up progress/status to the toolbar as well.
+        if ($this->cache_crawler && $this->cache_feeder) {
+            switch ($this->cache_crawler->getState()) {
+                case CrawlingState::FINISHED:
+                    $warm_up_class = 'bc-cache-warm-up-finished';
+                    $warm_up_status = __('Website is fully cached.', 'bc-cache');
+                    break;
+                case CrawlingState::RUNNING:
+                    $warm_up_class = 'bc-cache-warm-up-runs';
+                    $warm_up_status = \sprintf(
+                        __('Warm-up in progress (%d%%)', 'bc-cache'),
+                        $this->cache_feeder->getProgress(),
+                    );
+                    break;
+                case CrawlingState::SCHEDULED:
+                    $warm_up_class = 'bc-cache-warm-up-runs';
+                    $warm_up_status = \sprintf(
+                        __('Warm-up starts in %s.', 'bc-cache'),
+                        // Note: fallback value is not necessary here, but makes PHPStan happy.
+                        human_time_diff($this->cache_crawler->getNextScheduled() ?? 0),
+                    );
+                    break;
+                case CrawlingState::STALLED:
+                    $warm_up_class = 'bc-cache-warm-up-stalled';
+                    $warm_up_status = \sprintf(
+                        __('Warm-up stalled at %d%%.', 'bc-cache'),
+                        $this->cache_feeder->getProgress(),
+                    );
+                    break;
+            }
+        } else {
+            $warm_up_class = 'bc-cache-warm-up-off';
+            $warm_up_status = '';
+        }
+
+        // Add main BC Cache node.
         $wp_admin_bar->add_node([
-            'id'     => 'bc-cache',
+            'id'    => 'bc-cache',
             // 'parent' => 'top-secondary',
-            'title'  => '<span class="ab-icon dashicons"><span class="bc-cache-spinner"></span></span><span class="ab-label">' . __('Clear BC Cache caches', 'bc-cache') . '</span>',
-            'meta'   => [
-                'title' => __('Clear BC Cache cache', 'bc-cache'),
-            ],
+            'title' => '<span class="ab-icon dashicons-html"></span><span class="ab-label">' . esc_html__('BC Cache', 'bc-cache') . '</span>',
+            'href'  => current_user_can(Viewer::REQUIRED_CAPABILITY) ? $this->cache_viewer->getUrl() : '',
+            'meta'  => [
+                'class' => $warm_up_class,
+            ]
         ]);
+
+        // Add "stats" node.
+        $wp_admin_bar->add_node([
+            'id'        => 'bc-cache-stats',
+            'title'     => '<table>'
+                         . '<tr><th colspan="2">' . esc_html__('BC Cache Info', 'bc-cache') . '</th></tr>'
+                         . (($warm_up_status !== '') ? ('<tr><td colspan="2" class="bc-cache-warm-up-status" id="bc-cache-toolbar-warm-up-status">' . esc_html($warm_up_status) . '</td></tr>') : '')
+                         . '<tr><td>' . esc_html__('Size:', 'bc-cache') . '</td><td id="bc-cache-toolbar-cache-size">' . esc_html($cache_size) . '</td></tr>'
+                         . '<tr><td>' . esc_html__('Age:', 'bc-cache') . '</td><td id="bc-cache-toolbar-cache-age">' . esc_html($cache_age) . '</td></tr>'
+                         . '</table>'
+            ,
+            'parent'    => 'bc-cache',
+        ]);
+
+        // Add "clear cache" node, but only if current user can flush cache.
+        if (Utils::canUserFlushCache()) {
+            $wp_admin_bar->add_node([
+                'id'        => 'bc-cache-clear-button',
+                'title'     => '<button id="bc-cache-clear"><span class="ab-icon dashicons-trash"><span class="bc-cache-spinner"></span></span><span class="ab-label">' . esc_html__('Clear cache', 'bc-cache') . '</span></button>',
+                'parent'    => 'bc-cache',
+            ]);
+        }
     }
 
 

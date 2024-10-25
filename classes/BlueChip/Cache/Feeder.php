@@ -84,6 +84,18 @@ class Feeder
 
 
     /**
+     * @return int Warm-up progress in % as whole number (no decimals).
+     */
+    public function getProgress(): int
+    {
+        ['processed' => $processed, 'waiting' => $waiting, 'total' => $total] = $this->getStats();
+
+        // Calculate progress in %:
+        return (int) (\round($processed / $total, 2) * 100);
+    }
+
+
+    /**
      * @return int Count of items waiting in the queue.
      */
     public function getSize(): int
@@ -91,9 +103,7 @@ class Feeder
         // Get shared lock, but continue even if it could not be acquired.
         $locked = $this->lock->acquire(false);
 
-        $queue = $this->getQueue();
-
-        $count = $queue->getWaitingCount();
+        $count = $this->getQueue()->getWaitingCount();
 
         if ($locked) {
             $this->lock->release(); // !

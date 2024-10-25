@@ -1,22 +1,95 @@
-/* Toolbar flush icon */
-#wp-admin-bar-bc-cache {
-    display: list-item !important;
-    cursor: pointer;
+/* Main toolbar item */
 
-    position: relative;
+#wp-admin-bar-bc-cache.bc-cache-warm-up-finished > a > .ab-icon::before {
+    color: lawngreen;
 }
-#wp-admin-bar-bc-cache .ab-empty-item {
-    cursor: inherit;
-    position: relative;
+
+#wp-admin-bar-bc-cache.bc-cache-warm-up-runs > a > .ab-icon::before {
+    color: yellow;
 }
-#wp-admin-bar-bc-cache .ab-icon::before {
-    content: "\f182";
+
+#wp-admin-bar-bc-cache.bc-cache-warm-up-stalled > a > .ab-icon::before {
+    color: red;
+}
+
+/* Subitems */
+#wp-admin-bar-bc-cache .ab-submenu .ab-item {
+    height: auto !important;
+    line-height: 1 !important;
+}
+
+/* Improve icons vertical alignment */
+#wp-admin-bar-bc-cache .dashicons-html::before,
+#wp-admin-bar-bc-cache .dashicons-trash::before {
     top: 2px;
     margin: 0;
 }
 
-/* Toolbar working icon (spinner) */
-#wp-admin-bar-bc-cache .bc-cache-spinner {
+
+/* Stats toolbar subitem */
+#wp-admin-bar-bc-cache-stats {
+    padding-bottom: 10px !important;
+}
+
+#wp-admin-bar-bc-cache-stats table * {
+    font-size: 12px;
+    line-height: 1;
+}
+
+#wp-admin-bar-bc-cache-stats table td,
+#wp-admin-bar-bc-cache-stats table th {
+    padding: 0.25em 0.5em;
+}
+
+#wp-admin-bar-bc-cache-stats table td:first-child,
+#wp-admin-bar-bc-cache-stats table th:first-child {
+    padding-left: 0;
+}
+
+#wp-admin-bar-bc-cache-stats table td:last-child,
+#wp-admin-bar-bc-cache-stats table th:last-child {
+    padding-right: 0;
+}
+
+#wp-admin-bar-bc-cache-stats table th {
+    font-weight: bold;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-warm-up-finished td.bc-cache-warm-up-status {
+    color: lawngreen;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-warm-up-runs td.bc-cache-warm-up-status {
+    color: yellow;
+}
+
+#wp-admin-bar-bc-cache.bc-cache-warm-up-stalled td.bc-cache-warm-up-status {
+    color: red;
+}
+
+
+/* Clear cache button (including spinner) */
+#wp-admin-bar-bc-cache-clear-button .ab-empty-item {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+#bc-cache-clear {
+    border: none;
+    background: #464b50;
+    padding: 0 10px;
+
+    width: calc(100% - 20px);
+
+    cursor: pointer;
+}
+
+#bc-cache-clear:focus,
+#bc-cache-clear:hover {
+    background: #000000;
+}
+
+#bc-cache-clear .bc-cache-spinner {
     display: none;
 
     height: 10px;
@@ -31,29 +104,29 @@
     margin-left: -8px; margin-top: -5px;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-is-working {
+#bc-cache-clear.bc-cache-is-working {
     cursor: default;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-is-working .ab-icon::before {
+#bc-cache-clear.bc-cache-is-working .ab-icon::before {
     opacity: 0;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-is-working .bc-cache-spinner {
+#bc-cache-clear.bc-cache-is-working .bc-cache-spinner {
     display: block;
 
     -webkit-animation: 1s linear 0s infinite bc_cache_rotate;
     animation: 1s linear 0s infinite bc_cache_rotate;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-success .bc-cache-spinner {
-    border-color: #02CA02;
+#bc-cache-clear.bc-cache-success .bc-cache-spinner {
+    border-color: lawngreen;
 
     -webkit-animation: none;
     animation: none;
 }
 
-#wp-admin-bar-bc-cache.bc-cache-error .bc-cache-spinner {
+#bc-cache-clear.bc-cache-error .bc-cache-spinner {
     border-color: red;
 
     -webkit-animation: none;
