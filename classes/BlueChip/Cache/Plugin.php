@@ -411,9 +411,9 @@ class Plugin
         $wp_admin_bar->add_node([
             'id'     => 'bc-cache',
             // 'parent' => 'top-secondary',
-            'title'  => '<span class="ab-icon dashicons"><span class="bc-cache-spinner"></span></span><span class="ab-label">' . __('Clear HTML cache', 'bc-cache') . '</span>',
+            'title'  => '<span class="ab-icon dashicons"><span class="bc-cache-spinner"></span></span><span class="ab-label">' . __('Clear BC Cache caches', 'bc-cache') . '</span>',
             'meta'   => [
-                'title' => __('Clear HTML cache', 'bc-cache'),
+                'title' => __('Clear BC Cache cache', 'bc-cache'),
             ],
         ]);
     }
