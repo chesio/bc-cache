@@ -105,6 +105,8 @@ class Viewer
         $this->list_table->displayNotices();
         $this->list_table->prepare_items();
 
+        $this->enqueueViewerStyles();
+
         $this->checkCacheSize();
     }
 
@@ -139,6 +141,19 @@ class Viewer
                 );
             }
         }
+    }
+
+
+    private function enqueueViewerStyles(): void
+    {
+        // Print the styles in the footer.
+        add_action('admin_print_footer_scripts', $this->printViewerStyles(...), 10, 0);
+    }
+
+
+    private function printViewerStyles(): void
+    {
+        echo '<style>.column-request_variant, .column-timestamp, .column-gzip_file_size, .column-plain_file_size, .column-total_size { width: 10%; }</style>';
     }
 
 
@@ -244,37 +259,38 @@ class Viewer
         }
 
         // Calculate progress in %:
-        $progress = (int) (\round($processed / $total, 2) * 100);
+        $progress = $this->cache_feeder->getProgress();
 
         // Prepare stats information.
-        $stats = sprintf(
+        $stats = \sprintf(
             esc_html__('%s of known frontend pages is cached (%d in queue | %d processed | %d total)', 'bc-cache'),
-            sprintf('<strong>%d%%</strong>', $progress), // render progress in bold
+            \sprintf('<strong>%d%%</strong>', $progress), // render progress in bold
             $waiting,
             $processed,
             $total
         );
 
-        if ($processed === $total) {
-            return sprintf(esc_html__('Website should be fully cached: %s', 'bc-cache'), $stats);
-        }
-
-        $next_run_timestamp = $this->cache_crawler->getNextScheduled();
-
-        if ($next_run_timestamp === null) {
-            // Somehow there is no cron job scheduled...
-            return sprintf(esc_html__('Warm up stalled at: %s', 'bc-cache'), $stats);
-        }
-
-        if ($next_run_timestamp <= time()) {
-            return sprintf(esc_html__('Warm up runs in background: %s', 'bc-cache'), $stats);
-        }
-
-        return sprintf(
-            esc_html__('Warm up starts in %s: %s', 'bc-cache'),
-            human_time_diff($next_run_timestamp),
-            $stats
-        );
+        // Return status message describing crawling state.
+        return match ($this->cache_crawler->getState()) {
+            CrawlingState::FINISHED => \sprintf(
+                esc_html__('Website should be fully cached: %s', 'bc-cache'),
+                $stats,
+            ),
+            CrawlingState::RUNNING => \sprintf(
+                esc_html__('Warm up runs in background: %s', 'bc-cache'),
+                $stats,
+            ),
+            CrawlingState::SCHEDULED => \sprintf(
+                esc_html__('Warm up starts in %s: %s', 'bc-cache'),
+                // Note: fallback value is not necessary here, but makes PHPStan happy.
+                human_time_diff($this->cache_crawler->getNextScheduled() ?? 0),
+                $stats,
+            ),
+            CrawlingState::STALLED => \sprintf(
+                esc_html__('Warm up stalled at: %s', 'bc-cache'),
+                $stats,
+            ),
+        };
     }
 
 

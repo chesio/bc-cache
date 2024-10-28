@@ -37,11 +37,6 @@ class Plugin
     private const FRONTEND_USER_COOKIE_VALUE = 'true';
 
     /**
-     * @var string Name of nonce used for AJAX-ified flush cache requests.
-     */
-    private const NONCE_FLUSH_CACHE_REQUEST = 'bc-cache/nonce:flush-cache-request';
-
-    /**
      * @var string Name of transient used to keep cache age and size information.
      */
     private const TRANSIENT_CACHE_INFO = 'bc-cache/transient:cache-info';
@@ -127,9 +122,14 @@ class Plugin
     private ?Feeder $cache_feeder = null;
 
     /**
-     * @var Viewer Viewer instance (initialized only in admin context).
+     * @var Viewer Viewer instance
      */
     private Viewer $cache_viewer;
+
+    /**
+     * @var AdminBar Admin bar instance
+     */
+    private AdminBar $admin_bar;
 
     /**
      * @var bool|null Null if cache has not been flushed yet in this request or cache flush status.
@@ -212,6 +212,8 @@ class Plugin
             $this->cache_feeder = new Feeder($this->cache, $this->feeder_lock);
             $this->cache_crawler = new Crawler($this->cache_feeder);
         }
+        $this->cache_viewer = new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder);
+        $this->admin_bar = new AdminBar($plugin_filename, $this->cache, $this->cache_feeder, $this->cache_crawler, $this->cache_viewer);
     }
 
 
@@ -224,9 +226,6 @@ class Plugin
     {
         // Register initialization method.
         add_action('init', $this->init(...), 10, 0);
-
-        // Register method handling AJAX call from admin bar icon (or elsewhere).
-        add_action('wp_ajax_bc_cache_flush_cache', $this->processFlushRequest(...), 10, 0);
 
         // Integrate with WP-CLI.
         add_action('cli_init', function () {
@@ -270,15 +269,11 @@ class Plugin
         // Add action to flush entire cache manually with do_action().
         add_action(Hooks::ACTION_FLUSH_CACHE, $this->flushCacheOnce(...), 10, 0);
 
-        // Add flush icon to admin bar.
-        if (is_admin_bar_showing() && Utils::canUserFlushCache()) {
-            add_action('admin_bar_init', $this->enqueueFlushIconAssets(...), 10, 0);
-            add_action('admin_bar_menu', $this->addFlushIcon(...), 90, 1);
-        }
+        // Initialize admin bar hooks.
+        $this->admin_bar->init();
 
         if (is_admin()) {
             // Initialize cache viewer.
-            $this->cache_viewer = new Viewer($this->cache, $this->cache_crawler, $this->cache_feeder);
             $this->cache_viewer->init();
 
             if (Utils::canUserFlushCache()) {
@@ -367,57 +362,6 @@ class Plugin
 
 
     /**
-     * @action https://developer.wordpress.org/reference/hooks/admin_bar_init/
-     */
-    private function enqueueFlushIconAssets(): void
-    {
-        wp_enqueue_style(
-            'bc-cache-toolbar',
-            plugins_url('assets/toolbar.css', $this->plugin_filename),
-            [],
-            '20181201',
-            'all'
-        );
-
-        wp_enqueue_script(
-            'bc-cache-toolbar',
-            plugins_url('assets/toolbar.js', $this->plugin_filename),
-            ['jquery'],
-            '20190731',
-            true
-        );
-
-        wp_localize_script(
-            'bc-cache-toolbar',
-            'bc_cache_ajax_object',
-            [
-                'ajaxurl' => admin_url('admin-ajax.php'), // necessary for the AJAX work properly on the frontend
-                'nonce' => wp_create_nonce(self::NONCE_FLUSH_CACHE_REQUEST),
-                'empty_cache_text' => __('Empty cache', 'bc-cache'),
-            ]
-        );
-    }
-
-
-    /**
-     * @action https://developer.wordpress.org/reference/hooks/admin_bar_menu/
-     *
-     * @param \WP_Admin_Bar $wp_admin_bar
-     */
-    private function addFlushIcon(\WP_Admin_Bar $wp_admin_bar): void
-    {
-        $wp_admin_bar->add_node([
-            'id'     => 'bc-cache',
-            'parent' => 'top-secondary',
-            'title'  => '<span class="ab-icon dashicons"></span><span class="bc-cache-spinner"></span>',
-            'meta'   => [
-                'title' => __('Flush the cache', 'bc-cache'),
-            ],
-        ]);
-    }
-
-
-    /**
      * Add info about cache size to "At a Glance" box on dashboard. The snippet is linked to cache viewer page.
      *
      * @filter https://developer.wordpress.org/reference/hooks/dashboard_glance_items/
@@ -486,25 +430,6 @@ class Plugin
     private function flushCacheOnce(): void
     {
         $this->cache_is_flushed ??= $this->cache->flush();
-    }
-
-
-    /**
-     * Process AJAX flush request.
-     *
-     * @internal Is executed in context of AJAX request.
-     */
-    private function processFlushRequest(): void
-    {
-        // Check AJAX referer - die if invalid.
-        check_ajax_referer(self::NONCE_FLUSH_CACHE_REQUEST, false, true);
-
-        // TODO: in case of failure, indicate whether it's been access rights or I/O error.
-        if (Utils::canUserFlushCache() && $this->cache->flush()) {
-            wp_send_json_success();
-        } else {
-            wp_send_json_error();
-        }
     }
 
 

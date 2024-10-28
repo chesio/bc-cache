@@ -1,7 +1,7 @@
 (function($, bc_cache_ajax_object, location) {
     $(function() {
         // Register click handler.
-        $('#wp-admin-bar-bc-cache').on('click', function() {
+        $('#bc-cache-clear').on('click', function() {
 
             var $button = $(this);
 
@@ -28,6 +28,17 @@
                     if (response.success) {
                         // Update cache size (in "At a Glance" box).
                         $('#bc-cache-size').text(bc_cache_ajax_object.empty_cache_text);
+                        // Remove warm-up status class from toolbar item.
+                        $('#wp-admin-bar-bc-cache')
+                            .removeClass('bc-cache-warm-up-finished')
+                            .removeClass('bc-cache-warm-up-runs')
+                            .removeClass('bc-cache-warm-up-stalled')
+                            .removeClass('bc-cache-warm-up-off')
+                        ;
+                        // Update toolbar info stats.
+                        $('#bc-cache-toolbar-warm-up-status').text(bc_cache_ajax_object.warm_up_reset_text);
+                        $('#bc-cache-toolbar-cache-size').text(bc_cache_ajax_object.zero_size_text);
+                        $('#bc-cache-toolbar-cache-age').text(bc_cache_ajax_object.zero_age_text);
                     }
                 },
                 complete : function() {
