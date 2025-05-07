@@ -2,7 +2,9 @@
 
 ## Upcoming version 3.5.0 (????-??-??)
 
-...
+### Changed
+
+* Regular expression for whitelisted query string has been updated in `README.md` to match `*` and `.` characters as well as they can be present in `_gl` tracking parameter [#116](https://github.com/chesio/bc-cache/issues/116). Note that there is no automatic update of `.htaccess` file - it has to be updated manually!
 
 ## Version 3.4.0 (2024-10-28)
 
