@@ -50,7 +50,7 @@ jobs:
       - name: "Set up PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          php-version: "8.1"
+          php-version: "8.2"
           extensions: "mbstring"
           coverage: "none"
 
@@ -77,7 +77,6 @@ jobs:
           - "8.4"
           - "8.3"
           - "8.2"
-          - "8.1"
         dependencies:
           - "lowest"
           - "locked"
@@ -109,7 +108,7 @@ jobs:
 #      - name: "Send coverage to Coveralls"
 #        env:
 #          COVERALLS_REPO_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-#        if: "${{ env.COVERALLS_REPO_TOKEN && matrix.php-version == '8.1' && matrix.dependencies == 'highest' }}"
+#        if: "${{ env.COVERALLS_REPO_TOKEN && matrix.php-version == '8.2' && matrix.dependencies == 'highest' }}"
 #        run: |
 #          wget "https://github.com/php-coveralls/php-coveralls/releases/download/v2.5.2/php-coveralls.phar"
 #          php ./php-coveralls.phar -v
@@ -124,7 +123,7 @@ jobs:
       - name: "Set up PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          php-version: "8.1"
+          php-version: "8.2"
           extensions: "mbstring"
           coverage: "none"
 
@@ -156,7 +155,7 @@ jobs:
       - name: "Set up PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          php-version: "8.1"
+          php-version: "8.2"
           extensions: "mbstring"
           coverage: "none"
 
