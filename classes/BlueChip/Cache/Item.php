@@ -41,7 +41,7 @@ class Item extends Serializable
      *
      * @param array{request_variant:string,url:string} $data
      */
-    public function inflate(array $data): void
+    protected function inflate(array $data): void
     {
         ['request_variant' => $this->request_variant, 'url' => $this->url] = $data;
     }

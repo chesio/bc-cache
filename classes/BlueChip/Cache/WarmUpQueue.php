@@ -47,7 +47,7 @@ class WarmUpQueue extends Serializable
      *
      * @internal Serialization helper.
      */
-    public function inflate(array $data): void
+    protected function inflate(array $data): void
     {
         ['processed' => $this->processed, 'waiting' => $this->waiting] = $data;
     }
