@@ -187,7 +187,7 @@ class Viewer
         echo '<p>';
         echo \sprintf(
             esc_html__('Cache data are stored in %s directory.', 'bc-cache'),
-            '<code>' . Plugin::CACHE_DIR . '</code>'
+            '<code>' . $this->cache->getCacheDirectory() . '</code>'
         );
         echo '</p>';
     }
