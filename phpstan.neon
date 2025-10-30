@@ -13,3 +13,10 @@ parameters:
     ignoreErrors:
         # The wp-cli/php-cli-tools package is not available during static analysis.
         - '#^Call to an undefined method cli\\progress\\Bar\|WP_CLI\\NoOp::(tick|finish)\(\)\.#'
+        # TODO: Ignore for now, it might require quite extensive refactoring.
+        - '#Found usage of constant WP_CONTENT_URL\. Use content_url\(\) instead\.#'
+        # These errors should be fixed with release of WP-CLI 2.13:
+        - '#^Parameter \#1 \$url of method BlueChip\\Cache\\Cli::erase\(\) expects string, string\|false given\.#'
+        - '#Parameter \#2 \$array of function array_map expects array, array<BlueChip\\Cache\\ListTableItem>\|null given\.#'
+        - '#Cannot call method (synchronize|getSize)\(\) on BlueChip\\Cache\\Feeder\|null\.#'
+        - '#Cannot call method step\(\) on BlueChip\\Cache\\Crawler\|null\.#'
