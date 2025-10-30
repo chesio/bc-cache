@@ -2,7 +2,11 @@
 
 ## Upcoming version 3.5.0 (????-??-??)
 
-PHP 8.2 or newer is now required!
+PHP 8.2 or newer is now required! This release has been tested with PHP 8.5.
+
+### Added
+
+* Plugin has been tested with PHP 8.5 [#118](https://github.com/chesio/bc-security/issues/118).
 
 ### Changed
 
