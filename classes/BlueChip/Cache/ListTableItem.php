@@ -7,7 +7,7 @@ namespace BlueChip\Cache;
 /**
  * A single cache item with additional data for list table view.
  */
-class ListTableItem extends Item
+readonly class ListTableItem extends Item
 {
     protected string $entry_id;
 

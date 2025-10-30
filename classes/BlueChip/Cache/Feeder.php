@@ -185,8 +185,14 @@ class Feeder
 
     private function getQueue(): WarmUpQueue
     {
-        /** @var WarmUpQueue|null $queue */
-        $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE) ?: null;
+        try {
+            /** @var WarmUpQueue|null $queue */
+            $queue = get_transient(self::TRANSIENT_CRAWLER_QUEUE) ?: null;
+        } catch (Exception $exception) {
+            // There has been deserialization error, reset queue anew.
+            \trigger_error((string) $exception, E_USER_WARNING);
+            $queue = null;
+        }
 
         if (!($queue instanceof WarmUpQueue)) {
             // Rebuild queue.
