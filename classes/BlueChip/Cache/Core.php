@@ -428,6 +428,10 @@ class Core
 
         $size = 0;
         foreach ($it as $fileinfo) {
+            if (!($fileinfo instanceof \SplFileInfo)) {
+                continue;
+            }
+
             if ($fileinfo->isFile()) {
                 $size += $fileinfo->getSize();
             }
@@ -704,6 +708,10 @@ class Core
         );
 
         foreach ($it as $fileinfo) {
+            if (!($fileinfo instanceof \SplFileInfo)) {
+                continue;
+            }
+
             // Get full path to file/directory.
             $path = $fileinfo->getPathname();
 
