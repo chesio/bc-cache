@@ -436,7 +436,7 @@ class Plugin
     /**
      * Start caching of output, but only if current page should be cached.
      *
-     * @action https://developer.wordpress.org/reference/hooks/template_redirect/
+     * @action https://developer.wordpress.org/reference/hooks/send_headers/
      */
     private function startOutputBuffering(): void
     {
