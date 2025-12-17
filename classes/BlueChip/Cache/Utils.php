@@ -31,7 +31,7 @@ abstract class Utils
             throw new Exception('Request URI is not defined!');
         }
 
-        return (is_ssl() ? 'https://' : 'http://') . $http_host . $request_uri;
+        return (is_ssl() ? 'https://' : 'http://') . \strtolower($http_host) . $request_uri;
     }
 
 

@@ -11,6 +11,7 @@ PHP 8.2 or newer is now required! This release has been tested with PHP 8.5.
 
 ### Changed
 
+* Hostname is converted to lowercase when resolving request URL [#121](https://github.com/chesio/bc-security/issues/121). This adheres to [host subcomponent specification in RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2).
 * PHP 8.2 is required [#119](https://github.com/chesio/bc-security/issues/119).
 * Regular expression for whitelisted query string has been updated in `README.md` to match `*` and `.` characters as well as they can be present in `_gl` tracking parameter [#116](https://github.com/chesio/bc-cache/issues/116). Note that there is no automatic update of `.htaccess` file - it has to be updated manually!
 
