@@ -23,7 +23,15 @@ abstract class Utils
      */
     public static function getRequestUrl(): string
     {
-        return (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        if (($http_host = ($_SERVER['HTTP_HOST'] ?? null)) === null) {
+            throw new Exception('HTTP host is not defined!');
+        }
+
+        if (($request_uri = ($_SERVER['REQUEST_URI'] ?? null)) === null) {
+            throw new Exception('Request URI is not defined!');
+        }
+
+        return (is_ssl() ? 'https://' : 'http://') . \strtolower($http_host) . $request_uri;
     }
 
 

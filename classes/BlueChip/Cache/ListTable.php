@@ -370,13 +370,19 @@ class ListTable extends WP_List_Table
 
         // Bulk delete?
         if ((self::BULK_ACTION_DELETE === $this->current_action()) && Utils::canUserFlushCache() && isset($_POST['urls']) && \is_array($_POST['urls'])) {
-            // Sanitize.
-            $sanitized = \array_filter(
-                \filter_input_array(INPUT_POST, ['urls' => ['filter' => FILTER_VALIDATE_URL, 'flags' => FILTER_REQUIRE_ARRAY]])
+            // Validate URLs array in POSTed data.
+            $validated = \filter_input_array(
+                INPUT_POST,
+                [
+                    'urls' => [
+                        'filter' => FILTER_VALIDATE_URL,
+                        'flags' => FILTER_NULL_ON_FAILURE | FILTER_REQUIRE_ARRAY
+                    ],
+                ],
             );
 
-            // Get URLs.
-            $urls = $sanitized['urls'] ?? [];
+            // Get URLs - filter out any invalid ones just in case.
+            $urls = array_filter($validated['urls'] ?? []);
 
             // Number of entries really deleted.
             $items_deleted = 0;

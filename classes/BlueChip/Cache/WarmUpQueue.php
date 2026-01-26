@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace BlueChip\Cache;
 
-class WarmUpQueue extends Serializable
+class WarmUpQueue
 {
+    use SerializationTrait;
+
     /**
      * @var int Internal class version (used for serialization/unserialization)
      */
@@ -31,25 +33,21 @@ class WarmUpQueue extends Serializable
     }
 
 
-    /**
-     * @internal Serialization helper.
-     *
-     * @return array{processed:Item[],waiting:Item[]}
-     */
-    protected function deflate(): array
+    public function __serialize(): array
     {
-        return ['processed' => $this->processed, 'waiting' => $this->waiting];
+        return $this->serialize(
+            ['processed' => $this->processed, 'waiting' => $this->waiting],
+            self::DB_VERSION,
+        );
     }
 
 
     /**
-     * @param array{processed:Item[],waiting:Item[]} $data
-     *
-     * @internal Serialization helper.
+     * @param array{db_version:int,data:array<string,mixed>} $data
      */
-    public function inflate(array $data): void
+    public function __unserialize(array $data): void
     {
-        ['processed' => $this->processed, 'waiting' => $this->waiting] = $data;
+        ['processed' => $this->processed, 'waiting' => $this->waiting] = $this->unserialize($data, self::DB_VERSION);
     }
 
 

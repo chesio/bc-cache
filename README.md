@@ -12,7 +12,7 @@ BC Cache can cache not only HTML pages, but [core XML sitemaps](https://make.wor
 ## Requirements
 
 * Apache webserver with [mod_rewrite](https://httpd.apache.org/docs/current/mod/mod_rewrite.html) enabled
-* [PHP](https://www.php.net/) 8.1 or newer
+* [PHP](https://www.php.net/) 8.2 or newer
 * [WordPress](https://wordpress.org/) 6.2 or newer with [pretty permalinks](https://wordpress.org/documentation/article/customize-permalinks/#pretty-permalinks) on
 
 ## Limitations
@@ -103,7 +103,7 @@ AddDefaultCharset utf-8
 
   # Main rules: serve only GET requests with whitelisted query string fields coming from anonymous users.
   RewriteCond %{REQUEST_METHOD} GET
-  RewriteCond %{QUERY_STRING} ^(?:(?:_gl|gclid|gclsrc|fbclid|msclkid|utm_(?:source|medium|campaign|term|content))=[\w\-]*(?:&|$))*$
+  RewriteCond %{QUERY_STRING} ^(?:(?:_gl|gclid|gclsrc|fbclid|msclkid|utm_(?:source|medium|campaign|term|content))=[\w\-*.]*(?:&|$))*$
   RewriteCond %{HTTP_COOKIE} !(wp-postpass|wordpress_logged_in|comment_author)_
   RewriteCond %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} -f
   RewriteRule .* %{ENV:BC_CACHE_ROOT}/wp-content/cache/bc-cache/%{ENV:BC_CACHE_SCHEME}_%{ENV:BC_CACHE_HOST}%{ENV:BC_CACHE_PATH}%{ENV:BC_CACHE_FILE} [L,NS]

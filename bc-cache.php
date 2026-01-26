@@ -4,12 +4,12 @@
  * Plugin Name: BC Cache
  * Plugin URI: https://github.com/chesio/bc-cache
  * Description: Simple full page cache plugin inspired by Cachify.
- * Version: 3.4.0
+ * Version: 3.5.0
  * Author: Česlav Przywara <ceslav@przywara.cz>
  * Author URI: https://www.chesio.com
- * Requires PHP: 8.1
+ * Requires PHP: 8.2
  * Requires at least: 6.2
- * Tested up to: 6.7
+ * Tested up to: 6.9
  * Text Domain: bc-cache
  * GitHub Plugin URI: https://github.com/chesio/bc-cache
  * Update URI: https://github.com/chesio/bc-cache
@@ -19,7 +19,7 @@
 if (
     false === \call_user_func(
         function () {
-            $php_version_ok = \version_compare(PHP_VERSION, '8.1', '>=');
+            $php_version_ok = \version_compare(PHP_VERSION, '8.2', '>=');
             $pretty_permalinks_on = (bool) get_option('permalink_structure');
 
             if (!$php_version_ok) {
@@ -28,7 +28,7 @@ if (
                     echo '<div class="error"><p>';
                     echo esc_html(
                         \sprintf(
-                            __('BC Cache plugin requires PHP 8.1 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
+                            __('BC Cache plugin requires PHP 8.2 to function properly, but you have version %s installed. The plugin has been auto-deactivated.', 'bc-cache'),
                             PHP_VERSION
                         )
                     );

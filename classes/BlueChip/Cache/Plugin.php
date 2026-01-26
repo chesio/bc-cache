@@ -7,14 +7,14 @@ namespace BlueChip\Cache;
 class Plugin
 {
     /**
-     * @var string Path to root cache directory
+     * @var string Path to root cache subdirectory relative to WordPress content directory.
      */
-    public const CACHE_DIR = WP_CONTENT_DIR . '/cache/bc-cache';
+    private const CACHE_SUBDIR = 'cache/bc-cache';
 
     /**
-     * @var string URL of root cache directory
+     * @var string Path to root cache directory.
      */
-    public const CACHE_URL = WP_CONTENT_URL . '/cache/bc-cache';
+    private const CACHE_DIR = WP_CONTENT_DIR . DIRECTORY_SEPARATOR . self::CACHE_SUBDIR;
 
     /**
      * @var string Path to cache core lock file - must be outside of cache directory!
@@ -352,7 +352,7 @@ class Plugin
     private function alterRobotsTxt(string $data): string
     {
         // Get path component of cache directory URL.
-        $path = \parse_url(self::CACHE_URL, PHP_URL_PATH);
+        $path = \parse_url(content_url(self::CACHE_SUBDIR), PHP_URL_PATH);
         // Disallow direct access to cache directory.
         return $data . PHP_EOL
             . 'User-agent: *' . PHP_EOL
@@ -436,7 +436,7 @@ class Plugin
     /**
      * Start caching of output, but only if current page should be cached.
      *
-     * @action https://developer.wordpress.org/reference/hooks/template_redirect/
+     * @action https://developer.wordpress.org/reference/hooks/send_headers/
      */
     private function startOutputBuffering(): void
     {

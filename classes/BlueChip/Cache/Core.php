@@ -78,6 +78,15 @@ class Core
 
 
     /**
+     * @return string Path to root cache directory.
+     */
+    public function getCacheDirectory(): string
+    {
+        return $this->cache_dir;
+    }
+
+
+    /**
      * @return array<string,string> Filtered list of request variants.
      */
     public function getRequestVariants(): array
@@ -419,6 +428,10 @@ class Core
 
         $size = 0;
         foreach ($it as $fileinfo) {
+            if (!($fileinfo instanceof \SplFileInfo)) {
+                continue;
+            }
+
             if ($fileinfo->isFile()) {
                 $size += $fileinfo->getSize();
             }
@@ -695,6 +708,10 @@ class Core
         );
 
         foreach ($it as $fileinfo) {
+            if (!($fileinfo instanceof \SplFileInfo)) {
+                continue;
+            }
+
             // Get full path to file/directory.
             $path = $fileinfo->getPathname();
 

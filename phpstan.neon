@@ -5,11 +5,15 @@ parameters:
     paths:
         - classes/
     bootstrapFiles:
-        - tests/static-analysis/bootstrap.php
         - autoload.php
     scanFiles:
-        - tests/static-analysis/stubs/php-cli-tools.php
+        - tests/static-analysis/stubs/wordpress.php
+        - tests/static-analysis/stubs/wp-cli.php
         - vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+        - vendor/php-stubs/wp-cli-stubs/wp-cli-tools-stubs.php
     ignoreErrors:
-        # The wp-cli/php-cli-tools package is not available during static analysis.
-        - '#^Call to an undefined method cli\\progress\\Bar\|WP_CLI\\NoOp::(tick|finish)\(\)\.#'
+        # These errors should be fixed with release of WP-CLI 2.13:
+        - '#^Parameter \#1 \$url of method BlueChip\\Cache\\Cli::erase\(\) expects string, string\|false given\.#'
+        - '#Parameter \#2 \$array of function array_map expects array, array<BlueChip\\Cache\\ListTableItem>\|null given\.#'
+        - '#Cannot call method (synchronize|getSize)\(\) on BlueChip\\Cache\\Feeder\|null\.#'
+        - '#Cannot call method step\(\) on BlueChip\\Cache\\Crawler\|null\.#'
